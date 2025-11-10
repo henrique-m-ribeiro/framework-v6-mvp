@@ -1,0 +1,264 @@
+{
+  "name": "WF-RAG-01: Gerar e Inserir Análise no RAG",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "wf-rag-01",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Receber Pergunta",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validar parâmetros obrigatórios\nconst required = ['pergunta', 'codigo_ibge', 'agente', 'tipo_analise'];\nconst missing = [];\n\nfor (const param of required) {\n  if (!$input.item.json[param]) {\n    missing.push(param);\n  }\n}\n\nif (missing.length > 0) {\n  throw new Error(`Parâmetros obrigatórios ausentes: ${missing.join(', ')}`);\n}\n\n// Validar agente\nconst agentes_validos = ['INTERACT', 'TERRA', 'ECON', 'SOCIAL', 'AMBIENTAL'];\nif (!agentes_validos.includes($input.item.json.agente)) {\n  throw new Error(`Agente inválido. Válidos: ${agentes_validos.join(', ')}`);\n}\n\n// Validar tipo_analise\nconst tipos_validos = ['territorial', 'economica', 'social', 'ambiental', 'integrada'];\nif (!tipos_validos.includes($input.item.json.tipo_analise)) {\n  throw new Error(`Tipo de análise inválido. Válidos: ${tipos_validos.join(', ')}`);\n}\n\nconsole.log('✅ Parâmetros validados com sucesso');\n\nreturn $input.item;"
+      },
+      "id": "validar-parametros",
+      "name": "Validar Parâmetros",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Buscar análises similares para contexto RAG\nconst pergunta = $input.item.json.pergunta;\nconst codigo_ibge = $input.item.json.codigo_ibge;\nconst tipo_analise = $input.item.json.tipo_analise;\n\n// Gerar embedding da pergunta usando OpenAI\nconst OpenAI = require('openai');\nconst client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });\n\nconst embeddingResponse = await client.embeddings.create({\n  model: 'text-embedding-3-small',\n  input: pergunta\n});\n\nconst embedding = embeddingResponse.data[0].embedding;\nconst embeddingStr = '[' + embedding.join(',') + ']';\n\nconsole.log('✅ Embedding da pergunta gerado');\n\nreturn {\n  json: {\n    ...$input.item.json,\n    query_embedding: embeddingStr\n  }\n};"
+      },
+      "id": "gerar-embedding-query",
+      "name": "Gerar Embedding da Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM buscar_analises_similares(\n  '{{ $json.query_embedding }}'::vector(1536),\n  3,\n  '{{ $json.tipo_analise }}',\n  '{{ $json.codigo_ibge }}'\n)\nWHERE similarity >= 0.7;",
+        "options": {}
+      },
+      "id": "buscar-contexto-rag",
+      "name": "Buscar Contexto RAG",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL Framework V6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir contexto RAG a partir de análises similares\nconst analisesSimilares = $input.all();\nlet contextoRAG = '';\nconst analisesSimilaresIds = [];\n\nif (analisesSimilares.length > 0) {\n  contextoRAG = '\\n\\nAnálises similares anteriores:\\n\\n';\n  \n  for (let i = 0; i < analisesSimilares.length; i++) {\n    const analise = analisesSimilares[i].json;\n    contextoRAG += `${i + 1}. ${analise.titulo} (similaridade: ${analise.similarity.toFixed(2)})\\n`;\n    analisesSimilaresIds.push(analise.id);\n  }\n  \n  console.log(`✅ ${analisesSimilares.length} análises similares encontradas`);\n} else {\n  console.log('ℹ️  Nenhuma análise similar encontrada');\n}\n\n// Recuperar dados originais do webhook\nconst dadosOriginais = $('Validar Parâmetros').first().json;\n\nreturn {\n  json: {\n    ...dadosOriginais,\n    contexto_rag: contextoRAG,\n    analises_similares_ids: analisesSimilaresIds\n  }\n};"
+      },
+      "id": "construir-contexto",
+      "name": "Construir Contexto",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Buscar dados relevantes baseado no tipo de análise\nSELECT * FROM dados_economicos \nWHERE codigo_ibge = '{{ $json.codigo_ibge }}' \n  AND ano >= 2018 \nORDER BY ano DESC;",
+        "options": {}
+      },
+      "id": "buscar-dados-postgresql",
+      "name": "Buscar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL Framework V6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir prompt completo com contexto RAG e dados\nconst dadosContexto = $('Construir Contexto').first().json;\nconst dadosPostgres = $input.all().map(item => item.json);\n\nconst promptSistema = `Você é um especialista em análise de dados municipais brasileiros.\nSua função é analisar dados e gerar insights acionáveis para gestores públicos.\nSeja objetivo, preciso e baseie-se apenas nos dados fornecidos.`;\n\nconst promptUsuario = `${dadosContexto.pergunta}${dadosContexto.contexto_rag}\n\nDados disponíveis:\n${JSON.stringify(dadosPostgres, null, 2)}`;\n\nconsole.log('✅ Prompt construído');\n\nreturn {\n  json: {\n    ...dadosContexto,\n    prompt_sistema: promptSistema,\n    prompt_usuario: promptUsuario\n  }\n};"
+      },
+      "id": "construir-prompt",
+      "name": "Construir Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "gpt-4o",
+        "messages": {
+          "messageValues": [
+            {
+              "role": "system",
+              "content": "={{ $json.prompt_sistema }}"
+            },
+            {
+              "role": "user",
+              "content": "={{ $json.prompt_usuario }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 2000
+        }
+      },
+      "id": "gerar-analise-openai",
+      "name": "Gerar Análise (OpenAI)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [1650, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI Framework V6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "embedding",
+        "model": "text-embedding-3-small",
+        "text": "={{ $json.message.content }}",
+        "options": {}
+      },
+      "id": "gerar-embedding-analise",
+      "name": "Gerar Embedding da Análise",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.3,
+      "position": [1850, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI Framework V6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Construir metadados JSONB\nconst dadosPrompt = $('Construir Prompt').first().json;\nconst resultadoLLM = $('Gerar Análise (OpenAI)').first().json;\n\nconst tokensPrompt = resultadoLLM.usage.prompt_tokens;\nconst tokensCompletion = resultadoLLM.usage.completion_tokens;\nconst tokensTotal = resultadoLLM.usage.total_tokens;\n\n// Calcular custos\nconst custoLLM = (tokensPrompt * 0.0000025) + (tokensCompletion * 0.00001);\nconst custoEmbedding = 0.000024; // Estimativa\nconst custoTotal = custoLLM + custoEmbedding;\n\nconst metadados = {\n  agente: dadosPrompt.agente,\n  prompt_usuario: dadosPrompt.pergunta,\n  prompt_sistema: dadosPrompt.prompt_sistema,\n  modelo_llm: 'gpt-4o',\n  modelo_embedding: 'text-embedding-3-small',\n  tokens_prompt: tokensPrompt,\n  tokens_completion: tokensCompletion,\n  tokens_total: tokensTotal,\n  custo_llm_usd: custoLLM,\n  custo_embedding_usd: custoEmbedding,\n  custo_total_usd: custoTotal,\n  fontes_dados: ['dados_economicos'],\n  codigos_ibge: [dadosPrompt.codigo_ibge],\n  tags: ['economia', 'pib', 'analise'],\n  contexto: {\n    analises_similares_usadas: dadosPrompt.analises_similares_ids\n  },\n  data_geracao: new Date().toISOString()\n};\n\nconsole.log(`✅ Metadados construídos (custo: $${custoTotal.toFixed(6)})`);\n\nreturn {\n  json: {\n    ...dadosPrompt,\n    analise_texto: resultadoLLM.message.content,\n    metadados: metadados\n  }\n};"
+      },
+      "id": "construir-metadados",
+      "name": "Construir Metadados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2050, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar dados para inserção\nconst dadosMetadados = $('Construir Metadados').first().json;\nconst embedding = $('Gerar Embedding da Análise').first().json.data[0].embedding;\n\n// Converter embedding para string formatada para pgvector\nconst embeddingStr = '[' + embedding.join(',') + ']';\n\nconst titulo = `${dadosMetadados.agente}: ${dadosMetadados.pergunta.substring(0, 50)}...`;\n\nconsole.log('✅ Dados preparados para inserção');\n\nreturn {\n  json: {\n    codigo_ibge: dadosMetadados.codigo_ibge,\n    tipo_analise: dadosMetadados.tipo_analise,\n    titulo: titulo,\n    conteudo: dadosMetadados.analise_texto,\n    embedding: embeddingStr,\n    metadados: JSON.stringify(dadosMetadados.metadados)\n  }\n};"
+      },
+      "id": "preparar-insercao",
+      "name": "Preparar Inserção",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO analises_geradas (\n  codigo_ibge,\n  tipo_analise,\n  titulo,\n  conteudo,\n  embedding,\n  metadados\n) VALUES (\n  '{{ $json.codigo_ibge }}',\n  '{{ $json.tipo_analise }}',\n  '{{ $json.titulo }}',\n  '{{ $json.conteudo }}',\n  '{{ $json.embedding }}'::vector(1536),\n  '{{ $json.metadados }}'::jsonb\n)\nRETURNING id, data_criacao;",
+        "options": {}
+      },
+      "id": "inserir-postgresql",
+      "name": "Inserir no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [2450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL Framework V6"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Preparar resposta final\nconst dadosMetadados = $('Construir Metadados').first().json;\nconst resultadoInsercao = $input.first().json;\n\nconst resposta = {\n  sucesso: true,\n  analise_id: resultadoInsercao.id,\n  data_criacao: resultadoInsercao.data_criacao,\n  analise: dadosMetadados.analise_texto,\n  metadados: dadosMetadados.metadados,\n  mensagem: 'Análise gerada e inserida no RAG com sucesso'\n};\n\nconsole.log(`✅ Análise inserida: ${resultadoInsercao.id}`);\n\nreturn { json: resposta };"
+      },
+      "id": "preparar-resposta",
+      "name": "Preparar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-webhook",
+      "name": "Responder Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2850, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Receber Pergunta": {
+      "main": [[{ "node": "Validar Parâmetros", "type": "main", "index": 0 }]]
+    },
+    "Validar Parâmetros": {
+      "main": [[{ "node": "Gerar Embedding da Query", "type": "main", "index": 0 }]]
+    },
+    "Gerar Embedding da Query": {
+      "main": [[{ "node": "Buscar Contexto RAG", "type": "main", "index": 0 }]]
+    },
+    "Buscar Contexto RAG": {
+      "main": [[{ "node": "Construir Contexto", "type": "main", "index": 0 }]]
+    },
+    "Construir Contexto": {
+      "main": [[{ "node": "Buscar Dados PostgreSQL", "type": "main", "index": 0 }]]
+    },
+    "Buscar Dados PostgreSQL": {
+      "main": [[{ "node": "Construir Prompt", "type": "main", "index": 0 }]]
+    },
+    "Construir Prompt": {
+      "main": [[{ "node": "Gerar Análise (OpenAI)", "type": "main", "index": 0 }]]
+    },
+    "Gerar Análise (OpenAI)": {
+      "main": [[{ "node": "Gerar Embedding da Análise", "type": "main", "index": 0 }]]
+    },
+    "Gerar Embedding da Análise": {
+      "main": [[{ "node": "Construir Metadados", "type": "main", "index": 0 }]]
+    },
+    "Construir Metadados": {
+      "main": [[{ "node": "Preparar Inserção", "type": "main", "index": 0 }]]
+    },
+    "Preparar Inserção": {
+      "main": [[{ "node": "Inserir no PostgreSQL", "type": "main", "index": 0 }]]
+    },
+    "Inserir no PostgreSQL": {
+      "main": [[{ "node": "Preparar Resposta", "type": "main", "index": 0 }]]
+    },
+    "Preparar Resposta": {
+      "main": [[{ "node": "Responder Webhook", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-07T12:00:00.000Z",
+  "versionId": "1"
+}
