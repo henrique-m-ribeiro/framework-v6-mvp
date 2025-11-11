@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Framework V6.0 - Dashboard com Seleção Regional</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        /* ===== TERRITORY SELECTOR (ATUALIZADO) ===== */
+        .territory-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .selector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .selector-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .territory-selector select {
+            padding: 0.75rem 2rem 0.75rem 1rem;
+            font-size: 0.95rem;
+            border: none;
+            border-radius: 8px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            min-width: 180px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .territory-selector select:focus {
+            outline: 2px solid #60a5fa;
+        }
+
+        /* Badge para tipo de território */
+        .territory-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .container {
+            display: grid;
+            grid-template-columns: 320px 1fr 280px;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
+            height: calc(100vh - 100px);
+        }
+
+        /* ===== LEFT SIDEBAR - DIMENSÕES (ATUALIZADO) ===== */
+        .dimensions-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-y: auto;
+        }
+
+        .dimensions-panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+
+        .dimension-card {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dimension-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .dimension-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .dimension-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .dimension-icon {
+            font-size: 1.5rem;
+        }
+
+        .dimension-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .dimension-metric {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+        }
+
+        .dimension-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #1e3a8a;
+            margin-bottom: 0.75rem;
+        }
+
+        .dimension-change {
+            font-size: 0.8rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .dimension-change.positive {
+            color: #16a34a;
+        }
+
+        .dimension-change.negative {
+            color: #dc2626;
+        }
+
+        /* ===== COMPARAÇÃO REGIONAL (NOVO) ===== */
+        .regional-comparison {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 0.75rem;
+            margin-top: 0.75rem;
+        }
+
+        .regional-comparison-title {
+            font-size: 0.75rem;
+            color: #0369a1;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .regional-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .regional-stat-label {
+            font-size: 0.8rem;
+            color: #475569;
+        }
+
+        .regional-stat-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+
+        .ranking-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            background: #fef3c7;
+            color: #92400e;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .ranking-badge.first {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ranking-badge.top3 {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .ranking-badge.other {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        /* ===== CENTER - AI CHAT ===== */
+        .chat-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chat-header h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .ai-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .context-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 0.4rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            background: #f8fafc;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .message.ai .message-avatar {
+            background: #10b981;
+            color: white;
+        }
+
+        .message-content {
+            flex: 1;
+        }
+
+        .message-bubble {
+            background: white;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 0.5rem;
+        }
+
+        .message.user .message-bubble {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .message-text {
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .message-chart {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+
+        .message-timestamp {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 0.5rem;
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem 1.25rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .chat-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .chat-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .action-btn.send {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .action-btn.send:hover {
+            background: #2563eb;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-action-btn {
+            padding: 0.5rem 1rem;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-btn:hover {
+            background: #e2e8f0;
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+
+        .quick-action-btn.regional {
+            background: #eff6ff;
+            border-color: #bae6fd;
+            color: #0369a1;
+        }
+
+        .quick-action-btn.regional:hover {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        /* ===== RIGHT SIDEBAR - HISTÓRICO (ATUALIZADO) ===== */
+        .history-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-y: auto;
+        }
+
+        .history-panel h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            color: #1e3a8a;
+            font-weight: 600;
+        }
+
+        .history-item {
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .history-item:hover {
+            background: #eff6ff;
+            border-color: #3b82f6;
+        }
+
+        .history-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .history-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .history-badges {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .history-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .history-badge.regional {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* ===== SCROLLBAR CUSTOMIZATION ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1400px) {
+            .container {
+                grid-template-columns: 300px 1fr 260px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+            }
+
+            .dimensions-panel,
+            .history-panel {
+                max-height: 300px;
+            }
+
+            .territory-selector {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div>
+            <h1>🌍 Framework V6.0</h1>
+            <div class="header-subtitle">Sistema de Inteligência Territorial</div>
+        </div>
+        <div class="territory-selector">
+            <div class="selector-group">
+                <label for="territory-type">Tipo de Território</label>
+                <select id="territory-type">
+                    <option value="estado">Estado</option>
+                    <option value="regiao_intermediaria">Região Intermediária</option>
+                    <option value="regiao_imediata">Região Imediata</option>
+                    <option value="municipio" selected>Município</option>
+                    <option disabled>──────────────</option>
+                    <option value="mesorregiao">Mesorregião (1989-2017)</option>
+                    <option value="microrregiao">Microrregião (1989-2017)</option>
+                </select>
+            </div>
+            <div class="selector-group">
+                <label for="territory">Território Selecionado</label>
+                <select id="territory">
+                    <optgroup label="Região Intermediária de Palmas">
+                        <option value="1721000" selected>Palmas (306k hab.)</option>
+                        <option value="1718204">Porto Nacional (53k hab.)</option>
+                        <option value="1716703">Paraíso do Tocantins (52k hab.)</option>
+                    </optgroup>
+                    <optgroup label="Região Intermediária de Araguaína">
+                        <option value="1702109">Araguaína (171k hab.)</option>
+                        <option value="1706506">Gurupi (89k hab.)</option>
+                        <option value="1707108">Colinas do Tocantins (34k hab.)</option>
+                    </optgroup>
+                    <optgroup label="Região Intermediária de Gurupi">
+                        <option value="1707009">Dianópolis (18k hab.)</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="container">
+        <!-- LEFT SIDEBAR - DIMENSÕES -->
+        <div class="dimensions-panel">
+            <h2>📊 Dimensões</h2>
+
+            <div class="dimension-card active">
+                <div class="dimension-header">
+                    <div class="dimension-icon">📈</div>
+                    <div class="dimension-title">Econômica</div>
+                </div>
+                <div class="dimension-metric">PIB Total</div>
+                <div class="dimension-value">R$ 32,5 bi</div>
+                <div class="dimension-change negative">↓ -0,4% vs. ano anterior</div>
+                
+                <!-- COMPARAÇÃO REGIONAL -->
+                <div class="regional-comparison">
+                    <div class="regional-comparison-title">Contexto Regional</div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Região Imediata:</span>
+                        <span class="regional-stat-value">R$ 45,2 bi</span>
+                    </div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Participação:</span>
+                        <span class="regional-stat-value">72%</span>
+                    </div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Ranking:</span>
+                        <span class="ranking-badge first">1º de 10 municípios</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dimension-card">
+                <div class="dimension-header">
+                    <div class="dimension-icon">👥</div>
+                    <div class="dimension-title">Social</div>
+                </div>
+                <div class="dimension-metric">IDEB Anos Iniciais</div>
+                <div class="dimension-value">6,2</div>
+                <div class="dimension-change positive">↑ +0,3 vs. avaliação anterior</div>
+                
+                <div class="regional-comparison">
+                    <div class="regional-comparison-title">Contexto Regional</div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Média Regional:</span>
+                        <span class="regional-stat-value">5,8</span>
+                    </div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Ranking:</span>
+                        <span class="ranking-badge top3">2º de 10 municípios</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dimension-card">
+                <div class="dimension-header">
+                    <div class="dimension-icon">📍</div>
+                    <div class="dimension-title">Territorial</div>
+                </div>
+                <div class="dimension-metric">População</div>
+                <div class="dimension-value">306 mil</div>
+                <div class="dimension-change positive">↑ +0,5% vs. ano anterior</div>
+                
+                <div class="regional-comparison">
+                    <div class="regional-comparison-title">Contexto Regional</div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">População Regional:</span>
+                        <span class="regional-stat-value">450 mil</span>
+                    </div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Participação:</span>
+                        <span class="regional-stat-value">68%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dimension-card">
+                <div class="dimension-header">
+                    <div class="dimension-icon">🌿</div>
+                    <div class="dimension-title">Ambiental</div>
+                </div>
+                <div class="dimension-metric">Área Preservada</div>
+                <div class="dimension-value">65%</div>
+                <div class="dimension-change positive">↑ +1,2% vs. ano anterior</div>
+                
+                <div class="regional-comparison">
+                    <div class="regional-comparison-title">Contexto Regional</div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Média Regional:</span>
+                        <span class="regional-stat-value">58%</span>
+                    </div>
+                    <div class="regional-stat">
+                        <span class="regional-stat-label">Ranking:</span>
+                        <span class="ranking-badge top3">3º de 10 municípios</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER - AI CHAT -->
+        <div class="chat-panel">
+            <div class="chat-header">
+                <div class="chat-header-left">
+                    <h2>💬 Assistente de Inteligência</h2>
+                    <div class="ai-badge">IA Ativa</div>
+                </div>
+                <div class="context-badge">
+                    📍 Município: Palmas
+                </div>
+            </div>
+
+            <div class="chat-messages">
+                <!-- User Message -->
+                <div class="message user">
+                    <div class="message-avatar">👤</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-text">Como Palmas se compara com outros municípios da região imediata?</div>
+                        </div>
+                        <div class="message-timestamp">Hoje, 15:20</div>
+                    </div>
+                </div>
+
+                <!-- AI Response -->
+                <div class="message ai">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="message-text">
+                                <p><strong>Análise Comparativa: Palmas vs. Região Imediata</strong></p>
+                                <p style="margin-top: 0.75rem;">Palmas é o <strong>município polo</strong> da Região Imediata, que inclui 10 municípios com população total de 450 mil habitantes.</p>
+                                <p style="margin-top: 0.75rem;"><strong>Destaques de Palmas:</strong></p>
+                                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                                    <li><strong>PIB:</strong> R$ 32,5 bi (72% do PIB regional) - 1º lugar</li>
+                                    <li><strong>População:</strong> 306 mil (68% da população regional) - 1º lugar</li>
+                                    <li><strong>IDEB:</strong> 6,2 (acima da média regional de 5,8) - 2º lugar</li>
+                                    <li><strong>Emprego Formal:</strong> 145 mil vínculos (78% regional) - 1º lugar</li>
+                                </ul>
+                                <p style="margin-top: 0.75rem;">Palmas concentra a maior parte da atividade econômica e populacional da região, funcionando como centro de serviços e empregos para os municípios vizinhos.</p>
+                            </div>
+                        </div>
+                        <div class="message-chart">
+                            <div class="chart-placeholder">
+                                📊 Gráfico: Ranking dos 10 Municípios da Região Imediata de Palmas
+                            </div>
+                        </div>
+                        <div class="message-timestamp">Hoje, 15:20</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        placeholder="Faça uma pergunta sobre Palmas ou sua região..."
+                    />
+                    <div class="chat-actions">
+                        <button class="action-btn" title="Anexar arquivo">📎</button>
+                        <button class="action-btn" title="Áudio">🎤</button>
+                        <button class="action-btn send" title="Enviar">➤</button>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="quick-action-btn regional">🗺️ Comparar com região intermediária</button>
+                    <button class="quick-action-btn regional">📊 Ver ranking regional completo</button>
+                    <button class="quick-action-btn">💡 Comparar com outro município</button>
+                    <button class="quick-action-btn">📈 Ver tendências históricas</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR - HISTÓRICO -->
+        <div class="history-panel">
+            <h2>🕒 Análises Recentes</h2>
+
+            <div class="history-item">
+                <div class="history-title">Palmas vs. Região Imediata</div>
+                <div class="history-meta">
+                    <span>Hoje, 15:20</span>
+                    <div class="history-badges">
+                        <span class="history-badge">Econômica</span>
+                        <span class="history-badge regional">Regional</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-title">Comparação Palmas vs Araguaína</div>
+                <div class="history-meta">
+                    <span>Ontem, 16:45</span>
+                    <div class="history-badges">
+                        <span class="history-badge">Econômica</span>
+                        <span class="history-badge regional">Regional</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-title">Região Intermediária de Palmas</div>
+                <div class="history-meta">
+                    <span>15/11, 10:20</span>
+                    <div class="history-badges">
+                        <span class="history-badge">Social</span>
+                        <span class="history-badge regional">Regional</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-title">Microrregião Bico do Papagaio</div>
+                <div class="history-meta">
+                    <span>14/11, 14:15</span>
+                    <div class="history-badges">
+                        <span class="history-badge">Ambiental</span>
+                        <span class="history-badge regional">Histórico</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history-item">
+                <div class="history-title">Ranking Estadual - IDEB</div>
+                <div class="history-meta">
+                    <span>13/11, 09:30</span>
+                    <div class="history-badges">
+                        <span class="history-badge">Social</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulação de interatividade
+        const territoryTypeSelect = document.getElementById('territory-type');
+        const territorySelect = document.getElementById('territory');
+        const contextBadge = document.querySelector('.context-badge');
+
+        // Dados simulados de territórios
+        const territoriesData = {
+            'estado': [
+                {value: 'TO', text: 'Tocantins (1,5 mi hab.)'}
+            ],
+            'regiao_intermediaria': [
+                {value: '1701', text: 'Palmas (42 municípios, 650k hab.)'},
+                {value: '1702', text: 'Araguaína (65 municípios, 580k hab.)'},
+                {value: '1703', text: 'Gurupi (32 municípios, 280k hab.)'}
+            ],
+            'regiao_imediata': [
+                {value: '170001', text: 'Palmas (10 municípios, 450k hab.)'},
+                {value: '170002', text: 'Porto Nacional (13 municípios, 120k hab.)'},
+                {value: '170005', text: 'Araguaína (21 municípios, 320k hab.)'},
+                {value: '170010', text: 'Gurupi (18 municípios, 180k hab.)'}
+            ],
+            'municipio': [
+                {value: '1721000', text: 'Palmas (306k hab.)'},
+                {value: '1702109', text: 'Araguaína (171k hab.)'},
+                {value: '1718204', text: 'Porto Nacional (53k hab.)'},
+                {value: '1706506', text: 'Gurupi (89k hab.)'}
+            ],
+            'mesorregiao': [
+                {value: '1701', text: 'Ocidental do Tocantins (93 municípios)'},
+                {value: '1702', text: 'Oriental do Tocantins (46 municípios)'}
+            ],
+            'microrregiao': [
+                {value: '17001', text: 'Bico do Papagaio (25 municípios)'},
+                {value: '17002', text: 'Araguaína (17 municípios)'},
+                {value: '17006', text: 'Porto Nacional (11 municípios)'}
+            ]
+        };
+
+        // Atualizar lista de territórios quando tipo muda
+        territoryTypeSelect.addEventListener('change', function() {
+            const type = this.value;
+            const territories = territoriesData[type];
+            
+            territorySelect.innerHTML = '';
+            territories.forEach(t => {
+                const option = document.createElement('option');
+                option.value = t.value;
+                option.textContent = t.text;
+                territorySelect.appendChild(option);
+            });
+
+            updateContextBadge(type, territories[0].text);
+        });
+
+        // Atualizar badge de contexto quando território muda
+        territorySelect.addEventListener('change', function() {
+            const type = territoryTypeSelect.value;
+            const territoryText = this.options[this.selectedIndex].text;
+            updateContextBadge(type, territoryText);
+        });
+
+        function updateContextBadge(type, territoryText) {
+            const typeLabels = {
+                'estado': '🌍 Estado',
+                'regiao_intermediaria': '🗺️ Região Intermediária',
+                'regiao_imediata': '📍 Região Imediata',
+                'municipio': '📍 Município',
+                'mesorregiao': '🗺️ Mesorregião',
+                'microrregiao': '📍 Microrregião'
+            };
+            
+            contextBadge.textContent = `${typeLabels[type]}: ${territoryText.split('(')[0].trim()}`;
+        }
+
+        // Chat input
+        document.querySelector('.chat-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                alert('Funcionalidade de chat será implementada com backend Python + OpenAI');
+            }
+        });
+
+        document.querySelector('.action-btn.send').addEventListener('click', function() {
+            alert('Funcionalidade de chat será implementada com backend Python + OpenAI');
+        });
+
+        // Dimension cards
+        document.querySelectorAll('.dimension-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.dimension-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Quick actions
+        document.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const text = this.textContent.replace(/[🗺️📊💡📈]\s*/, '');
+                document.querySelector('.chat-input').value = text;
+            });
+        });
+
+        // History items
+        document.querySelectorAll('.history-item').forEach(item => {
+            item.addEventListener('click', function() {
+                alert('Carregar análise: ' + this.querySelector('.history-title').textContent);
+            });
+        });
+    </script>
+</body>
+</html>
