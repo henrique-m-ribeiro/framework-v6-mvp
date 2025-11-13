@@ -5,6 +5,9 @@ import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { Leaf, TreeDeciduous, Droplets, Cloud } from "lucide-react";
 import type { EnvironmentalIndicator } from "@shared/schema";
+import { formatNumber, formatPercent } from "@/lib/formatters";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 interface EnvironmentalTabProps {
   territoryId: string;
@@ -21,6 +24,22 @@ export default function EnvironmentalTab({ territoryId }: EnvironmentalTabProps)
   }
 
   const latest = environmentalData[0];
+  const previous = environmentalData[1];
+
+  const calculateTrend = (current: number | null | undefined, prev: number | null | undefined) => {
+    if (!current || !prev) return { value: 0, direction: "neutral" as const };
+    const change = ((current - prev) / prev) * 100;
+    return {
+      value: Number(change.toFixed(1)),
+      direction: change > 0 ? "up" as const : change < 0 ? "down" as const : "neutral" as const,
+    };
+  };
+
+  const vegetationTrend = previous ? calculateTrend(latest.vegetationCoverage, previous.vegetationCoverage) : { value: 0, direction: "neutral" as const };
+  const deforestedTrend = previous ? calculateTrend(latest.deforestedArea, previous.deforestedArea) : { value: 0, direction: "neutral" as const };
+  const waterQualityTrend = previous ? calculateTrend(latest.waterQuality, previous.waterQuality) : { value: 0, direction: "neutral" as const };
+  const emissionsTrend = previous ? calculateTrend(latest.co2Emissions, previous.co2Emissions) : { value: 0, direction: "neutral" as const };
+
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
     { key: 'vegetation', label: 'Cobertura Vegetal (%)', sortable: true },
@@ -29,64 +48,117 @@ export default function EnvironmentalTab({ territoryId }: EnvironmentalTabProps)
     { key: 'emissions', label: 'Emissões CO₂ (ton)', sortable: true },
   ];
 
-  const data = [
-    { year: '2023', vegetation: '87,3', deforested: '35.212', waterQuality: '68', emissions: '12.450.000' },
-    { year: '2022', vegetation: '88,1', deforested: '32.987', waterQuality: '71', emissions: '11.890.000' },
-    { year: '2021', vegetation: '89,2', deforested: '29.954', waterQuality: '73', emissions: '11.234.000' },
-    { year: '2020', vegetation: '90,1', deforested: '27.456', waterQuality: '75', emissions: '10.876.000' },
-    { year: '2019', vegetation: '91,3', deforested: '24.102', waterQuality: '76', emissions: '10.345.000' },
-  ];
+  const data = environmentalData.map(indicator => ({
+    year: indicator.year.toString(),
+    vegetation: formatPercent(indicator.vegetationCoverage, 1),
+    deforested: formatNumber(indicator.deforestedArea, 0),
+    waterQuality: formatNumber(indicator.waterQuality, 0),
+    emissions: formatNumber(indicator.co2Emissions, 0),
+  }));
 
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="Cobertura Vegetal"
-          value="87,3%"
+          value={formatPercent(latest.vegetationCoverage, 1)}
           subtitle="Do território preservado"
-          trend={{ value: -1.2, direction: "down" }}
+          trend={vegetationTrend}
           icon={Leaf}
-          status="warning"
+          status={vegetationTrend.direction === "down" ? "warning" : "success"}
         />
         <KPICard
           title="Área Desmatada"
-          value="35.212 km²"
+          value={`${formatNumber(latest.deforestedArea, 0)} km²`}
           subtitle="Desmatamento acumulado"
-          trend={{ value: 6.7, direction: "up" }}
+          trend={deforestedTrend}
           icon={TreeDeciduous}
-          status="danger"
+          status={deforestedTrend.direction === "up" ? "danger" : "success"}
         />
         <KPICard
           title="Qualidade da Água"
-          value="68 IQA"
+          value={`${formatNumber(latest.waterQuality, 0)} IQA`}
           subtitle="Índice de Qualidade da Água"
-          trend={{ value: -4.2, direction: "down" }}
+          trend={waterQualityTrend}
           icon={Droplets}
-          status="warning"
+          status={waterQualityTrend.direction === "down" ? "warning" : "success"}
         />
         <KPICard
           title="Emissões CO₂"
-          value="12,45 M ton"
+          value={`${formatNumber(latest.co2Emissions ? latest.co2Emissions / 1000000 : 0, 2)} M ton`}
           subtitle="Emissões anuais de carbono"
-          trend={{ value: 4.7, direction: "up" }}
+          trend={emissionsTrend}
           icon={Cloud}
-          status="danger"
+          status={emissionsTrend.direction === "up" ? "danger" : "success"}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Evolução da Cobertura Vegetal</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Área Empilhada - Chart.js</p>
-          </div>
+          <ChartContainer
+            config={{
+              vegetationCoverage: {
+                label: "Cobertura Vegetal (%)",
+                color: "hsl(var(--chart-4))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={environmentalData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year" 
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis 
+                  domain={[80, 100]}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area 
+                  type="monotone" 
+                  dataKey="vegetationCoverage" 
+                  stroke="var(--color-vegetationCoverage)" 
+                  fill="var(--color-vegetationCoverage)"
+                  fillOpacity={0.3}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Qualidade da Água (IQA)</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Linha com Referência - Chart.js</p>
-          </div>
+          <ChartContainer
+            config={{
+              waterQuality: {
+                label: "IQA",
+                color: "hsl(var(--chart-5))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={environmentalData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year"
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis domain={[0, 100]} />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="waterQuality" 
+                  stroke="var(--color-waterQuality)" 
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-waterQuality)" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
       </div>
 

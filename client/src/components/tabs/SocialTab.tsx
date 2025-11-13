@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Users, GraduationCap, Heart, DollarSign } from "lucide-react";
 import type { SocialIndicator } from "@shared/schema";
 import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 interface SocialTabProps {
   territoryId: string;
@@ -92,17 +94,74 @@ export default function SocialTab({ territoryId }: SocialTabProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Componentes do IDH-M</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico Radar - Chart.js</p>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">Evolução do IDH-M</h3>
+          <ChartContainer
+            config={{
+              idhm: {
+                label: "IDH-M",
+                color: "hsl(var(--chart-1))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={socialData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year" 
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis 
+                  domain={[0.6, 0.8]}
+                  tickFormatter={(value) => formatNumber(value, 3)}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="idhm" 
+                  stroke="var(--color-idhm)" 
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-idhm)" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Indicadores Educacionais</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Barras Horizontais - Chart.js</p>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">Indicadores Sociais por Ano</h3>
+          <ChartContainer
+            config={{
+              population: {
+                label: "População",
+                color: "hsl(var(--chart-2))",
+              },
+              literacyRate: {
+                label: "Taxa de Alfabetização (%)",
+                color: "hsl(var(--chart-3))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={socialData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year"
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar 
+                  yAxisId="right"
+                  dataKey="literacyRate" 
+                  fill="var(--color-literacyRate)" 
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
       </div>
 

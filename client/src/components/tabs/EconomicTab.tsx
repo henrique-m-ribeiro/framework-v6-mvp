@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Briefcase, Building2 } from "lucide-react";
 import type { EconomicIndicator } from "@shared/schema";
 import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 
 interface EconomicTabProps {
   territoryId: string;
@@ -93,16 +95,80 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Evolução do PIB (Últimos 5 Anos)</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Linha - Chart.js</p>
-          </div>
+          <ChartContainer
+            config={{
+              gdp: {
+                label: "PIB (R$ bi)",
+                color: "hsl(var(--chart-1))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={economicData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year" 
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis 
+                  tickFormatter={(value) => formatNumber(value, 1)}
+                />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="gdp" 
+                  stroke="var(--color-gdp)" 
+                  strokeWidth={2}
+                  dot={{ fill: "var(--color-gdp)" }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
 
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Composição Setorial do PIB</h3>
-          <div className="h-64 flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Barras - Chart.js</p>
-          </div>
+          <h3 className="text-lg font-semibold mb-4">Indicadores Econômicos por Ano</h3>
+          <ChartContainer
+            config={{
+              gdpPerCapita: {
+                label: "PIB per Capita",
+                color: "hsl(var(--chart-2))",
+              },
+              employmentRate: {
+                label: "Taxa de Emprego",
+                color: "hsl(var(--chart-3))",
+              },
+            }}
+            className="h-64"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={economicData.slice().reverse()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="year"
+                  tickFormatter={(value) => value.toString()}
+                />
+                <YAxis yAxisId="left" />
+                <YAxis yAxisId="right" orientation="right" />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar 
+                  yAxisId="left"
+                  dataKey="gdpPerCapita" 
+                  fill="var(--color-gdpPerCapita)" 
+                  radius={[4, 4, 0, 0]}
+                />
+                <Bar 
+                  yAxisId="right"
+                  dataKey="employmentRate" 
+                  fill="var(--color-employmentRate)" 
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartContainer>
         </Card>
       </div>
 
