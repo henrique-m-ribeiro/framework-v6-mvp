@@ -1,11 +1,31 @@
+import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { MapPin, Home, Users2, Droplet } from "lucide-react";
+import type { TerritorialIndicator, Territory } from "@shared/schema";
 
-export default function TerritorialTab() {
-  //todo: remove mock functionality
+interface TerritorialTabProps {
+  territoryId: string;
+}
+
+export default function TerritorialTab({ territoryId }: TerritorialTabProps) {
+  const { data: territorialData = [] } = useQuery<TerritorialIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "territorial"],
+    enabled: !!territoryId,
+  });
+
+  const { data: territory } = useQuery<Territory>({
+    queryKey: ["/api/territories", territoryId],
+    enabled: !!territoryId,
+  });
+
+  if (territorialData.length === 0) {
+    return <div className="p-6">Carregando dados territoriais...</div>;
+  }
+
+  const latest = territorialData[0];
   const columns = [
     { key: 'municipality', label: 'Município', sortable: true },
     { key: 'area', label: 'Área (km²)', sortable: true },

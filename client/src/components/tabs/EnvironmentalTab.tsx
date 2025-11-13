@@ -1,11 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { Leaf, TreeDeciduous, Droplets, Cloud } from "lucide-react";
+import type { EnvironmentalIndicator } from "@shared/schema";
 
-export default function EnvironmentalTab() {
-  //todo: remove mock functionality
+interface EnvironmentalTabProps {
+  territoryId: string;
+}
+
+export default function EnvironmentalTab({ territoryId }: EnvironmentalTabProps) {
+  const { data: environmentalData = [] } = useQuery<EnvironmentalIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "environmental"],
+    enabled: !!territoryId,
+  });
+
+  if (environmentalData.length === 0) {
+    return <div className="p-6">Carregando dados ambientais...</div>;
+  }
+
+  const latest = environmentalData[0];
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
     { key: 'vegetation', label: 'Cobertura Vegetal (%)', sortable: true },

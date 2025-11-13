@@ -1,61 +1,91 @@
+import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Briefcase, Building2 } from "lucide-react";
+import type { EconomicIndicator } from "@shared/schema";
 
-export default function EconomicTab() {
-  //todo: remove mock functionality
+interface EconomicTabProps {
+  territoryId: string;
+}
+
+export default function EconomicTab({ territoryId }: EconomicTabProps) {
+  const { data: economicData = [] } = useQuery<EconomicIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "economic"],
+    enabled: !!territoryId,
+  });
+
+  if (economicData.length === 0) {
+    return <div className="p-6">Carregando dados econômicos...</div>;
+  }
+
+  const latest = economicData[0];
+  const previous = economicData[1];
+
+  const calculateTrend = (current: number | null | undefined, prev: number | null | undefined) => {
+    if (!current || !prev) return { value: 0, direction: "neutral" as const };
+    const change = ((current - prev) / prev) * 100;
+    return {
+      value: Number(change.toFixed(1)),
+      direction: change > 0 ? "up" as const : change < 0 ? "down" as const : "neutral" as const,
+    };
+  };
+
+  const gdpTrend = previous ? calculateTrend(latest.gdp, previous.gdp) : { value: 0, direction: "neutral" as const };
+  const gdpPerCapitaTrend = previous ? calculateTrend(latest.gdpPerCapita, previous.gdpPerCapita) : { value: 0, direction: "neutral" as const };
+  const employmentTrend = previous ? calculateTrend(latest.employmentRate, previous.employmentRate) : { value: 0, direction: "neutral" as const };
+  const revenueTrend = previous ? calculateTrend(latest.revenue, previous.revenue) : { value: 0, direction: "neutral" as const };
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
-    { key: 'pib', label: 'PIB (R$ bi)', sortable: true },
-    { key: 'pibPerCapita', label: 'PIB per Capita', sortable: true },
-    { key: 'employment', label: 'Taxa de Emprego', sortable: true },
+    { key: 'gdp', label: 'PIB (R$ bi)', sortable: true },
+    { key: 'gdpPerCapita', label: 'PIB per Capita', sortable: true },
+    { key: 'employmentRate', label: 'Taxa de Emprego', sortable: true },
     { key: 'revenue', label: 'Arrecadação (R$ mi)', sortable: true },
   ];
 
-  const data = [
-    { year: '2023', pib: '45,2', pibPerCapita: 'R$ 28.134', employment: '65,4%', revenue: '3.245' },
-    { year: '2022', pib: '42,9', pibPerCapita: 'R$ 26.978', employment: '66,8%', revenue: '3.102' },
-    { year: '2021', pib: '40,1', pibPerCapita: 'R$ 25.489', employment: '64,2%', revenue: '2.897' },
-    { year: '2020', pib: '38,5', pibPerCapita: 'R$ 24.756', employment: '62,1%', revenue: '2.756' },
-    { year: '2019', pib: '41,2', pibPerCapita: 'R$ 26.789', employment: '67,5%', revenue: '2.934' },
-  ];
+  const data = economicData.map(indicator => ({
+    year: indicator.year.toString(),
+    gdp: indicator.gdp?.toFixed(1) || '-',
+    gdpPerCapita: `R$ ${indicator.gdpPerCapita?.toLocaleString('pt-BR')}` || '-',
+    employmentRate: `${indicator.employmentRate?.toFixed(1)}%` || '-',
+    revenue: indicator.revenue?.toFixed(0) || '-',
+  }));
 
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="PIB Total"
-          value="R$ 45,2 bi"
-          subtitle="Produto Interno Bruto 2023"
-          trend={{ value: 5.2, direction: "up" }}
+          value={`R$ ${latest.gdp?.toFixed(1)} bi`}
+          subtitle={`Produto Interno Bruto ${latest.year}`}
+          trend={gdpTrend}
           icon={DollarSign}
-          status="success"
+          status={gdpTrend.direction === "up" ? "success" : gdpTrend.direction === "down" ? "danger" : undefined}
         />
         <KPICard
           title="PIB per Capita"
-          value="R$ 28.134"
+          value={`R$ ${latest.gdpPerCapita?.toLocaleString('pt-BR')}`}
           subtitle="Renda média por habitante"
-          trend={{ value: 4.1, direction: "up" }}
+          trend={gdpPerCapitaTrend}
           icon={TrendingUp}
-          status="success"
+          status={gdpPerCapitaTrend.direction === "up" ? "success" : undefined}
         />
         <KPICard
           title="Taxa de Emprego"
-          value="65,4%"
+          value={`${latest.employmentRate?.toFixed(1)}%`}
           subtitle="População economicamente ativa"
-          trend={{ value: -2.1, direction: "down" }}
+          trend={employmentTrend}
           icon={Briefcase}
-          status="warning"
+          status={employmentTrend.direction === "down" ? "warning" : "success"}
         />
         <KPICard
-          title="Arrecadação Municipal"
-          value="R$ 3,2 bi"
-          subtitle="Receitas municipais consolidadas"
-          trend={{ value: 4.6, direction: "up" }}
+          title="Arrecadação"
+          value={`R$ ${latest.revenue?.toFixed(0)} mi`}
+          subtitle="Receitas consolidadas"
+          trend={revenueTrend}
           icon={Building2}
-          status="success"
+          status={revenueTrend.direction === "up" ? "success" : undefined}
         />
       </div>
 

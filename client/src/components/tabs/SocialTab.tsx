@@ -1,11 +1,26 @@
+import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { Users, GraduationCap, Heart, DollarSign } from "lucide-react";
+import type { SocialIndicator } from "@shared/schema";
 
-export default function SocialTab() {
-  //todo: remove mock functionality
+interface SocialTabProps {
+  territoryId: string;
+}
+
+export default function SocialTab({ territoryId }: SocialTabProps) {
+  const { data: socialData = [] } = useQuery<SocialIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "social"],
+    enabled: !!territoryId,
+  });
+
+  if (socialData.length === 0) {
+    return <div className="p-6">Carregando dados sociais...</div>;
+  }
+
+  const latest = socialData[0];
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
     { key: 'idhm', label: 'IDH-M', sortable: true },

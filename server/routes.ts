@@ -137,13 +137,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
+      const formattedHistory = (history || []).map((msg: any) => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       const { chatWithRAG } = await import("./services/rag");
-      const response = await chatWithRAG(message, history || [], dimension);
+      const response = await chatWithRAG(message, formattedHistory, dimension);
       
       res.json({ response });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Chat error:", error);
-      res.status(500).json({ error: "Failed to generate response" });
+      res.status(500).json({ error: error.message || "Failed to generate response" });
     }
   });
 

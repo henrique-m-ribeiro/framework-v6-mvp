@@ -1,9 +1,72 @@
+import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import { DollarSign, Users, MapPin, Leaf } from "lucide-react";
+import type { EconomicIndicator, SocialIndicator, TerritorialIndicator, EnvironmentalIndicator } from "@shared/schema";
 
-export default function OverviewTab() {
-  //todo: remove mock functionality
+interface OverviewTabProps {
+  territoryId: string;
+}
+
+export default function OverviewTab({ territoryId }: OverviewTabProps) {
+  const { data: economicData = [] } = useQuery<EconomicIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "economic"],
+    enabled: !!territoryId,
+  });
+
+  const { data: socialData = [] } = useQuery<SocialIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "social"],
+    enabled: !!territoryId,
+  });
+
+  const { data: territorialData = [] } = useQuery<TerritorialIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "territorial"],
+    enabled: !!territoryId,
+  });
+
+  const { data: environmentalData = [] } = useQuery<EnvironmentalIndicator[]>({
+    queryKey: ["/api/territories", territoryId, "indicators", "environmental"],
+    enabled: !!territoryId,
+  });
+
+  const latestEconomic = economicData[0];
+  const latestSocial = socialData[0];
+  const latestTerritorial = territorialData[0];
+  const latestEnvironmental = environmentalData[0];
+
+  const calculateTrend = (current: number, previous: number) => {
+    if (!previous) return { value: 0, direction: "neutral" as const };
+    const change = ((current - previous) / previous) * 100;
+    return {
+      value: Number(change.toFixed(1)),
+      direction: change > 0 ? "up" as const : change < 0 ? "down" as const : "neutral" as const,
+    };
+  };
+
+  if (!latestEconomic || !latestSocial || !latestTerritorial || !latestEnvironmental) {
+    return <div className="p-6">Carregando dados...</div>;
+  }
+
+  const economicTrend = economicData.length > 1 
+    ? calculateTrend(latestEconomic.gdp || 0, economicData[1].gdp || 0)
+    : { value: 0, direction: "neutral" as const };
+
+  const gdpPerCapitaTrend = economicData.length > 1
+    ? calculateTrend(latestEconomic.gdpPerCapita || 0, economicData[1].gdpPerCapita || 0)
+    : { value: 0, direction: "neutral" as const };
+
+  const socialTrend = socialData.length > 1
+    ? calculateTrend(latestSocial.idhm || 0, socialData[1].idhm || 0)
+    : { value: 0, direction: "neutral" as const };
+
+  const populationTrend = socialData.length > 1
+    ? calculateTrend(latestSocial.population || 0, socialData[1].population || 0)
+    : { value: 0, direction: "neutral" as const };
+
+  const environmentalTrend = environmentalData.length > 1
+    ? calculateTrend(latestEnvironmental.vegetationCoverage || 0, environmentalData[1].vegetationCoverage || 0)
+    : { value: 0, direction: "neutral" as const };
+
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -15,17 +78,17 @@ export default function OverviewTab() {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="PIB Total"
-              value="R$ 45,2 bi"
-              trend={{ value: 5.2, direction: "up" }}
+              value={`R$ ${latestEconomic.gdp?.toFixed(1)} bi`}
+              trend={economicTrend}
               icon={DollarSign}
               status="success"
             />
             <KPICard
               title="PIB per Capita"
-              value="R$ 28.134"
-              trend={{ value: 4.1, direction: "up" }}
+              value={`R$ ${latestEconomic.gdpPerCapita?.toLocaleString('pt-BR')}`}
+              trend={gdpPerCapitaTrend}
               icon={DollarSign}
-              status="success"
+              status={gdpPerCapitaTrend.direction === "up" ? "success" : undefined}
             />
           </div>
         </div>
@@ -38,15 +101,15 @@ export default function OverviewTab() {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="IDH-M"
-              value="0,743"
-              trend={{ value: 3.5, direction: "up" }}
+              value={latestSocial.idhm?.toFixed(3) || "0"}
+              trend={socialTrend}
               icon={Users}
               status="success"
             />
             <KPICard
               title="População"
-              value="1.607.363"
-              trend={{ value: 1.8, direction: "up" }}
+              value={latestSocial.population?.toLocaleString('pt-BR') || "0"}
+              trend={populationTrend}
               icon={Users}
             />
           </div>
@@ -59,13 +122,13 @@ export default function OverviewTab() {
           </h2>
           <div className="grid grid-cols-2 gap-4">
             <KPICard
-              title="Área Total"
-              value="277.423 km²"
+              title="Densidade"
+              value={`${latestTerritorial.density?.toFixed(1)} hab/km²`}
               icon={MapPin}
             />
             <KPICard
-              title="Densidade"
-              value="5,8 hab/km²"
+              title="Saneamento"
+              value={`${latestTerritorial.sanitationCoverage?.toFixed(1)}%`}
               icon={MapPin}
             />
           </div>
@@ -79,17 +142,16 @@ export default function OverviewTab() {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="Cobertura Vegetal"
-              value="87,3%"
-              trend={{ value: -1.2, direction: "down" }}
+              value={`${latestEnvironmental.vegetationCoverage?.toFixed(1)}%`}
+              trend={environmentalTrend}
               icon={Leaf}
-              status="warning"
+              status={latestEnvironmental.vegetationCoverage && latestEnvironmental.vegetationCoverage > 85 ? "success" : "warning"}
             />
             <KPICard
-              title="Área Desmatada"
-              value="12,7%"
-              trend={{ value: 1.2, direction: "up" }}
+              title="Qualidade Água"
+              value={`${latestEnvironmental.waterQuality?.toFixed(0)} IQA`}
               icon={Leaf}
-              status="warning"
+              status={latestEnvironmental.waterQuality && latestEnvironmental.waterQuality > 70 ? "success" : "warning"}
             />
           </div>
         </div>

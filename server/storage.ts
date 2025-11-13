@@ -46,7 +46,8 @@ export interface IStorage {
   createEnvironmentalIndicator(indicator: InsertEnvironmentalIndicator): Promise<EnvironmentalIndicator>;
   
   createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase>;
-  searchKnowledgeBase(embedding: string, dimension?: string, limit?: number): Promise<KnowledgeBase[]>;
+  searchKnowledgeBase(queryEmbedding: string, dimension?: string, limit?: number): Promise<KnowledgeBase[]>;
+  getAllKnowledgeBase(dimension?: string): Promise<KnowledgeBase[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -170,7 +171,7 @@ export class DatabaseStorage implements IStorage {
     return results[0];
   }
 
-  async searchKnowledgeBase(embedding: string, dimension?: string, limit: number = 5): Promise<KnowledgeBase[]> {
+  async searchKnowledgeBase(queryEmbedding: string, dimension?: string, limit: number = 100): Promise<KnowledgeBase[]> {
     if (dimension) {
       return await db.select()
         .from(knowledgeBase)
@@ -178,6 +179,15 @@ export class DatabaseStorage implements IStorage {
         .limit(limit);
     }
     return await db.select().from(knowledgeBase).limit(limit);
+  }
+
+  async getAllKnowledgeBase(dimension?: string): Promise<KnowledgeBase[]> {
+    if (dimension) {
+      return await db.select()
+        .from(knowledgeBase)
+        .where(eq(knowledgeBase.dimension, dimension));
+    }
+    return await db.select().from(knowledgeBase);
   }
 }
 

@@ -37,7 +37,7 @@ export default function ChatSidebar({ context = "Visão Geral" }: ChatSidebarPro
     "Tendências de crescimento"
   ];
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMessage: Message = {
@@ -50,15 +50,44 @@ export default function ChatSidebar({ context = "Visão Geral" }: ChatSidebarPro
     setMessages([...messages, userMessage]);
     setInput("");
 
-    setTimeout(() => {
+    try {
+      const history = messages.map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: input,
+          history,
+          dimension: context
+        }),
+      });
+
+      const data = await response.json();
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "Analisando os dados... Esta é uma resposta simulada da IA. No sistema final, aqui aparecerá a análise completa baseada no sistema RAG com dados reais do Tocantins.",
+        content: data.response,
         timestamp: new Date()
       };
+      
       setMessages(prev => [...prev, aiMessage]);
-    }, 1000);
+    } catch (error) {
+      console.error("Chat error:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro ao processar sua pergunta. Tente novamente.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   if (isMinimized) {

@@ -27,7 +27,11 @@ export async function searchRelevantContext(
 ): Promise<string> {
   const queryEmbedding = await generateEmbedding(query);
   
-  const knowledgeBaseEntries = await storage.searchKnowledgeBase("", dimension, 100);
+  const knowledgeBaseEntries = await storage.getAllKnowledgeBase(dimension);
+
+  if (knowledgeBaseEntries.length === 0) {
+    return "Nenhum dado encontrado na base de conhecimento.";
+  }
 
   const documents = knowledgeBaseEntries.map((entry) => ({
     id: entry.id,
@@ -38,7 +42,7 @@ export async function searchRelevantContext(
   const similarDocs = await findSimilarDocuments(queryEmbedding, documents, topK);
 
   const context = similarDocs
-    .map((doc, index) => `[${index + 1}] ${doc.content}`)
+    .map((doc, index) => `[${index + 1}] (similaridade: ${(doc.similarity * 100).toFixed(1)}%) ${doc.content}`)
     .join("\n\n");
 
   return context;

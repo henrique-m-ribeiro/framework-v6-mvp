@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,26 +12,33 @@ import SocialTab from "@/components/tabs/SocialTab";
 import TerritorialTab from "@/components/tabs/TerritorialTab";
 import EnvironmentalTab from "@/components/tabs/EnvironmentalTab";
 import ComparisonTab from "@/components/tabs/ComparisonTab";
+import type { Territory } from "@shared/schema";
 
 function Dashboard() {
-  //todo: remove mock functionality
   const [territoryType, setTerritoryType] = useState("estado");
-  const [territory, setTerritory] = useState("tocantins");
+  const [territoryId, setTerritoryId] = useState("");
   const [period, setPeriod] = useState("5");
   const [activeTab, setActiveTab] = useState("overview");
 
-  const getTerritories = () => {
-    if (territoryType === "estado") {
-      return [{ value: "tocantins", label: "Tocantins" }];
-    } else if (territoryType === "municipio") {
-      return [
-        { value: "palmas", label: "Palmas" },
-        { value: "araguaina", label: "Araguaína" },
-        { value: "gurupi", label: "Gurupi" },
-        { value: "porto-nacional", label: "Porto Nacional" },
-      ];
+  const { data: territories = [] } = useQuery<Territory[]>({
+    queryKey: ["/api/territories"],
+  });
+
+  useEffect(() => {
+    if (territories.length > 0 && !territoryId) {
+      const stateTerritories = territories.filter((t: Territory) => t.type === "estado");
+      if (stateTerritories.length > 0) {
+        setTerritoryId(stateTerritories[0].id);
+      }
     }
-    return [{ value: "tocantins", label: "Tocantins" }];
+  }, [territories, territoryId]);
+
+  const getTerritories = () => {
+    const filtered = territories.filter((t: Territory) => t.type === territoryType);
+    return filtered.map((t: Territory) => ({
+      value: t.id,
+      label: t.name,
+    }));
   };
 
   const getContextForChat = () => {
@@ -48,36 +55,49 @@ function Dashboard() {
 
   const handleReset = () => {
     setTerritoryType("estado");
-    setTerritory("tocantins");
+    const stateTerritories = territories.filter((t: Territory) => t.type === "estado");
+    if (stateTerritories.length > 0) {
+      setTerritoryId(stateTerritories[0].id);
+    }
     setPeriod("5");
     setActiveTab("overview");
-    console.log("Configuration reset");
   };
 
   const handleExport = () => {
-    console.log("Exporting to PDF...");
+    window.print();
   };
 
   const handleShare = () => {
-    console.log("Sharing dashboard...");
+    if (navigator.share) {
+      navigator.share({
+        title: "Dashboard de Inteligência Territorial - Tocantins",
+        text: "Análise territorial do estado do Tocantins",
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert("Link copiado para a área de transferência!");
+    }
   };
 
   const renderTabContent = () => {
+    if (!territoryId) return <div className="p-6">Carregando...</div>;
+
     switch (activeTab) {
       case "overview":
-        return <OverviewTab />;
+        return <OverviewTab territoryId={territoryId} />;
       case "economic":
-        return <EconomicTab />;
+        return <EconomicTab territoryId={territoryId} />;
       case "social":
-        return <SocialTab />;
+        return <SocialTab territoryId={territoryId} />;
       case "territorial":
-        return <TerritorialTab />;
+        return <TerritorialTab territoryId={territoryId} />;
       case "environmental":
-        return <EnvironmentalTab />;
+        return <EnvironmentalTab territoryId={territoryId} />;
       case "comparison":
         return <ComparisonTab />;
       default:
-        return <OverviewTab />;
+        return <OverviewTab territoryId={territoryId} />;
     }
   };
 
@@ -87,8 +107,8 @@ function Dashboard() {
         <Header
           territoryType={territoryType}
           onTerritoryTypeChange={setTerritoryType}
-          territory={territory}
-          onTerritoryChange={setTerritory}
+          territory={territoryId}
+          onTerritoryChange={setTerritoryId}
           territories={getTerritories()}
           period={period}
           onPeriodChange={setPeriod}
