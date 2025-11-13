@@ -1,38 +1,184 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { 
+  type Territory, 
+  type InsertTerritory,
+  type EconomicIndicator,
+  type InsertEconomicIndicator,
+  type SocialIndicator,
+  type InsertSocialIndicator,
+  type TerritorialIndicator,
+  type InsertTerritorialIndicator,
+  type EnvironmentalIndicator,
+  type InsertEnvironmentalIndicator,
+  type KnowledgeBase,
+  type InsertKnowledgeBase
+} from "@shared/schema";
+import { db } from "./db";
+import { 
+  territories, 
+  economicIndicators, 
+  socialIndicators, 
+  territorialIndicators, 
+  environmentalIndicators,
+  knowledgeBase
+} from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getTerritories(): Promise<Territory[]>;
+  getTerritory(id: string): Promise<Territory | undefined>;
+  getTerritoryByName(name: string): Promise<Territory | undefined>;
+  createTerritory(territory: InsertTerritory): Promise<Territory>;
+  
+  getEconomicIndicators(territoryId: string): Promise<EconomicIndicator[]>;
+  getEconomicIndicatorsByYear(territoryId: string, year: number): Promise<EconomicIndicator | undefined>;
+  createEconomicIndicator(indicator: InsertEconomicIndicator): Promise<EconomicIndicator>;
+  
+  getSocialIndicators(territoryId: string): Promise<SocialIndicator[]>;
+  getSocialIndicatorsByYear(territoryId: string, year: number): Promise<SocialIndicator | undefined>;
+  createSocialIndicator(indicator: InsertSocialIndicator): Promise<SocialIndicator>;
+  
+  getTerritorialIndicators(territoryId: string): Promise<TerritorialIndicator[]>;
+  getTerritorialIndicatorsByYear(territoryId: string, year: number): Promise<TerritorialIndicator | undefined>;
+  createTerritorialIndicator(indicator: InsertTerritorialIndicator): Promise<TerritorialIndicator>;
+  
+  getEnvironmentalIndicators(territoryId: string): Promise<EnvironmentalIndicator[]>;
+  getEnvironmentalIndicatorsByYear(territoryId: string, year: number): Promise<EnvironmentalIndicator | undefined>;
+  createEnvironmentalIndicator(indicator: InsertEnvironmentalIndicator): Promise<EnvironmentalIndicator>;
+  
+  createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase>;
+  searchKnowledgeBase(embedding: string, dimension?: string, limit?: number): Promise<KnowledgeBase[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getTerritories(): Promise<Territory[]> {
+    return await db.select().from(territories);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getTerritory(id: string): Promise<Territory | undefined> {
+    const results = await db.select().from(territories).where(eq(territories.id, id));
+    return results[0];
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getTerritoryByName(name: string): Promise<Territory | undefined> {
+    const results = await db.select().from(territories).where(eq(territories.name, name));
+    return results[0];
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async createTerritory(territory: InsertTerritory): Promise<Territory> {
+    const results = await db.insert(territories).values(territory).returning();
+    return results[0];
+  }
+
+  async getEconomicIndicators(territoryId: string): Promise<EconomicIndicator[]> {
+    return await db.select()
+      .from(economicIndicators)
+      .where(eq(economicIndicators.territoryId, territoryId))
+      .orderBy(desc(economicIndicators.year));
+  }
+
+  async getEconomicIndicatorsByYear(territoryId: string, year: number): Promise<EconomicIndicator | undefined> {
+    const results = await db.select()
+      .from(economicIndicators)
+      .where(
+        and(
+          eq(economicIndicators.territoryId, territoryId),
+          eq(economicIndicators.year, year)
+        )
+      );
+    return results[0];
+  }
+
+  async createEconomicIndicator(indicator: InsertEconomicIndicator): Promise<EconomicIndicator> {
+    const results = await db.insert(economicIndicators).values(indicator).returning();
+    return results[0];
+  }
+
+  async getSocialIndicators(territoryId: string): Promise<SocialIndicator[]> {
+    return await db.select()
+      .from(socialIndicators)
+      .where(eq(socialIndicators.territoryId, territoryId))
+      .orderBy(desc(socialIndicators.year));
+  }
+
+  async getSocialIndicatorsByYear(territoryId: string, year: number): Promise<SocialIndicator | undefined> {
+    const results = await db.select()
+      .from(socialIndicators)
+      .where(
+        and(
+          eq(socialIndicators.territoryId, territoryId),
+          eq(socialIndicators.year, year)
+        )
+      );
+    return results[0];
+  }
+
+  async createSocialIndicator(indicator: InsertSocialIndicator): Promise<SocialIndicator> {
+    const results = await db.insert(socialIndicators).values(indicator).returning();
+    return results[0];
+  }
+
+  async getTerritorialIndicators(territoryId: string): Promise<TerritorialIndicator[]> {
+    return await db.select()
+      .from(territorialIndicators)
+      .where(eq(territorialIndicators.territoryId, territoryId))
+      .orderBy(desc(territorialIndicators.year));
+  }
+
+  async getTerritorialIndicatorsByYear(territoryId: string, year: number): Promise<TerritorialIndicator | undefined> {
+    const results = await db.select()
+      .from(territorialIndicators)
+      .where(
+        and(
+          eq(territorialIndicators.territoryId, territoryId),
+          eq(territorialIndicators.year, year)
+        )
+      );
+    return results[0];
+  }
+
+  async createTerritorialIndicator(indicator: InsertTerritorialIndicator): Promise<TerritorialIndicator> {
+    const results = await db.insert(territorialIndicators).values(indicator).returning();
+    return results[0];
+  }
+
+  async getEnvironmentalIndicators(territoryId: string): Promise<EnvironmentalIndicator[]> {
+    return await db.select()
+      .from(environmentalIndicators)
+      .where(eq(environmentalIndicators.territoryId, territoryId))
+      .orderBy(desc(environmentalIndicators.year));
+  }
+
+  async getEnvironmentalIndicatorsByYear(territoryId: string, year: number): Promise<EnvironmentalIndicator | undefined> {
+    const results = await db.select()
+      .from(environmentalIndicators)
+      .where(
+        and(
+          eq(environmentalIndicators.territoryId, territoryId),
+          eq(environmentalIndicators.year, year)
+        )
+      );
+    return results[0];
+  }
+
+  async createEnvironmentalIndicator(indicator: InsertEnvironmentalIndicator): Promise<EnvironmentalIndicator> {
+    const results = await db.insert(environmentalIndicators).values(indicator).returning();
+    return results[0];
+  }
+
+  async createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase> {
+    const results = await db.insert(knowledgeBase).values(kb).returning();
+    return results[0];
+  }
+
+  async searchKnowledgeBase(embedding: string, dimension?: string, limit: number = 5): Promise<KnowledgeBase[]> {
+    if (dimension) {
+      return await db.select()
+        .from(knowledgeBase)
+        .where(eq(knowledgeBase.dimension, dimension))
+        .limit(limit);
+    }
+    return await db.select().from(knowledgeBase).limit(limit);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
