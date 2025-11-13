@@ -129,6 +129,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/chat", async (req, res) => {
+    try {
+      const { message, history, dimension } = req.body;
+      
+      if (!message) {
+        return res.status(400).json({ error: "Message is required" });
+      }
+
+      const { chatWithRAG } = await import("./services/rag");
+      const response = await chatWithRAG(message, history || [], dimension);
+      
+      res.json({ response });
+    } catch (error) {
+      console.error("Chat error:", error);
+      res.status(500).json({ error: "Failed to generate response" });
+    }
+  });
+
+  app.post("/api/generate-analysis", async (req, res) => {
+    try {
+      const { territoryId, dimension } = req.body;
+      
+      if (!territoryId || !dimension) {
+        return res.status(400).json({ error: "Territory ID and dimension are required" });
+      }
+
+      const { generateAIAnalysis } = await import("./services/rag");
+      const analysis = await generateAIAnalysis(territoryId, dimension);
+      
+      res.json({ analysis });
+    } catch (error) {
+      console.error("Analysis error:", error);
+      res.status(500).json({ error: "Failed to generate analysis" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
