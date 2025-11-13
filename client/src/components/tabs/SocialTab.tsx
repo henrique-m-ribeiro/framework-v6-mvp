@@ -5,6 +5,7 @@ import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { Users, GraduationCap, Heart, DollarSign } from "lucide-react";
 import type { SocialIndicator } from "@shared/schema";
+import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface SocialTabProps {
   territoryId: string;
@@ -21,6 +22,22 @@ export default function SocialTab({ territoryId }: SocialTabProps) {
   }
 
   const latest = socialData[0];
+  const previous = socialData[1];
+
+  const calculateTrend = (current: number | null | undefined, prev: number | null | undefined) => {
+    if (!current || !prev) return { value: 0, direction: "neutral" as const };
+    const change = ((current - prev) / prev) * 100;
+    return {
+      value: Number(change.toFixed(1)),
+      direction: change > 0 ? "up" as const : change < 0 ? "down" as const : "neutral" as const,
+    };
+  };
+
+  const idhmTrend = previous ? calculateTrend(latest.idhm, previous.idhm) : { value: 0, direction: "neutral" as const };
+  const populationTrend = previous ? calculateTrend(latest.population, previous.population) : { value: 0, direction: "neutral" as const };
+  const literacyTrend = previous ? calculateTrend(latest.literacyRate, previous.literacyRate) : { value: 0, direction: "neutral" as const };
+  const incomeTrend = previous ? calculateTrend(latest.incomePerCapita, previous.incomePerCapita) : { value: 0, direction: "neutral" as const };
+
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
     { key: 'idhm', label: 'IDH-M', sortable: true },
@@ -29,47 +46,47 @@ export default function SocialTab({ territoryId }: SocialTabProps) {
     { key: 'income', label: 'Renda per Capita', sortable: true },
   ];
 
-  const data = [
-    { year: '2023', idhm: '0,743', population: '1.607.363', literacy: '89,2%', income: 'R$ 1.245' },
-    { year: '2022', idhm: '0,735', population: '1.590.248', literacy: '88,5%', income: 'R$ 1.198' },
-    { year: '2021', idhm: '0,728', population: '1.572.866', literacy: '87,8%', income: 'R$ 1.156' },
-    { year: '2020', idhm: '0,720', population: '1.555.229', literacy: '87,1%', income: 'R$ 1.112' },
-    { year: '2019', idhm: '0,715', population: '1.537.591', literacy: '86,4%', income: 'R$ 1.089' },
-  ];
+  const data = socialData.map(indicator => ({
+    year: indicator.year.toString(),
+    idhm: formatNumber(indicator.idhm, 3),
+    population: formatNumber(indicator.population, 0),
+    literacy: formatPercent(indicator.literacyRate, 1),
+    income: formatCurrency(indicator.incomePerCapita, 0),
+  }));
 
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="IDH-M"
-          value="0,743"
+          value={formatNumber(latest.idhm, 3)}
           subtitle="Índice de Desenvolvimento Humano"
-          trend={{ value: 3.5, direction: "up" }}
+          trend={idhmTrend}
           icon={Heart}
-          status="success"
+          status={idhmTrend.direction === "up" ? "success" : undefined}
         />
         <KPICard
           title="População Total"
-          value="1.607.363"
-          subtitle="Habitantes (IBGE 2023)"
-          trend={{ value: 1.8, direction: "up" }}
+          value={formatNumber(latest.population, 0)}
+          subtitle={`Habitantes (${latest.year})`}
+          trend={populationTrend}
           icon={Users}
         />
         <KPICard
           title="Taxa de Alfabetização"
-          value="89,2%"
+          value={formatPercent(latest.literacyRate, 1)}
           subtitle="População alfabetizada"
-          trend={{ value: 0.8, direction: "up" }}
+          trend={literacyTrend}
           icon={GraduationCap}
-          status="success"
+          status={literacyTrend.direction === "up" ? "success" : undefined}
         />
         <KPICard
           title="Renda per Capita"
-          value="R$ 1.245"
+          value={formatCurrency(latest.incomePerCapita, 0)}
           subtitle="Renda média mensal"
-          trend={{ value: 3.9, direction: "up" }}
+          trend={incomeTrend}
           icon={DollarSign}
-          status="success"
+          status={incomeTrend.direction === "up" ? "success" : undefined}
         />
       </div>
 

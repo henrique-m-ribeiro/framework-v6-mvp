@@ -3,6 +3,7 @@ import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import { DollarSign, Users, MapPin, Leaf } from "lucide-react";
 import type { EconomicIndicator, SocialIndicator, TerritorialIndicator, EnvironmentalIndicator } from "@shared/schema";
+import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface OverviewTabProps {
   territoryId: string;
@@ -78,14 +79,14 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="PIB Total"
-              value={`R$ ${latestEconomic.gdp?.toFixed(1)} bi`}
+              value={`R$ ${formatNumber(latestEconomic.gdp, 1)} bi`}
               trend={economicTrend}
               icon={DollarSign}
               status="success"
             />
             <KPICard
               title="PIB per Capita"
-              value={`R$ ${latestEconomic.gdpPerCapita?.toLocaleString('pt-BR')}`}
+              value={formatCurrency(latestEconomic.gdpPerCapita, 0)}
               trend={gdpPerCapitaTrend}
               icon={DollarSign}
               status={gdpPerCapitaTrend.direction === "up" ? "success" : undefined}
@@ -101,14 +102,14 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="IDH-M"
-              value={latestSocial.idhm?.toFixed(3) || "0"}
+              value={formatNumber(latestSocial.idhm, 3)}
               trend={socialTrend}
               icon={Users}
               status="success"
             />
             <KPICard
               title="População"
-              value={latestSocial.population?.toLocaleString('pt-BR') || "0"}
+              value={formatNumber(latestSocial.population, 0)}
               trend={populationTrend}
               icon={Users}
             />
@@ -123,12 +124,12 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="Densidade"
-              value={`${latestTerritorial.density?.toFixed(1)} hab/km²`}
+              value={`${formatNumber(latestTerritorial.density, 1)} hab/km²`}
               icon={MapPin}
             />
             <KPICard
               title="Saneamento"
-              value={`${latestTerritorial.sanitationCoverage?.toFixed(1)}%`}
+              value={formatPercent(latestTerritorial.sanitationCoverage, 1)}
               icon={MapPin}
             />
           </div>
@@ -142,14 +143,14 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
           <div className="grid grid-cols-2 gap-4">
             <KPICard
               title="Cobertura Vegetal"
-              value={`${latestEnvironmental.vegetationCoverage?.toFixed(1)}%`}
+              value={formatPercent(latestEnvironmental.vegetationCoverage, 1)}
               trend={environmentalTrend}
               icon={Leaf}
               status={latestEnvironmental.vegetationCoverage && latestEnvironmental.vegetationCoverage > 85 ? "success" : "warning"}
             />
             <KPICard
               title="Qualidade Água"
-              value={`${latestEnvironmental.waterQuality?.toFixed(0)} IQA`}
+              value={`${formatNumber(latestEnvironmental.waterQuality, 0)} IQA`}
               icon={Leaf}
               status={latestEnvironmental.waterQuality && latestEnvironmental.waterQuality > 70 ? "success" : "warning"}
             />

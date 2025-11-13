@@ -5,6 +5,7 @@ import DataTable from "../shared/DataTable";
 import { Card } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Briefcase, Building2 } from "lucide-react";
 import type { EconomicIndicator } from "@shared/schema";
+import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
 
 interface EconomicTabProps {
   territoryId: string;
@@ -46,10 +47,10 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
 
   const data = economicData.map(indicator => ({
     year: indicator.year.toString(),
-    gdp: indicator.gdp?.toFixed(1) || '-',
-    gdpPerCapita: `R$ ${indicator.gdpPerCapita?.toLocaleString('pt-BR')}` || '-',
-    employmentRate: `${indicator.employmentRate?.toFixed(1)}%` || '-',
-    revenue: indicator.revenue?.toFixed(0) || '-',
+    gdp: formatNumber(indicator.gdp, 1),
+    gdpPerCapita: formatCurrency(indicator.gdpPerCapita, 0),
+    employmentRate: formatPercent(indicator.employmentRate, 1),
+    revenue: formatNumber(indicator.revenue, 0),
   }));
 
   return (
@@ -57,7 +58,7 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <KPICard
           title="PIB Total"
-          value={`R$ ${latest.gdp?.toFixed(1)} bi`}
+          value={`R$ ${formatNumber(latest.gdp, 1)} bi`}
           subtitle={`Produto Interno Bruto ${latest.year}`}
           trend={gdpTrend}
           icon={DollarSign}
@@ -65,7 +66,7 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
         />
         <KPICard
           title="PIB per Capita"
-          value={`R$ ${latest.gdpPerCapita?.toLocaleString('pt-BR')}`}
+          value={formatCurrency(latest.gdpPerCapita, 0)}
           subtitle="Renda média por habitante"
           trend={gdpPerCapitaTrend}
           icon={TrendingUp}
@@ -73,7 +74,7 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
         />
         <KPICard
           title="Taxa de Emprego"
-          value={`${latest.employmentRate?.toFixed(1)}%`}
+          value={formatPercent(latest.employmentRate, 1)}
           subtitle="População economicamente ativa"
           trend={employmentTrend}
           icon={Briefcase}
@@ -81,7 +82,7 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
         />
         <KPICard
           title="Arrecadação"
-          value={`R$ ${latest.revenue?.toFixed(0)} mi`}
+          value={`R$ ${formatNumber(latest.revenue, 0)} mi`}
           subtitle="Receitas consolidadas"
           trend={revenueTrend}
           icon={Building2}
