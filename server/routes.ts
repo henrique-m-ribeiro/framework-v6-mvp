@@ -129,6 +129,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/indicators/metadata", async (req, res) => {
+    try {
+      const dimension = req.query.dimension as string | undefined;
+      const metadata = await storage.getIndicatorMetadata(dimension);
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch indicator metadata" });
+    }
+  });
+
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, history, dimension } = req.body;

@@ -10,7 +10,8 @@ import {
   type EnvironmentalIndicator,
   type InsertEnvironmentalIndicator,
   type KnowledgeBase,
-  type InsertKnowledgeBase
+  type InsertKnowledgeBase,
+  type IndicatorMetadata
 } from "@shared/schema";
 import { db } from "./db";
 import { 
@@ -19,7 +20,8 @@ import {
   socialIndicators, 
   territorialIndicators, 
   environmentalIndicators,
-  knowledgeBase
+  knowledgeBase,
+  indicatorMetadata
 } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 
@@ -48,6 +50,8 @@ export interface IStorage {
   createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase>;
   searchKnowledgeBase(queryEmbedding: string, dimension?: string, limit?: number): Promise<KnowledgeBase[]>;
   getAllKnowledgeBase(dimension?: string): Promise<KnowledgeBase[]>;
+  
+  getIndicatorMetadata(dimension?: string): Promise<IndicatorMetadata[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -188,6 +192,15 @@ export class DatabaseStorage implements IStorage {
         .where(eq(knowledgeBase.dimension, dimension));
     }
     return await db.select().from(knowledgeBase);
+  }
+
+  async getIndicatorMetadata(dimension?: string): Promise<IndicatorMetadata[]> {
+    if (dimension) {
+      return await db.select()
+        .from(indicatorMetadata)
+        .where(eq(indicatorMetadata.dimension, dimension));
+    }
+    return await db.select().from(indicatorMetadata);
   }
 }
 

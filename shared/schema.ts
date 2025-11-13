@@ -64,12 +64,23 @@ export const knowledgeBase = pgTable("knowledge_base", {
   metadata: json("metadata"),
 });
 
+export const indicatorMetadata = pgTable("indicator_metadata", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  dimension: text("dimension").notNull(),
+  indicatorKey: text("indicator_key").notNull(),
+  indicatorName: text("indicator_name").notNull(),
+  description: text("description").notNull(),
+  unit: text("unit").notNull(),
+  interpretationGuide: text("interpretation_guide"),
+});
+
 export const insertTerritorySchema = createInsertSchema(territories).omit({ id: true });
 export const insertEconomicIndicatorSchema = createInsertSchema(economicIndicators).omit({ id: true });
 export const insertSocialIndicatorSchema = createInsertSchema(socialIndicators).omit({ id: true });
 export const insertTerritorialIndicatorSchema = createInsertSchema(territorialIndicators).omit({ id: true });
 export const insertEnvironmentalIndicatorSchema = createInsertSchema(environmentalIndicators).omit({ id: true });
 export const insertKnowledgeBaseSchema = createInsertSchema(knowledgeBase).omit({ id: true });
+export const insertIndicatorMetadataSchema = createInsertSchema(indicatorMetadata).omit({ id: true });
 
 export type Territory = typeof territories.$inferSelect;
 export type InsertTerritory = z.infer<typeof insertTerritorySchema>;
@@ -88,3 +99,6 @@ export type InsertEnvironmentalIndicator = z.infer<typeof insertEnvironmentalInd
 
 export type KnowledgeBase = typeof knowledgeBase.$inferSelect;
 export type InsertKnowledgeBase = z.infer<typeof insertKnowledgeBaseSchema>;
+
+export type IndicatorMetadata = typeof indicatorMetadata.$inferSelect;
+export type InsertIndicatorMetadata = z.infer<typeof insertIndicatorMetadataSchema>;
