@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Inteligência Territorial</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #1e3a8a;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .topo-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+        
+        .content-grid {
+            position: relative;
+            z-index: 10;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 720px;
+            align-items: center;
+        }
+        
+        .text-section {
+            padding: 0 80px;
+        }
+        
+        .main-title {
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: #06b6d4;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
+        
+        .subtitle {
+            font-size: 28px;
+            font-weight: 400;
+            color: #ffffff;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+        
+        .accent-line {
+            width: 120px;
+            height: 4px;
+            background: linear-gradient(90deg, #f97316 0%, #10b981 100%);
+            margin-bottom: 32px;
+        }
+        
+        .image-section {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+        }
+        
+        .brain-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .hexagon-accent {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #06b6d4;
+            opacity: 0.3;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        
+        .hex-1 { top: 10%; left: 5%; }
+        .hex-2 { top: 70%; left: 10%; transform: rotate(30deg); }
+        .hex-3 { top: 15%; right: 45%; transform: rotate(60deg); }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <!-- Topographic Pattern Background -->
+        <svg class="topo-pattern" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <pattern id="topoPattern" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                    <path d="M 0 50 Q 50 30, 100 50 T 200 50" stroke="#06b6d4" fill="none" stroke-width="1"/>
+                    <path d="M 0 100 Q 50 80, 100 100 T 200 100" stroke="#06b6d4" fill="none" stroke-width="1"/>
+                    <path d="M 0 150 Q 50 130, 100 150 T 200 150" stroke="#06b6d4" fill="none" stroke-width="1"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#topoPattern)"/>
+        </svg>
+        
+        <!-- Hexagon Accents -->
+        <div class="hexagon-accent hex-1"></div>
+        <div class="hexagon-accent hex-2"></div>
+        <div class="hexagon-accent hex-3"></div>
+        
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Text Section -->
+            <div class="text-section">
+                <div class="accent-line"></div>
+                <h1 class="main-title">Dashboard de<br>Inteligência<br>Territorial</h1>
+                <p class="subtitle">Wireframes V6.0<br>Alternativas de Design</p>
+            </div>
+            
+            <!-- Image Section -->
+            <div class="image-section">
+                <img src="/home/ubuntu/framework-v6-mvp/docs/design/slide_capa_framework_v6.png" alt="Territorial Intelligence Dashboard" class="brain-image">
+            </div>
+        </div>
+    </div>
+</body>
+</html>

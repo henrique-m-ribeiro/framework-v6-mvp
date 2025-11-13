@@ -1,0 +1,108 @@
+{
+  "project_info": {
+    "title": "Dashboard de Inteligência Territorial",
+    "created": 1763043870.493981,
+    "last_updated": 1763044109.7665412,
+    "total_slides": 12
+  },
+  "slides": {
+    "capa": "edited",
+    "contexto": "edited",
+    "paleta_cores": "edited",
+    "melhores_praticas": "edited",
+    "alternativa_1_visao": "edited",
+    "alternativa_1_detalhes": "edited",
+    "alternativa_2_visao": "edited",
+    "alternativa_2_detalhes": "edited",
+    "alternativa_3_visao": "edited",
+    "alternativa_3_detalhes": "edited",
+    "comparacao": "edited",
+    "proximos_passos": "edited"
+  },
+  "outline": [
+    {
+      "id": "capa",
+      "title": "Dashboard de Inteligência Territorial",
+      "summary": "Slide de capa com título principal, subtítulo sobre wireframes e alternativas de design, e imagem de cérebro digital com hexágonos em gradiente.",
+      "image_plan": "/home/ubuntu/framework-v6-mvp/docs/design/slide_capa_framework_v6.png - Image 7 is a strong visual representation of \"Territorial Intelligence Dashboard\" with a digital brain icon and a gradient background, matching the slide's theme and content.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "contexto",
+      "title": "Contexto e Objetivos",
+      "summary": "Apresentar o contexto do projeto (sistema para gestores públicos do Tocantins), objetivos principais (análise de 4 dimensões com IA), e requisitos de usabilidade (interface intuitiva, chat IA sempre visível, exportação PDF/CSV).",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "paleta_cores",
+      "title": "Paleta de Cores e Identidade Visual",
+      "summary": "Mostrar a paleta de cores oficial do Framework V6.0 (azul navy, cyan, laranja, verde, amarelo) com códigos hexadecimais e aplicação em elementos de interface.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "melhores_praticas",
+      "title": "Melhores Práticas Pesquisadas",
+      "summary": "Resumir os 8 princípios de design identificados na pesquisa: chat persistente, análise contextual, visualização progressiva, exportação, feedback visual, hierarquia clara, responsividade, acessibilidade.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_1_visao",
+      "title": "Alternativa 1: Layout em Abas",
+      "summary": "Apresentar a primeira alternativa de wireframe com layout em abas horizontais (uma aba por dimensão), chat fixo na lateral direita, e painel de controle superior com seletores de território.",
+      "image_plan": "/home/ubuntu/wireframe_dashboard_visual.png - Image 3 is a wireframe that clearly illustrates the \"Chat Lateral Fixo\" concept (Alternative 1), with the dashboard on the left and the AI chat on the right, matching the slide's content.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_1_detalhes",
+      "title": "Alternativa 1: Detalhamento",
+      "summary": "Detalhar componentes da Alternativa 1: estrutura de abas, conteúdo de cada dimensão (KPIs, gráficos, análise IA), funcionalidades de exportação, e fluxo de navegação.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_2_visao",
+      "title": "Alternativa 2: Scroll Vertical com Chat Flutuante",
+      "summary": "Apresentar a segunda alternativa com página única em scroll vertical, seções para cada dimensão empilhadas, e chat flutuante fixo no canto inferior direito (estilo WhatsApp).",
+      "image_plan": "/home/ubuntu/wireframe_chat_interaction.png - Image 4 shows a dashboard with a chat interface that could represent the \"Chat Flutuante Expansível\" (Alternative 2) or a similar hybrid approach, maximizing space for data visualization. It also features a comparison graph, which is a key function.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_2_detalhes",
+      "title": "Alternativa 2: Detalhamento",
+      "summary": "Detalhar componentes da Alternativa 2: navegação por âncoras, estrutura de cada seção dimensional, chat expansível, menu de ações rápidas, e exportação contextual.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_3_visao",
+      "title": "Alternativa 3: Dashboard Modular com Chat Central",
+      "summary": "Apresentar a terceira alternativa com layout de 3 colunas (dimensões esquerda, chat centro, contexto direita), cards modulares arrastáveis, e chat como elemento central protagonista.",
+      "image_plan": "/home/ubuntu/wireframe_regional_comparison.png - Image 6 shows a dashboard with a clear separation between the main content (Regional Comparison) and a side menu/tab structure (\"Dashboard,\" \"AI Chat\"), which is the core concept of the \"Chat em Abas\" (Alternative 3).",
+      "slide_template_key": ""
+    },
+    {
+      "id": "alternativa_3_detalhes",
+      "title": "Alternativa 3: Detalhamento",
+      "summary": "Detalhar componentes da Alternativa 3: sistema de grid modular, personalização de layout, chat conversacional central, painel de contexto regional, e exportação customizável.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "comparacao",
+      "title": "Comparação das Alternativas",
+      "summary": "Tabela comparativa das 3 alternativas avaliando critérios: usabilidade para gestores, destaque do chat IA, visualização de dimensões, exportação, responsividade, complexidade de implementação.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "proximos_passos",
+      "title": "Próximos Passos",
+      "summary": "Definir próximos passos: escolha da alternativa preferida, refinamento do wireframe escolhido, criação de protótipo interativo HTML, e implementação no Replit Agent.",
+      "image_plan": "/home/ubuntu/wireframe_dashboard_v2_regional.png - Image 5 is a wireframe showing a dashboard with clear selectors for territory and a central AI chat area, which is highly relevant to the technical guide and architecture discussion. It visually represents the system's components.",
+      "slide_template_key": ""
+    }
+  ]
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alternativa 2: Scroll Vertical com Chat Flutuante</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #1e3a8a;
+            padding: 40px 80px;
+            position: relative;
+        }
+        
+        .slide-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #06b6d4;
+            margin-bottom: 32px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .accent-line-small {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316 0%, #10b981 100%);
+            margin-bottom: 16px;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 3fr;
+            gap: 48px;
+            align-items: center;
+        }
+        
+        .description-section {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .feature-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .feature-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #f97316;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-title i {
+            font-size: 22px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #ffffff;
+            font-size: 16px;
+            line-height: 1.5;
+            padding-left: 32px;
+        }
+        
+        .feature-item i {
+            font-size: 14px;
+            color: #10b981;
+            margin-top: 4px;
+            min-width: 14px;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+        
+        .pro-con-box {
+            padding: 12px;
+            background: rgba(6, 182, 212, 0.05);
+            border-left: 3px solid;
+        }
+        
+        .pro-box {
+            border-left-color: #10b981;
+        }
+        
+        .con-box {
+            border-left-color: #f97316;
+        }
+        
+        .pro-con-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .pro-title {
+            color: #10b981;
+        }
+        
+        .con-title {
+            color: #f97316;
+        }
+        
+        .pro-con-item {
+            font-size: 13px;
+            color: #ffffff;
+            line-height: 1.4;
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+        }
+        
+        .pro-con-item::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+        }
+        
+        .wireframe-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(6, 182, 212, 0.08);
+            padding: 24px;
+            border: 2px solid rgba(6, 182, 212, 0.3);
+        }
+        
+        .wireframe-image {
+            width: 100%;
+            height: 480px;
+            object-fit: contain;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .badge-alt {
+            background: linear-gradient(90deg, #f97316 0%, #10b981 100%);
+            color: #ffffff;
+        }
+        
+        .hexagon-small {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #06b6d4;
+            opacity: 0.2;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        
+        .hex-a { top: 15%; right: 12%; }
+        .hex-b { bottom: 20%; left: 35%; transform: rotate(30deg); }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="accent-line-small"></div>
+        <h1 class="slide-title">
+            <span class="badge badge-alt">Alternativa 2</span>
+            Scroll Vertical com Chat Flutuante
+        </h1>
+        
+        <div class="hexagon-small hex-a"></div>
+        <div class="hexagon-small hex-b"></div>
+        
+        <div class="content-grid">
+            <!-- Description Section -->
+            <div class="description-section">
+                <div class="feature-group">
+                    <div class="feature-title">
+                        <i class="fas fa-list"></i>
+                        Características Principais
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>Página única</strong> com scroll vertical contínuo</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>Seções empilhadas</strong> para cada dimensão</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>Chat flutuante fixo</strong> no canto inferior direito (estilo WhatsApp)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>Navegação por âncoras</strong> no menu superior</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span><strong>Chat expansível</strong> ao clicar (overlay sobre conteúdo)</span>
+                    </div>
+                </div>
+                
+                <div class="pros-cons">
+                    <div class="pro-con-box pro-box">
+                        <div class="pro-con-title pro-title">
+                            <i class="fas fa-thumbs-up"></i>
+                            Vantagens
+                        </div>
+                        <div class="pro-con-item">Fluxo de leitura natural</div>
+                        <div class="pro-con-item">Chat não-intrusivo</div>
+                        <div class="pro-con-item">Visão completa dos dados</div>
+                        <div class="pro-con-item">Familiar (redes sociais)</div>
+                    </div>
+                    
+                    <div class="pro-con-box con-box">
+                        <div class="pro-con-title con-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Desvantagens
+                        </div>
+                        <div class="pro-con-item">Scroll pode ser longo</div>
+                        <div class="pro-con-item">Chat pode ser esquecido</div>
+                        <div class="pro-con-item">Menos destaque para IA</div>
+                        <div class="pro-con-item">Comparação difícil</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wireframe Section -->
+            <div class="wireframe-section">
+                <img src="/home/ubuntu/wireframe_chat_interaction.png" alt="Wireframe Alternativa 2" class="wireframe-image">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
