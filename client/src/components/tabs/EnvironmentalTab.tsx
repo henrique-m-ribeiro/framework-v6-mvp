@@ -1,23 +1,30 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
-import { Card } from "@/components/ui/card";
 import { Leaf, TreeDeciduous, Droplets, Cloud } from "lucide-react";
 import type { EnvironmentalIndicator } from "@shared/schema";
 import { formatNumber, formatPercent } from "@/lib/formatters";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { useIndicatorMetadata } from "@/hooks/useIndicatorMetadata";
+import { IndicatorLineChart } from "@/components/charts/IndicatorLineChart";
+import { IndicatorComparisonChart } from "@/components/charts/IndicatorComparisonChart";
 
 interface EnvironmentalTabProps {
   territoryId: string;
 }
 
 export default function EnvironmentalTab({ territoryId }: EnvironmentalTabProps) {
+  const [selectedLineIndicator, setSelectedLineIndicator] = useState("vegetationCoverage");
+  const [selectedBarIndicator1, setSelectedBarIndicator1] = useState("waterQuality");
+  const [selectedBarIndicator2, setSelectedBarIndicator2] = useState("deforestedArea");
+
   const { data: environmentalData = [] } = useQuery<EnvironmentalIndicator[]>({
     queryKey: ["/api/territories", territoryId, "indicators", "environmental"],
     enabled: !!territoryId,
   });
+
+  const { data: metadata = [] } = useIndicatorMetadata("environmental");
 
   if (environmentalData.length === 0) {
     return <div className="p-6">Carregando dados ambientais...</div>;
@@ -94,72 +101,23 @@ export default function EnvironmentalTab({ territoryId }: EnvironmentalTabProps)
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Evolução da Cobertura Vegetal</h3>
-          <ChartContainer
-            config={{
-              vegetationCoverage: {
-                label: "Cobertura Vegetal (%)",
-                color: "hsl(var(--chart-4))",
-              },
-            }}
-            className="h-64"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={environmentalData.slice().reverse()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="year" 
-                  tickFormatter={(value) => value.toString()}
-                />
-                <YAxis 
-                  domain={[80, 100]}
-                  tickFormatter={(value) => `${value}%`}
-                />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Area 
-                  type="monotone" 
-                  dataKey="vegetationCoverage" 
-                  stroke="var(--color-vegetationCoverage)" 
-                  fill="var(--color-vegetationCoverage)"
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
+        <IndicatorLineChart
+          data={environmentalData.slice().reverse()}
+          selectedIndicator={selectedLineIndicator}
+          onIndicatorChange={setSelectedLineIndicator}
+          metadata={metadata}
+          title="Evolução Temporal"
+        />
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Qualidade da Água (IQA)</h3>
-          <ChartContainer
-            config={{
-              waterQuality: {
-                label: "IQA",
-                color: "hsl(var(--chart-5))",
-              },
-            }}
-            className="h-64"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={environmentalData.slice().reverse()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="year"
-                  tickFormatter={(value) => value.toString()}
-                />
-                <YAxis domain={[0, 100]} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line 
-                  type="monotone" 
-                  dataKey="waterQuality" 
-                  stroke="var(--color-waterQuality)" 
-                  strokeWidth={2}
-                  dot={{ fill: "var(--color-waterQuality)" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
+        <IndicatorComparisonChart
+          data={environmentalData.slice().reverse()}
+          selectedIndicator1={selectedBarIndicator1}
+          selectedIndicator2={selectedBarIndicator2}
+          onIndicator1Change={setSelectedBarIndicator1}
+          onIndicator2Change={setSelectedBarIndicator2}
+          metadata={metadata}
+          title="Comparação de Indicadores"
+        />
       </div>
 
       <AIAnalysisBox

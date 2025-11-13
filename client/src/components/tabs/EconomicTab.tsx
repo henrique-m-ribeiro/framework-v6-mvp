@@ -1,23 +1,30 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
-import { Card } from "@/components/ui/card";
 import { DollarSign, TrendingUp, Briefcase, Building2 } from "lucide-react";
 import type { EconomicIndicator } from "@shared/schema";
 import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { useIndicatorMetadata } from "@/hooks/useIndicatorMetadata";
+import { IndicatorLineChart } from "@/components/charts/IndicatorLineChart";
+import { IndicatorComparisonChart } from "@/components/charts/IndicatorComparisonChart";
 
 interface EconomicTabProps {
   territoryId: string;
 }
 
 export default function EconomicTab({ territoryId }: EconomicTabProps) {
+  const [selectedLineIndicator, setSelectedLineIndicator] = useState("gdp");
+  const [selectedBarIndicator1, setSelectedBarIndicator1] = useState("gdpPerCapita");
+  const [selectedBarIndicator2, setSelectedBarIndicator2] = useState("employmentRate");
+
   const { data: economicData = [] } = useQuery<EconomicIndicator[]>({
     queryKey: ["/api/territories", territoryId, "indicators", "economic"],
     enabled: !!territoryId,
   });
+
+  const { data: metadata = [] } = useIndicatorMetadata("economic");
 
   if (economicData.length === 0) {
     return <div className="p-6">Carregando dados econômicos...</div>;
@@ -93,83 +100,23 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Evolução do PIB (Últimos 5 Anos)</h3>
-          <ChartContainer
-            config={{
-              gdp: {
-                label: "PIB (R$ bi)",
-                color: "hsl(var(--chart-1))",
-              },
-            }}
-            className="h-64"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={economicData.slice().reverse()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="year" 
-                  tickFormatter={(value) => value.toString()}
-                />
-                <YAxis 
-                  tickFormatter={(value) => formatNumber(value, 1)}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="gdp" 
-                  stroke="var(--color-gdp)" 
-                  strokeWidth={2}
-                  dot={{ fill: "var(--color-gdp)" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
+        <IndicatorLineChart
+          data={economicData.slice().reverse()}
+          selectedIndicator={selectedLineIndicator}
+          onIndicatorChange={setSelectedLineIndicator}
+          metadata={metadata}
+          title="Evolução Temporal"
+        />
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Indicadores Econômicos por Ano</h3>
-          <ChartContainer
-            config={{
-              gdpPerCapita: {
-                label: "PIB per Capita",
-                color: "hsl(var(--chart-2))",
-              },
-              employmentRate: {
-                label: "Taxa de Emprego",
-                color: "hsl(var(--chart-3))",
-              },
-            }}
-            className="h-64"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={economicData.slice().reverse()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="year"
-                  tickFormatter={(value) => value.toString()}
-                />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar 
-                  yAxisId="left"
-                  dataKey="gdpPerCapita" 
-                  fill="var(--color-gdpPerCapita)" 
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar 
-                  yAxisId="right"
-                  dataKey="employmentRate" 
-                  fill="var(--color-employmentRate)" 
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </Card>
+        <IndicatorComparisonChart
+          data={economicData.slice().reverse()}
+          selectedIndicator1={selectedBarIndicator1}
+          selectedIndicator2={selectedBarIndicator2}
+          onIndicator1Change={setSelectedBarIndicator1}
+          onIndicator2Change={setSelectedBarIndicator2}
+          metadata={metadata}
+          title="Comparação de Indicadores"
+        />
       </div>
 
       <AIAnalysisBox
