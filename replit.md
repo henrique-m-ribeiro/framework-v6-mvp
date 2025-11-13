@@ -14,6 +14,17 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 13, 2025 - Interactive Charts with Metadata System
+- **Database**: Created `indicator_metadata` table with comprehensive data dictionary (12 indicators documented with descriptions, units, interpretation guides)
+- **API**: Implemented `/api/indicators/metadata` endpoint with dimension-based filtering
+- **Reusable Components**: Built `IndicatorLineChart` and `IndicatorComparisonChart` with dynamic selector dropdowns
+- **Custom Tooltips**: Rich tooltips displaying indicator name, formatted value, unit, description, and interpretation guide
+- **Custom Legends**: Enhanced legends showing colored indicators with names, units, and descriptions
+- **Smart Formatter**: Metadata-driven formatter detecting unit types (%, R$, milhões, bilhões) with proper scaling
+- **Hooks**: Created `useIndicatorMetadata` (fetches metadata) and `useIndicatorFormatter` (consistent formatting)
+- **Integration**: Applied reusable chart components across Economic, Social, and Environmental tabs
+- **Architecture**: Fully scalable solution - new indicators automatically inherit formatting and metadata display
+
 ### November 13, 2025 - System Completion
 - **Backend**: Implemented complete RAG pipeline with OpenAI embeddings (text-embedding-3-small) and similarity search
 - **API**: Added POST /api/chat endpoint with full integration to RAG system and GPT-4o-mini
