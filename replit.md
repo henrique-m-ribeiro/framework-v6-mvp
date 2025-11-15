@@ -14,6 +14,19 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 15, 2025 - Geospatial Features and AI Optimization
+- **PostGIS Integration**: Added geography(POINT, 4326) column to territories table for geospatial data
+- **Geocoding**: Populated 19 municipalities of Tocantins with real geographic coordinates (latitude/longitude)
+- **pgvector Optimization**: Migrated knowledge_base to use native vector(1536) type for embeddings with IVFFlat index
+- **Interactive Map**: Created InteractiveMap component using react-leaflet with territory markers, radius circles, and proximity search
+- **Spatial Analysis API**: Three new endpoints for geospatial queries:
+  - `/api/territories/map/coordinates` - Get all territories with coordinates
+  - `/api/territories/:id/nearby?radius=X` - Find territories within radius (km)
+  - `/api/territories/:id1/distance/:id2` - Calculate distance between two territories
+- **Territorial Tab**: Fully integrated map with dynamic radius search and clickable nearby territories list
+- **RAG Performance**: Optimized semantic search using pgvector's cosine distance operator (<=>)  with indexed queries
+- **Dependencies**: Installed react-leaflet 4.2.1 and leaflet 1.9.4 for map rendering
+
 ### November 13, 2025 - Interactive Charts with Metadata System
 - **Database**: Created `indicator_metadata` table with comprehensive data dictionary (12 indicators documented with descriptions, units, interpretation guides)
 - **API**: Implemented `/api/indicators/metadata` endpoint with dimension-based filtering
@@ -35,11 +48,13 @@ Preferred communication style: Simple, everyday language.
 - **Testing**: E2E testing confirmed functional UI, data loading, tab navigation, and AI chat interactions
 
 ### System Status
-- ✅ PostgreSQL database operational with full schema
-- ✅ Express API serving all required endpoints
-- ✅ RAG system functional with semantic search
+- ✅ PostgreSQL database operational with full schema + PostGIS + pgvector
+- ✅ Express API serving all required endpoints + geospatial analysis
+- ✅ RAG system functional with optimized vector similarity search
 - ✅ Frontend displaying real data with automatic updates
 - ✅ AI chat providing contextual territorial analysis
+- ✅ Interactive map with 19 geocoded territories
+- ✅ Proximity search with configurable radius (10-500km)
 - ✅ Export to PDF via browser print dialog
 - ✅ Responsive design with mobile support
 

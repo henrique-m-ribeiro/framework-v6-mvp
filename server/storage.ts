@@ -48,6 +48,7 @@ export interface IStorage {
   createEnvironmentalIndicator(indicator: InsertEnvironmentalIndicator): Promise<EnvironmentalIndicator>;
   
   createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase>;
+  createKnowledgeBaseWithVector(kb: any): Promise<any>;
   searchKnowledgeBase(queryEmbedding: string, dimension?: string, limit?: number): Promise<KnowledgeBase[]>;
   getAllKnowledgeBase(dimension?: string): Promise<KnowledgeBase[]>;
   
@@ -178,6 +179,22 @@ export class DatabaseStorage implements IStorage {
   async createKnowledgeBase(kb: InsertKnowledgeBase): Promise<KnowledgeBase> {
     const results = await db.insert(knowledgeBase).values(kb).returning();
     return results[0];
+  }
+
+  async createKnowledgeBaseWithVector(kb: any): Promise<any> {
+    const result = await db.execute(`
+      INSERT INTO knowledge_base (territory_id, dimension, content, embedding, embedding_vector, metadata)
+      VALUES (
+        '${kb.territoryId}',
+        '${kb.dimension}',
+        '${kb.content.replace(/'/g, "''")}',
+        '${kb.embedding}',
+        '${kb.embeddingVector}'::vector,
+        ${kb.metadata ? `'${JSON.stringify(kb.metadata)}'::json` : 'NULL'}
+      )
+      RETURNING *
+    `);
+    return result.rows[0];
   }
 
   async searchKnowledgeBase(queryEmbedding: string, dimension?: string, limit: number = 100): Promise<KnowledgeBase[]> {

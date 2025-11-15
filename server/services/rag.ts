@@ -11,11 +11,12 @@ export async function indexTerritoryData(
   const embedding = await generateEmbedding(content);
   const embeddingString = JSON.stringify(embedding);
 
-  await storage.createKnowledgeBase({
+  await storage.createKnowledgeBaseWithVector({
     territoryId,
     dimension,
     content,
     embedding: embeddingString,
+    embeddingVector: embeddingString,
     metadata,
   });
 }

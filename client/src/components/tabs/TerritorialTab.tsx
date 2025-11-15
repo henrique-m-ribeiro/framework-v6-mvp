@@ -34,7 +34,7 @@ export default function TerritorialTab({ territoryId }: TerritorialTabProps) {
   });
 
   const { data: nearbyTerritories = [] } = useQuery<any[]>({
-    queryKey: ["/api/territories", selectedMapTerritory, "nearby"],
+    queryKey: ["/api/territories", selectedMapTerritory, "nearby", searchRadius],
     enabled: !!selectedMapTerritory,
     queryFn: async () => {
       const response = await fetch(`/api/territories/${selectedMapTerritory}/nearby?radius=${searchRadius}`);
