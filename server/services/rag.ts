@@ -26,23 +26,22 @@ export async function searchRelevantContext(
   topK: number = 5
 ): Promise<string> {
   const queryEmbedding = await generateEmbedding(query);
+  const queryEmbeddingString = JSON.stringify(queryEmbedding);
   
-  const knowledgeBaseEntries = await storage.getAllKnowledgeBase(dimension);
+  const knowledgeBaseEntries = await storage.searchKnowledgeBaseOptimized(
+    queryEmbeddingString, 
+    dimension, 
+    topK
+  );
 
   if (knowledgeBaseEntries.length === 0) {
     return "Nenhum dado encontrado na base de conhecimento.";
   }
 
-  const documents = knowledgeBaseEntries.map((entry) => ({
-    id: entry.id,
-    embedding: JSON.parse(entry.embedding) as number[],
-    content: entry.content,
-  }));
-
-  const similarDocs = await findSimilarDocuments(queryEmbedding, documents, topK);
-
-  const context = similarDocs
-    .map((doc, index) => `[${index + 1}] (similaridade: ${(doc.similarity * 100).toFixed(1)}%) ${doc.content}`)
+  const context = knowledgeBaseEntries
+    .map((entry: any, index: number) => 
+      `[${index + 1}] (similaridade: ${(entry.similarity * 100).toFixed(1)}%) ${entry.content}`
+    )
     .join("\n\n");
 
   return context;

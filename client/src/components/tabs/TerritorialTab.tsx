@@ -1,9 +1,14 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
+import { InteractiveMap } from "../map/InteractiveMap";
 import { Card } from "@/components/ui/card";
-import { MapPin, Home, Users2, Droplet } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { MapPin, Home, Users2, Droplet, Search } from "lucide-react";
 import type { TerritorialIndicator, Territory } from "@shared/schema";
 
 interface TerritorialTabProps {
@@ -11,6 +16,9 @@ interface TerritorialTabProps {
 }
 
 export default function TerritorialTab({ territoryId }: TerritorialTabProps) {
+  const [selectedMapTerritory, setSelectedMapTerritory] = useState<string>("");
+  const [searchRadius, setSearchRadius] = useState<number>(100);
+
   const { data: territorialData = [] } = useQuery<TerritorialIndicator[]>({
     queryKey: ["/api/territories", territoryId, "indicators", "territorial"],
     enabled: !!territoryId,
@@ -19,6 +27,20 @@ export default function TerritorialTab({ territoryId }: TerritorialTabProps) {
   const { data: territory } = useQuery<Territory>({
     queryKey: ["/api/territories", territoryId],
     enabled: !!territoryId,
+  });
+
+  const { data: mapTerritories = [] } = useQuery<any[]>({
+    queryKey: ["/api/territories/map/coordinates"],
+  });
+
+  const { data: nearbyTerritories = [] } = useQuery<any[]>({
+    queryKey: ["/api/territories", selectedMapTerritory, "nearby"],
+    enabled: !!selectedMapTerritory,
+    queryFn: async () => {
+      const response = await fetch(`/api/territories/${selectedMapTerritory}/nearby?radius=${searchRadius}`);
+      if (!response.ok) return [];
+      return response.json();
+    }
   });
 
   if (territorialData.length === 0) {
@@ -72,23 +94,37 @@ export default function TerritorialTab({ territoryId }: TerritorialTabProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-6">
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Mapa Interativo do Tocantins</h3>
-          <div className="h-[400px] flex items-center justify-center bg-muted/30 rounded-md border-2 border-dashed border-muted">
-            <div className="text-center">
-              <MapPin className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">Mapa Leaflet - 139 municípios</p>
-              <p className="text-xs text-muted-foreground mt-1">Interativo com zoom e layers</p>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Mapa Interativo do Tocantins</h3>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="radius-input" className="text-sm whitespace-nowrap">Raio de busca:</Label>
+                <Input
+                  id="radius-input"
+                  type="number"
+                  value={searchRadius}
+                  onChange={(e) => setSearchRadius(parseInt(e.target.value) || 100)}
+                  className="w-24"
+                  min="10"
+                  max="500"
+                  step="10"
+                  data-testid="input-search-radius"
+                />
+                <span className="text-sm text-muted-foreground">km</span>
+              </div>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Uso do Solo</h3>
-          <div className="h-[400px] flex items-center justify-center bg-muted/30 rounded-md">
-            <p className="text-sm text-muted-foreground">Gráfico de Pizza - Chart.js</p>
-          </div>
+          
+          <InteractiveMap
+            territories={mapTerritories}
+            selectedTerritoryId={selectedMapTerritory}
+            onTerritorySelect={setSelectedMapTerritory}
+            showRadius={!!selectedMapTerritory}
+            radiusKm={searchRadius}
+            nearbyTerritories={nearbyTerritories}
+          />
         </Card>
       </div>
 

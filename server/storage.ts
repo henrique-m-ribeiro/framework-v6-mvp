@@ -56,6 +56,7 @@ export interface IStorage {
   getTerritoriesWithCoordinates(): Promise<any[]>;
   getNearbyTerritories(territoryId: string, radiusKm: number): Promise<any[]>;
   getDistanceBetweenTerritories(territoryId1: string, territoryId2: string): Promise<number | null>;
+  searchKnowledgeBaseOptimized(queryEmbedding: string, dimension?: string, limit?: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -255,6 +256,27 @@ export class DatabaseStorage implements IStorage {
     `);
     const row = result.rows[0] as any;
     return row ? parseFloat(row.distance_km) : null;
+  }
+
+  async searchKnowledgeBaseOptimized(queryEmbedding: string, dimension?: string, limit: number = 5): Promise<any[]> {
+    const dimensionFilter = dimension ? `AND dimension = '${dimension}'` : '';
+    
+    const result = await db.execute(`
+      SELECT 
+        id,
+        territory_id,
+        dimension,
+        content,
+        metadata,
+        1 - (embedding_vector <=> '${queryEmbedding}'::vector) as similarity
+      FROM knowledge_base
+      WHERE embedding_vector IS NOT NULL
+        ${dimensionFilter}
+      ORDER BY embedding_vector <=> '${queryEmbedding}'::vector
+      LIMIT ${limit}
+    `);
+    
+    return result.rows as any[];
   }
 }
 
