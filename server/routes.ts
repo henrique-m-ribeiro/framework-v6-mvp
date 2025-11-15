@@ -180,6 +180,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/territories/map/coordinates", async (req, res) => {
+    try {
+      const territories = await storage.getTerritoriesWithCoordinates();
+      res.json(territories);
+    } catch (error) {
+      console.error("Coordinates error:", error);
+      res.status(500).json({ error: "Failed to fetch territory coordinates" });
+    }
+  });
+
+  app.get("/api/territories/:id/nearby", async (req, res) => {
+    try {
+      const { radius = '100' } = req.query;
+      const radiusKm = parseFloat(radius as string);
+      
+      const nearbyTerritories = await storage.getNearbyTerritories(req.params.id, radiusKm);
+      res.json(nearbyTerritories);
+    } catch (error) {
+      console.error("Nearby territories error:", error);
+      res.status(500).json({ error: "Failed to fetch nearby territories" });
+    }
+  });
+
+  app.get("/api/territories/:id1/distance/:id2", async (req, res) => {
+    try {
+      const distance = await storage.getDistanceBetweenTerritories(req.params.id1, req.params.id2);
+      res.json({ distance });
+    } catch (error) {
+      console.error("Distance calculation error:", error);
+      res.status(500).json({ error: "Failed to calculate distance" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

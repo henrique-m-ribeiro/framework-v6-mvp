@@ -52,6 +52,10 @@ export interface IStorage {
   getAllKnowledgeBase(dimension?: string): Promise<KnowledgeBase[]>;
   
   getIndicatorMetadata(dimension?: string): Promise<IndicatorMetadata[]>;
+  
+  getTerritoriesWithCoordinates(): Promise<any[]>;
+  getNearbyTerritories(territoryId: string, radiusKm: number): Promise<any[]>;
+  getDistanceBetweenTerritories(territoryId1: string, territoryId2: string): Promise<number | null>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -201,6 +205,56 @@ export class DatabaseStorage implements IStorage {
         .where(eq(indicatorMetadata.dimension, dimension));
     }
     return await db.select().from(indicatorMetadata);
+  }
+
+  async getTerritoriesWithCoordinates(): Promise<any[]> {
+    const result = await db.execute(`
+      SELECT 
+        id, 
+        name, 
+        type,
+        ST_Y(coordinates::geometry) as latitude,
+        ST_X(coordinates::geometry) as longitude
+      FROM territories
+      WHERE coordinates IS NOT NULL
+      ORDER BY name
+    `);
+    return result.rows as any[];
+  }
+
+  async getNearbyTerritories(territoryId: string, radiusKm: number): Promise<any[]> {
+    const result = await db.execute(`
+      SELECT 
+        t2.id,
+        t2.name,
+        t2.type,
+        ST_Y(t2.coordinates::geometry) as latitude,
+        ST_X(t2.coordinates::geometry) as longitude,
+        ST_Distance(t1.coordinates, t2.coordinates) / 1000 as distance_km
+      FROM territories t1
+      CROSS JOIN territories t2
+      WHERE t1.id = '${territoryId}'
+        AND t2.id != t1.id
+        AND t1.coordinates IS NOT NULL
+        AND t2.coordinates IS NOT NULL
+        AND ST_DWithin(t1.coordinates, t2.coordinates, ${radiusKm * 1000})
+      ORDER BY distance_km
+    `);
+    return result.rows as any[];
+  }
+
+  async getDistanceBetweenTerritories(territoryId1: string, territoryId2: string): Promise<number | null> {
+    const result = await db.execute(`
+      SELECT 
+        ST_Distance(t1.coordinates, t2.coordinates) / 1000 as distance_km
+      FROM territories t1, territories t2
+      WHERE t1.id = '${territoryId1}'
+        AND t2.id = '${territoryId2}'
+        AND t1.coordinates IS NOT NULL
+        AND t2.coordinates IS NOT NULL
+    `);
+    const row = result.rows[0] as any;
+    return row ? parseFloat(row.distance_km) : null;
   }
 }
 
