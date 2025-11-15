@@ -91,9 +91,9 @@ Preferred communication style: Simple, everyday language.
 - Four indicator tables (`economic_indicators`, `social_indicators`, `territorial_indicators`, `environmental_indicators`): Each linked to territories via foreign keys with yearly time-series data
 - `knowledge_base` table: Stores RAG embeddings as JSON strings with dimension categorization
 
-**Extensions Required**: 
-- PostGIS for geospatial data (referenced but not yet implemented)
-- pgvector for vector embeddings (referenced in config)
+**Extensions Installed**: 
+- PostGIS 3.3.3 for geospatial data (active - ready for geographic coordinates and mapping features)
+- pgvector 0.8.0 for vector embeddings (active - optimizes AI similarity search performance)
 
 **Migration Strategy**: Drizzle Kit with migrations output to `/migrations` directory, push command for schema deployment.
 
