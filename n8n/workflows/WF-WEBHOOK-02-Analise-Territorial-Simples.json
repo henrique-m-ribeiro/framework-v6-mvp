@@ -1,0 +1,214 @@
+{
+  "name": "WF-WEBHOOK-02: Análise Territorial Simples",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "analise-territorial",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-analise-trigger",
+      "name": "Webhook - Recebe Requisição de Análise",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 400],
+      "webhookId": "analise-territorial-framework-v6",
+      "notes": "FUNÇÃO: Recebe requisições de análise territorial do dashboard.\n\nENDPOINT: https://galactic-ai.app.n8n.cloud/webhook/analise-territorial\n\nPAYLOAD ESPERADO:\n{\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"year\": 2023,\n  \"indicators\": [\"population\", \"area\", \"gdp\"]\n}\n\nFLUXO:\n1. Recebe requisição\n2. Consulta dados no PostgreSQL\n3. Gera análise com OpenAI\n4. Insere resultado no banco\n5. Retorna análise ao dashboard"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Consultar dados do território\nSELECT \n  t.id,\n  t.name,\n  t.type,\n  t.population,\n  t.area_km2,\n  t.latitude,\n  t.longitude,\n  ei.gdp_millions,\n  ei.gdp_per_capita,\n  ei.employment_rate,\n  si.hdi,\n  si.poverty_rate,\n  si.education_index,\n  ti.urbanization_rate,\n  ti.infrastructure_index,\n  ai.forest_coverage_pct,\n  ai.deforestation_rate\nFROM territories t\nLEFT JOIN economic_indicators ei ON t.id = ei.territory_id AND ei.year = {{ $json.body.year || 2023 }}\nLEFT JOIN social_indicators si ON t.id = si.territory_id AND si.year = {{ $json.body.year || 2023 }}\nLEFT JOIN territorial_indicators ti ON t.id = ti.territory_id AND ti.year = {{ $json.body.year || 2023 }}\nLEFT JOIN environmental_indicators ai ON t.id = ai.territory_id AND ai.year = {{ $json.body.year || 2023 }}\nWHERE t.id = {{ $json.body.territory_id }}\nLIMIT 1;",
+        "options": {}
+      },
+      "id": "postgres-query-data",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [450, 400],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-replit-framework-v6",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Consulta dados do território no banco PostgreSQL.\n\nQUERY: JOIN de 5 tabelas para obter indicadores completos:\n- territories: Dados básicos (nome, tipo, população, área, coordenadas)\n- economic_indicators: PIB, PIB per capita, taxa de emprego\n- social_indicators: IDH, taxa de pobreza, índice de educação\n- territorial_indicators: Taxa de urbanização, índice de infraestrutura\n- environmental_indicators: Cobertura florestal, taxa de desmatamento\n\nFILTRO: territory_id e year (padrão: 2023)\n\nOUTPUT: Registro único com todos os indicadores do território."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Preparar contexto para análise LLM\n// ============================================\n\nconst payload = $input.first().json.body || $input.first().json;\nconst data = $input.last().json;\n\n// Verificar se encontrou dados\nif (!data || Object.keys(data).length === 0) {\n  return {\n    json: {\n      error: true,\n      message: `Território com ID ${payload.territory_id} não encontrado no banco de dados`,\n      status: 404\n    }\n  };\n}\n\n// Construir contexto estruturado para o LLM\nconst context = {\n  territory: {\n    id: data.id,\n    name: data.name,\n    type: data.type,\n    population: data.population,\n    area_km2: data.area_km2,\n    coordinates: {\n      latitude: data.latitude,\n      longitude: data.longitude\n    }\n  },\n  indicators: {\n    economic: {\n      gdp_millions: data.gdp_millions,\n      gdp_per_capita: data.gdp_per_capita,\n      employment_rate: data.employment_rate\n    },\n    social: {\n      hdi: data.hdi,\n      poverty_rate: data.poverty_rate,\n      education_index: data.education_index\n    },\n    territorial: {\n      urbanization_rate: data.urbanization_rate,\n      infrastructure_index: data.infrastructure_index\n    },\n    environmental: {\n      forest_coverage_pct: data.forest_coverage_pct,\n      deforestation_rate: data.deforestation_rate\n    }\n  },\n  year: payload.year || 2023,\n  request_timestamp: new Date().toISOString()\n};\n\n// Construir prompt para o LLM\nconst prompt = `Você é um especialista em análise territorial do Framework de Inteligência Territorial V6.0.\n\nANALISE O SEGUINTE TERRITÓRIO:\n\n**Território:** ${context.territory.name} (${context.territory.type})\n**População:** ${context.territory.population?.toLocaleString('pt-BR') || 'N/A'} habitantes\n**Área:** ${context.territory.area_km2?.toLocaleString('pt-BR') || 'N/A'} km²\n**Ano de Referência:** ${context.year}\n\n**INDICADORES ECONÔMICOS:**\n- PIB: R$ ${context.indicators.economic.gdp_millions || 'N/A'} milhões\n- PIB per capita: R$ ${context.indicators.economic.gdp_per_capita?.toLocaleString('pt-BR') || 'N/A'}\n- Taxa de emprego: ${context.indicators.economic.employment_rate || 'N/A'}%\n\n**INDICADORES SOCIAIS:**\n- IDH: ${context.indicators.social.hdi || 'N/A'}\n- Taxa de pobreza: ${context.indicators.social.poverty_rate || 'N/A'}%\n- Índice de educação: ${context.indicators.social.education_index || 'N/A'}\n\n**INDICADORES TERRITORIAIS:**\n- Taxa de urbanização: ${context.indicators.territorial.urbanization_rate || 'N/A'}%\n- Índice de infraestrutura: ${context.indicators.territorial.infrastructure_index || 'N/A'}\n\n**INDICADORES AMBIENTAIS:**\n- Cobertura florestal: ${context.indicators.environmental.forest_coverage_pct || 'N/A'}%\n- Taxa de desmatamento: ${context.indicators.environmental.deforestation_rate || 'N/A'}%\n\n---\n\nGERE UMA ANÁLISE TERRITORIAL COMPLETA E ESTRUTURADA:\n\n1. **Resumo Executivo** (2-3 frases): Visão geral do território\n2. **Análise por Dimensão**:\n   - Econômica: Pontos fortes e fracos\n   - Social: Desafios e oportunidades\n   - Territorial: Infraestrutura e urbanização\n   - Ambiental: Sustentabilidade e riscos\n3. **Alertas Críticos**: Indicadores que requerem atenção urgente\n4. **Recomendações Estratégicas**: 3-5 ações prioritárias para gestores públicos\n\nFormato: Markdown, objetivo, baseado em dados, linguagem técnica mas acessível.`;\n\nreturn {\n  json: {\n    context: context,\n    prompt: prompt\n  }\n};"
+      },
+      "id": "code-prepare-context",
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 400],
+      "notes": "FUNÇÃO: Prepara contexto estruturado e prompt para análise LLM.\n\nPROCESSAMENTO:\n1. Valida se dados foram encontrados (404 se não)\n2. Estrutura dados em formato hierárquico\n3. Constrói prompt detalhado para o LLM com:\n   - Informações básicas do território\n   - Todos os indicadores organizados por dimensão\n   - Instruções claras sobre formato da análise\n\nOUTPUT:\n- context: Objeto JSON estruturado com todos os dados\n- prompt: String formatada para envio ao OpenAI"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 2000
+        }
+      },
+      "id": "openai-generate-analysis",
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [850, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-framework-v6",
+          "name": "OpenAI - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Gera análise territorial usando GPT-4o-mini.\n\nCONFIGURAÇÃO:\n- Modelo: gpt-4o-mini (custo-efetivo, rápido)\n- Temperature: 0.7 (equilíbrio entre criatividade e precisão)\n- Max Tokens: 2000 (análise completa mas concisa)\n\nINPUT: Prompt estruturado com dados do território\n\nOUTPUT: Análise em Markdown com:\n- Resumo executivo\n- Análise por dimensão\n- Alertas críticos\n- Recomendações estratégicas"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Estruturar resposta final\n// ============================================\n\nconst context = $input.first().json.context;\nconst analysis_text = $input.last().json.response || $input.last().json.text || 'Análise não disponível';\n\n// Construir resposta estruturada\nconst response = {\n  success: true,\n  request_id: `analysis_${Date.now()}`,\n  territory: {\n    id: context.territory.id,\n    name: context.territory.name,\n    type: context.territory.type\n  },\n  year: context.year,\n  analysis: {\n    text: analysis_text,\n    format: 'markdown',\n    generated_at: new Date().toISOString(),\n    model: 'gpt-4o-mini',\n    workflow: 'WF-WEBHOOK-02'\n  },\n  indicators_analyzed: {\n    economic: Object.keys(context.indicators.economic).length,\n    social: Object.keys(context.indicators.social).length,\n    territorial: Object.keys(context.indicators.territorial).length,\n    environmental: Object.keys(context.indicators.environmental).length\n  },\n  metadata: {\n    processing_time_ms: Date.now() - new Date(context.request_timestamp).getTime(),\n    n8n_instance: 'galactic-ai.app.n8n.cloud',\n    version: '1.0.0'\n  }\n};\n\nreturn { json: response };"
+      },
+      "id": "code-structure-response",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 400],
+      "notes": "FUNÇÃO: Estrutura a resposta final para o dashboard.\n\nCOMPONENTES:\n- success: Status da operação\n- request_id: Identificador único da análise\n- territory: Dados básicos do território analisado\n- analysis: Texto da análise em Markdown + metadados\n- indicators_analyzed: Contagem de indicadores por dimensão\n- metadata: Tempo de processamento, instância n8n, versão\n\nOUTPUT: JSON estruturado pronto para consumo pelo dashboard."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Inserir análise gerada na base de conhecimento\nINSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  content,\n  content_type,\n  year,\n  source,\n  created_at\n)\nVALUES (\n  {{ $json.territory.id }},\n  'territorial',\n  {{ $json.analysis.text }},\n  'analysis',\n  {{ $json.year }},\n  'n8n-workflow-wf-webhook-02',\n  NOW()\n)\nON CONFLICT (territory_id, dimension, year, source) \nDO UPDATE SET\n  content = EXCLUDED.content,\n  updated_at = NOW()\nRETURNING id;",
+        "options": {}
+      },
+      "id": "postgres-insert-analysis",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1050, 550],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-replit-framework-v6",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Salva a análise gerada na tabela knowledge_base.\n\nQUERY: INSERT com ON CONFLICT (upsert)\n- Se análise já existe (mesmo território, dimensão, ano, source): Atualiza\n- Se não existe: Insere nova\n\nCAMPOS:\n- territory_id: ID do território analisado\n- dimension: 'territorial' (pode ser expandido para outras dimensões)\n- content: Texto da análise em Markdown\n- content_type: 'analysis'\n- year: Ano de referência dos dados\n- source: 'n8n-workflow-wf-webhook-02'\n- created_at/updated_at: Timestamps\n\nOUTPUT: ID do registro inserido/atualizado"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-to-webhook",
+      "name": "Responder ao Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1250, 400],
+      "notes": "FUNÇÃO: Envia resposta HTTP de volta ao dashboard.\n\nCONFIGURAÇÃO:\n- Formato: JSON\n- Headers CORS: Permite requisições do Replit\n- Status: 200 OK\n\nRESPOSTA: JSON estruturado com análise completa e metadados."
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Requisição de Análise": {
+      "main": [
+        [
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Análise no PostgreSQL",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Framework V6.0",
+      "id": "framework-v6"
+    },
+    {
+      "name": "Análise",
+      "id": "analysis"
+    },
+    {
+      "name": "Webhook",
+      "id": "webhook"
+    }
+  ],
+  "meta": {
+    "instanceId": "galactic-ai"
+  },
+  "triggerCount": 0,
+  "updatedAt": "2025-11-16T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

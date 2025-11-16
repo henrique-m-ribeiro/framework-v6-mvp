@@ -1,0 +1,283 @@
+{
+  "name": "WF-WEBHOOK-01: Receptor Principal Dashboard",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "dashboard-request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-main-trigger",
+      "name": "Webhook - Recebe Requisição",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 400],
+      "webhookId": "dashboard-request-framework-v6",
+      "notes": "FUNÇÃO: Ponto de entrada principal para todas as requisições do dashboard.\n\nENDPOINT: https://galactic-ai.app.n8n.cloud/webhook/dashboard-request\n\nPAYLOAD ESPERADO:\n{\n  \"request_type\": \"analysis\" | \"data_collection\" | \"comparison\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"economic\" | \"social\" | \"territorial\" | \"environmental\",\n  \"parameters\": {\n    \"year\": 2023,\n    \"indicators\": [\"gdp\", \"employment\"],\n    \"comparison_territories\": [2, 3]\n  },\n  \"user_id\": \"user@example.com\",\n  \"session_id\": \"abc123\"\n}\n\nFLUXO:\n1. Recebe requisição\n2. Valida payload\n3. Roteia para workflow apropriado\n4. Retorna resposta ou erro"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Validar e classificar requisição\n// ============================================\n\n// Extrair dados do webhook\nconst payload = $input.item.json.body || $input.item.json;\n\n// Validar campos obrigatórios\nconst required_fields = ['request_type', 'territory_id', 'dimension'];\nconst missing_fields = required_fields.filter(field => !payload[field]);\n\nif (missing_fields.length > 0) {\n  return {\n    json: {\n      error: true,\n      message: `Campos obrigatórios ausentes: ${missing_fields.join(', ')}`,\n      status: 400\n    }\n  };\n}\n\n// Extrair e validar dados\nconst request_type = payload.request_type;\nconst territory_id = payload.territory_id;\nconst territory_name = payload.territory_name || \"Desconhecido\";\nconst dimension = payload.dimension;\nconst parameters = payload.parameters || {};\nconst user_id = payload.user_id || \"anonymous\";\nconst session_id = payload.session_id || \"no-session\";\n\n// Validar request_type\nconst valid_types = ['analysis', 'data_collection', 'comparison'];\nif (!valid_types.includes(request_type)) {\n  return {\n    json: {\n      error: true,\n      message: `Tipo de requisição inválido: ${request_type}. Valores aceitos: ${valid_types.join(', ')}`,\n      status: 400\n    }\n  };\n}\n\n// Validar dimension\nconst valid_dimensions = ['economic', 'social', 'territorial', 'environmental'];\nif (!valid_dimensions.includes(dimension)) {\n  return {\n    json: {\n      error: true,\n      message: `Dimensão inválida: ${dimension}. Valores aceitos: ${valid_dimensions.join(', ')}`,\n      status: 400\n    }\n  };\n}\n\n// Gerar timestamp e request_id\nconst timestamp = new Date().toISOString();\nconst request_id = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Construir objeto validado\nconst validated_request = {\n  request_id: request_id,\n  request_type: request_type,\n  territory_id: territory_id,\n  territory_name: territory_name,\n  dimension: dimension,\n  parameters: parameters,\n  user_id: user_id,\n  session_id: session_id,\n  timestamp: timestamp,\n  status: 'validated'\n};\n\n// Retornar requisição validada\nreturn { json: validated_request };"
+      },
+      "id": "code-validate-request",
+      "name": "Validar Requisição",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 400],
+      "notes": "FUNÇÃO: Valida o payload recebido e prepara dados para roteamento.\n\nVALIDAÇÕES:\n1. Campos obrigatórios presentes (request_type, territory_id, dimension)\n2. Valores válidos para request_type (analysis, data_collection, comparison)\n3. Valores válidos para dimension (economic, social, territorial, environmental)\n\nOUTPUT:\n- Se válido: Objeto estruturado com request_id, timestamp e dados validados\n- Se inválido: Objeto de erro com mensagem e status 400\n\nPRÓXIMO PASSO: Roteamento para workflow específico baseado em request_type."
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "route-analysis",
+              "leftValue": "={{ $json.request_type }}",
+              "rightValue": "analysis",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "route-data-collection",
+              "leftValue": "={{ $json.request_type }}",
+              "rightValue": "data_collection",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "route-comparison",
+              "leftValue": "={{ $json.request_type }}",
+              "rightValue": "comparison",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "switch-route-request",
+      "name": "Rotear Requisição",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [650, 400],
+      "notes": "FUNÇÃO: Roteia a requisição validada para o workflow apropriado.\n\nROTEAMENTO:\n- Output 0 (analysis): Envia para workflow de análise dimensional\n- Output 1 (data_collection): Envia para workflow de coleta de dados\n- Output 2 (comparison): Envia para workflow de comparação territorial\n- Output 3 (default): Requisições não classificadas (erro)\n\nPRÓXIMOS WORKFLOWS:\n- WF-ANALYSIS-DIMENSIONAL: Gera análises por dimensão\n- WF-DATA-COLLECTOR: Coleta dados de APIs governamentais\n- WF-COMPARISON-TERRITORIAL: Compara múltiplos territórios"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Processar requisição de análise\n// ============================================\n\nconst request = $input.item.json;\n\n// Simular processamento de análise (MVP)\nconst analysis_result = {\n  request_id: request.request_id,\n  status: 'processing',\n  message: '🚀 Análise em processamento',\n  territory: {\n    id: request.territory_id,\n    name: request.territory_name\n  },\n  dimension: request.dimension,\n  estimated_time: '30-60 segundos',\n  next_step: 'Aguarde enquanto os agentes especializados geram a análise',\n  workflow: 'WF-ANALYSIS-DIMENSIONAL (a ser implementado)',\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: analysis_result };"
+      },
+      "id": "code-process-analysis",
+      "name": "Processar Análise",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "notes": "FUNÇÃO: Processa requisições de análise dimensional.\n\nSTATUS ATUAL: MVP - Retorna resposta simulada\n\nFUTURO (Fase 9-10):\n- Chamar agente dimensional apropriado (ECON, SOCIAL, TERRA, AMBIENT)\n- Coletar dados do PostgreSQL\n- Gerar análise com LLM\n- Inserir resultado no banco\n- Retornar análise completa\n\nPOR ENQUANTO: Confirma recebimento e informa tempo estimado."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Processar requisição de coleta de dados\n// ============================================\n\nconst request = $input.item.json;\n\nconst data_collection_result = {\n  request_id: request.request_id,\n  status: 'processing',\n  message: '📊 Coleta de dados iniciada',\n  territory: {\n    id: request.territory_id,\n    name: request.territory_name\n  },\n  dimension: request.dimension,\n  estimated_time: '2-5 minutos',\n  next_step: 'Agente Data Collector está consultando APIs governamentais',\n  workflow: 'WF-DATA-COLLECTOR (a ser implementado)',\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: data_collection_result };"
+      },
+      "id": "code-process-data-collection",
+      "name": "Processar Coleta de Dados",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 400],
+      "notes": "FUNÇÃO: Processa requisições de coleta de dados.\n\nSTATUS ATUAL: MVP - Retorna resposta simulada\n\nFUTURO (Fase 10):\n- Chamar agente Data Collector\n- Consultar APIs: IBGE, INPE, DataSUS, etc.\n- Processar e normalizar dados\n- Inserir no PostgreSQL\n- Retornar confirmação\n\nPOR ENQUANTO: Confirma recebimento e informa tempo estimado."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Processar requisição de comparação\n// ============================================\n\nconst request = $input.item.json;\n\nconst comparison_result = {\n  request_id: request.request_id,\n  status: 'processing',\n  message: '🔄 Comparação territorial iniciada',\n  territory: {\n    id: request.territory_id,\n    name: request.territory_name\n  },\n  comparison_territories: request.parameters.comparison_territories || [],\n  dimension: request.dimension,\n  estimated_time: '45-90 segundos',\n  next_step: 'Agentes estão coletando dados de múltiplos territórios',\n  workflow: 'WF-COMPARISON-TERRITORIAL (a ser implementado)',\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: comparison_result };"
+      },
+      "id": "code-process-comparison",
+      "name": "Processar Comparação",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 500],
+      "notes": "FUNÇÃO: Processa requisições de comparação territorial.\n\nSTATUS ATUAL: MVP - Retorna resposta simulada\n\nFUTURO (Fase 11):\n- Coletar dados de múltiplos territórios\n- Normalizar indicadores\n- Gerar análise comparativa com LLM\n- Criar visualizações\n- Retornar comparação completa\n\nPOR ENQUANTO: Confirma recebimento e informa tempo estimado."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Tratar erro de roteamento\n// ============================================\n\nconst request = $input.item.json;\n\nconst error_response = {\n  error: true,\n  message: '❌ Tipo de requisição não reconhecido ou não implementado',\n  request_id: request.request_id || 'unknown',\n  request_type: request.request_type || 'unknown',\n  status: 400,\n  timestamp: new Date().toISOString()\n};\n\nreturn { json: error_response };"
+      },
+      "id": "code-handle-error",
+      "name": "Tratar Erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 600],
+      "notes": "FUNÇÃO: Trata requisições que não foram roteadas corretamente.\n\nCENÁRIOS:\n- request_type inválido\n- Falha na validação\n- Workflow destino não implementado\n\nOUTPUT: Mensagem de erro estruturada com status 400."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": "={{ $json.status || 200 }}",
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type, Authorization"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-to-webhook",
+      "name": "Responder ao Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1050, 400],
+      "notes": "FUNÇÃO: Envia resposta HTTP de volta ao dashboard.\n\nCONFIGURAÇÃO:\n- Formato: JSON\n- Headers CORS: Permite requisições do Replit\n- Status Code: Dinâmico (200 para sucesso, 400 para erro)\n\nRESPOSTA: JSON com status da requisição e próximos passos."
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Requisição": {
+      "main": [
+        [
+          {
+            "node": "Validar Requisição",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Requisição": {
+      "main": [
+        [
+          {
+            "node": "Rotear Requisição",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rotear Requisição": {
+      "main": [
+        [
+          {
+            "node": "Processar Análise",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Processar Coleta de Dados",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Processar Comparação",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tratar Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Análise": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Coleta de Dados": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Comparação": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tratar Erro": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Framework V6.0",
+      "id": "framework-v6"
+    },
+    {
+      "name": "Webhook",
+      "id": "webhook"
+    },
+    {
+      "name": "Receptor",
+      "id": "receptor"
+    }
+  ],
+  "meta": {
+    "instanceId": "galactic-ai"
+  },
+  "triggerCount": 0,
+  "updatedAt": "2025-11-16T00:00:00.000Z",
+  "versionId": "1.0.0"
+}
