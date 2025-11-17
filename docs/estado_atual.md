@@ -1,15 +1,15 @@
 # Estado Atual - Framework V6.0 MVP
 
-**Última Atualização:** 16 de novembro de 2025, 18:00 GMT-3  
-**Fase Atual:** Fase 8 (Completa) e Fase 9 (Iniciando)
-**Status Geral:** Em andamento - Arquitetura de webhooks n8n implementada
+**Última Atualização:** 17 de novembro de 2025, 14:00 GMT-3  
+**Fase Atual:** Fase 8 (Agentes Dimensionais Criados) e Início do Data Collector
+**Status Geral:** Em andamento - 4 agentes dimensionais criados, pesquisa de APIs iniciada
 
 ---
 
 ## PROGRESSO GERAL DO PROJETO
 
-**Versão Atual:** v0.75
-**Progresso:** 75% concluído
+**Versão Atual:** v0.80
+**Progresso:** 80% concluído
 
 **Fases Concluídas:**
 - ✅ Fase 1: Análise da documentação e esclarecimento de escopo (100%)
@@ -20,10 +20,13 @@
 - ✅ Fase 6: Implementação de funcionalidades geoespaciais avançadas (100%)
 - ✅ Fase 7: Criação de sistema de continuidade entre conversas/tarefas (100%)
 - ✅ Fase 8: Configuração do n8n Cloud e arquitetura do sistema multi-agentes (100%)
+- 🔄 Fase 8.5: Criação dos Agentes Dimensionais (ECON, SOCIAL, TERRA, AMBIENT) (100%)
+- 🔄 Fase 8.6: Data Collector e Catalogação de APIs (30%)
 
 **Fases Restantes:**
-- ⏳ Fase 9: Implementação do Orquestrador (Meta-LLM) no n8n (0%) - **PRÓXIMA FASE**
-- ⏳ Fase 10: Implementação do Data Collector e agentes dimensionais (0%)
+- 🔄 Fase 8.6: Data Collector e Catalogação de APIs (30%) - **FASE ATUAL**
+- ⏳ Fase 9: Implementação do Orquestrador (Meta-LLM) no n8n (0%)
+- ⏳ Fase 10: Implementação de RAGs específicas por agente (0%)
 - ⏳ Fase 11: Integração n8n ↔ Replit e testes do sistema completo (0%)
 - ⏳ Fase 12: Documentação final e preparação para v2.0 (0%)
 
@@ -36,15 +39,21 @@
 **Usar este prompt para iniciar próxima sessão:**
 
 ```
-Olá! Vamos continuar o Framework V6.0. Repositório: https://github.com/henrique-m-ribeiro/framework-v6-mvp
+Olá! Vamos continuar o Framework V6.0.
+Repositório: https://github.com/henrique-m-ribeiro/framework-v6-mvp
 
-Hoje quero focar na Fase 9: Implementação do Orquestrador (Meta-LLM) no n8n.
+Hoje quero focar em:
 
-1. Crie o workflow do Orquestrador.
-2. Implemente a lógica para receber requisições e distribuir para outros agentes (ainda que simulados).
-3. Documente o workflow e a lógica de orquestração.
+1. Continuar a catalogação de APIs governamentais brasileiras
+2. Criar o workflow WF-DATA-COLLECTOR (MVP)
+3. Testar coleta de dados de 2-3 municípios do Tocantins
+4. Desenvolver prompts para a IA do n8n (meta-mediação)
 
-Vamos começar.
+Por favor, leia o arquivo de estado e o resumo da sessão anterior:
+- /docs/estado_atual.md
+- /docs/diarios/SESSAO_2025-11-17_DATA_COLLECTOR_INICIO.md
+
+Vamos continuar de onde paramos!
 ```
 
 ---
@@ -52,38 +61,75 @@ Vamos começar.
 ## DOCUMENTOS-CHAVE PARA CONTINUIDADE
 
 1. **Este arquivo** (`/docs/estado_atual.md`) - Estado atual do projeto
-2. **Arquitetura n8n** (`/docs/n8n/ARQUITETURA_N8N_WEBHOOKS.md`) - Detalhes dos workflows
-3. **Guia de Importação** (`/n8n/GUIA_IMPORTACAO_WORKFLOWS.md`) - Como configurar o n8n
-4. **Guia de Testes** (`/tests/README.md`) - Como executar os testes de integração
+2. **Resumo da Última Sessão** (`/docs/diarios/SESSAO_2025-11-17_DATA_COLLECTOR_INICIO.md`) - Detalhes completos
+3. **Arquitetura do Núcleo de Especialistas** (`/docs/n8n/ARQUITETURA_NUCLEO_ESPECIALISTAS.md`) - Sistema multi-agente
+4. **Pesquisa de APIs** (`/docs/data/api_research_notes.md`) - Catalogação em andamento
+5. **Base de Conhecimento** (`/docs/database/BASE_DE_CONHECIMENTO.md`) - Estrutura da RAG
+6. **Guia de Importação** (`/n8n/GUIA_IMPORTACAO_WORKFLOWS.md`) - Como configurar o n8n
+7. **Guia de Testes** (`/tests/README.md`) - Como executar os testes de integração
 
 ---
 
-## ÚLTIMA SESSÃO: Sessão 4 - 16 de Novembro de 2025
+## ÚLTIMA SESSÃO: Sessão 5 - 17 de Novembro de 2025
 
-**Duração:** ~2 horas
-**Foco:** Fase 8 - Configuração n8n Cloud e Webhooks
+**Duração:** ~3 horas
+**Foco:** Criação dos Agentes Dimensionais e Início do Data Collector
 
 ### Principais Realizações
 
-1.  **Workflows n8n Criados (3):**
-    -   `WF-TEST-INTEGRATION`: Para teste de conectividade.
-    -   `WF-WEBHOOK-01-Receptor-Principal`: Roteador central de requisições.
-    -   `WF-WEBHOOK-02-Analise-Territorial-Simples`: Exemplo de ponta a ponta com consulta a banco e uso de LLM.
+1.  **Validação do Sistema de Continuidade (Fase 7 → 100%):**
+    -   Retomada perfeita do contexto do projeto sem perda de qualidade.
+    -   Sistema de continuidade totalmente validado.
 
-2.  **Cliente de Integração (JavaScript):**
-    -   Criado o arquivo `n8n-client.js` para facilitar a comunicação do dashboard com o n8n.
+2.  **Criação do Núcleo de Especialistas (4 Agentes Dimensionais):**
+    -   `WF-AGENT-ECON-Especialista-Economico.json` (Dimensão Econômica)
+    -   `WF-AGENT-SOCIAL-Especialista-Social.json` (Dimensão Social)
+    -   `WF-AGENT-TERRA-Especialista-Territorial.json` (Dimensão Territorial)
+    -   `WF-AGENT-AMBIENT-Especialista-Ambiental.json` (Dimensão Ambiental)
+    -   Todos com arquitetura padronizada (8 nós) e comentários didáticos extensos.
 
-3.  **Testes Automatizados:**
-    -   Desenvolvidos scripts de teste em Node.js (`test-n8n-integration.js`) e Bash (`test-n8n-integration.sh`) para garantir a integridade da comunicação.
+3.  **Base de Conhecimento (PostgreSQL + pgvector):**
+    -   Projetada tabela `knowledge_base` com suporte a RAG.
+    -   Script SQL criado: `004_create_knowledge_base.sql`.
+    -   Documentação completa: `BASE_DE_CONHECIMENTO.md`.
 
-4.  **Documentação Completa:**
-    -   `ARQUITETURA_N8N_WEBHOOKS.md`: Detalha a função e lógica de cada workflow.
-    -   `GUIA_IMPORTACAO_WORKFLOWS.md`: Guia passo a passo para importar e configurar os workflows no n8n.
-    -   `README_INTEGRACAO.md`: Guia para integrar o `n8n-client.js` no dashboard Replit.
-    -   `tests/README.md`: Instruções para execução dos scripts de teste.
+4.  **Processamento dos Territórios do Tocantins:**
+    -   140 territórios processados (139 municípios + Estado).
+    -   Dados salvos em `/data/municipios_tocantins.json`.
+
+5.  **Início da Pesquisa de APIs Governamentais:**
+    -   API IBGE - Agregados documentada em detalhes.
+    -   Estrutura de catalogação criada: `/docs/data/api_research_notes.md`.
+    -   ~15-20 APIs adicionais identificadas para catalogação.
+
+6.  **Compreensão da Pesquisa Acadêmica:**
+    -   Leitura dos artigos sobre o "Efeito Mediador".
+    -   Compreensão do papel de IA Mediadora no projeto.
+    -   Estratégia de meta-mediação (Você ↔ Eu ↔ IA do n8n) definida.
+
+7.  **Documentação Técnica Extensa:**
+    -   ~22.500 palavras em 8 documentos técnicos.
+    -   Resumo executivo completo da sessão.
 
 ### Decisões Tomadas
 
-1.  **Arquitetura de Webhooks Definida:** Centralizar a maioria das requisições em um webhook "Receptor Principal" que atua como um API Gateway, validando e roteando as chamadas.
-2.  **Criação de Cliente JS:** Abstrair a complexidade das chamadas `fetch` em uma classe `N8NClient` para simplificar o desenvolvimento no frontend.
-3.  **Dupla Abordagem de Testes:** Fornecer um script de teste robusto em Node.js para CI/CD e um script simples em Bash para verificações rápidas.
+1.  **Priorizar Data Collector:** Criar o Data Collector antes de testar os agentes de análise (dados reais, não mock).
+2.  **Escopo Ampliado:** 140 territórios (não apenas Palmas), múltiplas APIs, série histórica de 5 anos.
+3.  **Meta-Mediação:** Você mediará a interação entre mim e a IA do n8n (pesquisa acadêmica).
+4.  **RAGs Específicas:** Cada agente terá sua própria RAG para aprendizagem contínua.
+5.  **Atualização Manual de Workflows:** Workflows n8n serão atualizados manualmente para versões mais recentes dos nós.
+
+### Desafios Identificados
+
+1.  **Versionamento do n8n:** Workflows importados com nós antigos (sintaxe `{{ }}` não funciona).
+2.  **Escopo do Data Collector:** Mais complexo que previsto (múltiplas APIs, 140 territórios).
+3.  **Tempo de Catalogação:** Pesquisa de APIs leva mais tempo que o estimado.
+4.  **Banco de Dados Vazio:** Não podemos testar agentes sem dados reais.
+
+### Próximos Passos Imediatos
+
+1.  **Continuar Catalogação de APIs** (~4-6 horas): SICONFI, DataSUS, INEP, INPE, ANA.
+2.  **Criar Workflow Data Collector MVP** (~3-4 horas): Implementar coleta do IBGE, testar com 2-3 municípios.
+3.  **Desenvolver Prompts para IA do n8n** (~2 horas): Avaliação e criação de workflows.
+4.  **Implementar RAGs Específicas** (sessão futura): Memória individual por agente.
+5.  **Criar Orquestrador (Meta-LLM)** (sessão futura): Coordenação de todos os agentes.
