@@ -1,10 +1,13 @@
 # Framework V6.0 - Sistema de Inteligência Territorial
 
 [![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)](https://github.com)
-[![Versão](https://img.shields.io/badge/versão-1.0.0--mvp-blue)](https://github.com)
+[![Versão](https://img.shields.io/badge/versão-0.80-blue)](https://github.com)
+[![Progresso](https://img.shields.io/badge/progresso-80%25-green)](https://github.com)
 [![Licença](https://img.shields.io/badge/licença-Proprietária-red)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-15+-blue)](https://www.postgresql.org/)
+
+> **🎉 ATUALIZAÇÃO (17/11/2025):** Núcleo de Especialistas criado! 4 agentes dimensionais (ECON, SOCIAL, TERRA, AMBIENT) prontos para importação. Progresso: 65% → 80% (+15%). [Ver detalhes](#atualizações-recentes)
 
 **Sistema abrangente de inteligência territorial para gestão pública, integrando análises multi-dimensionais com arquitetura RAG (Retrieval-Augmented Generation).**
 
@@ -162,7 +165,24 @@ Para instruções completas, consulte:
 - [ ] **Fase 9:** Testes integrados e validação do MVP
 - [ ] **Fase 10:** Documentação do processo e checkpoint de aprendizados
 
-**Progresso:** 2/10 fases concluídas (20%)
+**Progresso:** 8.5/12 fases concluídas (80%)
+
+### Atualizações Recentes (17/11/2025) 🆕
+
+**Sessão 5 - Criação do Núcleo de Especialistas:**
+- ✅ Sistema de Continuidade 100% validado (Fase 7)
+- ✅ 4 Agentes Dimensionais criados (ECON, SOCIAL, TERRA, AMBIENT)
+- ✅ Base de Conhecimento projetada (PostgreSQL + pgvector)
+- ✅ 140 territórios do Tocantins processados
+- 🔄 Pesquisa de APIs governamentais iniciada (30%)
+- 📚 ~60.000 palavras de documentação técnica
+
+**Próximos Passos:**
+- Data Collector (catalogação de APIs + implementação)
+- Prompts para IA do n8n (meta-mediação)
+- Orquestrador (Meta-LLM)
+
+[📖 Ver Resumo Completo da Sessão 5](docs/diarios/SESSAO_2025-11-17_DATA_COLLECTOR_INICIO.md) | [📓 Ver Diário de Campo](docs/diarios/DIARIO_DE_CAMPO_2025-11-17.md) | [💡 Ver Lições Aprendidas](docs/LICOES_APRENDIDAS_E_DICAS.md)
 
 ---
 
@@ -287,6 +307,7 @@ Para dúvidas, sugestões ou parcerias:
 
 ---
 
-**Última atualização:** 10 de Novembro de 2025  
-**Versão:** 1.0.0-mvp  
-**Status:** Em Desenvolvimento Ativo 🚀
+**Última atualização:** 17 de Novembro de 2025  
+**Versão:** 0.80  
+**Status:** Em Desenvolvimento Ativo 🚀  
+**Última Sessão:** Sessão 5 - Criação do Núcleo de Especialistas
