@@ -1,0 +1,3 @@
+ERROR:  column e.pib does not exist
+LINE 2:   e.year as ano, e.pib, e.pib_per_capita, 
+                         ^
