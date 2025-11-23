@@ -14,6 +14,28 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 23, 2025 - Complete Social Data Collection + Territory Selector Fix
+- **Social Data Collection**: Collected 155 additional real social indicator records via IBGE API
+  - Coverage: **414 total social records** for **139/139 municipalities** (100% coverage)
+  - Years: 2019-2021 (IBGE API limitation - data unavailable for 2022-2023)
+  - Indicators: População, IDH-M, Taxa de Alfabetização, Renda per Capita
+  - Missing municipalities identified by comparing database against IBGE complete list
+  - Script created: `06_collect_missing_social.py` for targeted collection
+- **Critical Bug Fix - Territory Selector**: Fixed type mismatch between selector values and database types
+  - **Root Cause**: Selector used "municipio" (no accent) but database stores "Município" (with accent)
+  - **Impact**: Municipality dropdown was empty when switching from Estado to Município
+  - **Solution**: Updated TerritorySelector and App.tsx to use exact database types ("Estado", "Município")
+  - **Result**: Municipality selector now populates correctly with all 139 municipalities
+- **Auto-Selection Logic**: Implemented useEffect-based auto-selection of territory when type changes
+  - Detects when selected territory doesn't match current type
+  - Automatically selects first territory of new type
+  - Prevents "no territory selected" state after type change
+- **E2E Testing**: Full test passed successfully
+  - Verified Estado → Município transition
+  - Confirmed auto-selection of Abreulândia (first municipality alphabetically)
+  - Validated display of real social data: População 2.609, IDH-M 0,717, Alfabetização 86,7%, Renda R$ 884
+- **Data Quality**: All 139 municipalities now have complete social indicator coverage for 2019-2021
+
 ### November 23, 2025 - Complete Real Data Integration (140 Territories + Economic Indicators)
 - **Data Replacement**: Successfully replaced all mock data with real data from official government sources
 - **Territory Coverage**: 140 real territories (1 state + 139 municipalities) - **100% coverage of Tocantins**
@@ -80,6 +102,8 @@ Preferred communication style: Simple, everyday language.
 - ✅ Interactive map with **140 geocoded territories** (100% coverage)
 - ✅ Proximity search with configurable radius (10-500km)
 - ✅ **700 economic indicators** (5 years of data for all 140 territories)
+- ✅ **414 social indicators** (3 years of REAL data for all 139 municipalities)
+- ✅ Territory selector with auto-selection logic (type changes automatically update territory)
 - ✅ Export to PDF via browser print dialog
 - ✅ Responsive design with mobile support
 
