@@ -58,7 +58,11 @@ ANEXO_RECEITAS = "I-C"
 ANEXO_DESPESAS = "I-E"
 
 # Arquivo de entrada (lista de municípios)
+<<<<<<< HEAD
 INPUT_MUNICIPIOS = "insert_territories_with_coordinates.sql"  # Vamos extrair códigos IBGE daqui
+=======
+INPUT_MUNICIPIOS = "insert_territories.sql"  # Vamos extrair códigos IBGE daqui
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
 
 # Arquivo de saída (SQL)
 OUTPUT_SQL = "insert_economic_indicators.sql"
@@ -94,6 +98,7 @@ def extract_codigos_ibge():
         with open(INPUT_MUNICIPIOS, "r", encoding="utf-8") as f:
             for line in f:
                 # Procurar linhas com INSERT INTO territories
+<<<<<<< HEAD
                 if "INSERT INTO territories" in line:
                     continue
                 # Procurar linhas com IDs (códigos IBGE)
@@ -103,6 +108,14 @@ def extract_codigos_ibge():
                     if len(parts) >= 2:
                         codigo = parts[1]
                         if codigo.isdigit() and len(codigo) in [2, 7]:  # 2 para estado, 7 para município
+=======
+                if "'17'" in line and "-- id (código IBGE)" in line:
+                    # Extrair código IBGE (entre aspas simples)
+                    parts = line.split("'")
+                    if len(parts) >= 2:
+                        codigo = parts[1]
+                        if codigo.isdigit():
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
                             codigos.append(codigo)
         
         log(f"✓ {len(codigos)} códigos IBGE extraídos")
@@ -159,6 +172,13 @@ def get_receitas_municipio(codigo_ibge, ano):
 def get_despesas_municipio(codigo_ibge, ano):
     """Coleta despesas de um município via SICONFI"""
     
+<<<<<<< HEAD
+=======
+    # Usar endpoint genérico de despesas (DCA Anexo I-E ou similar)
+    # Nota: A API SICONFI pode ter limitações para dados municipais
+    # Vamos tentar coletar o que estiver disponível
+    
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
     url = f"{API_BASE}?an_exercicio={ano}&co_tipo_demonstrativo=DCA&no_anexo={ANEXO_DESPESAS}&co_esfera=M&co_poder=E&id_ente={codigo_ibge}"
     
     try:
@@ -214,14 +234,26 @@ def generate_sql_insert(codigo_ibge, ano, dados_economicos):
     despesa_investimento = dados_economicos.get("despesa_investimento", 0.0)
     despesa_pessoal = dados_economicos.get("despesa_pessoal", 0.0)
     
+<<<<<<< HEAD
     # PIB e outros serão NULL por enquanto
     gdp = "NULL"
     gdp_per_capita = "NULL"
     employment_rate = "NULL"
+=======
+    # Calcular taxa de emprego (placeholder - será coletado do IBGE depois)
+    employment_rate = "NULL"
+    
+    # PIB (placeholder - será coletado do IBGE depois)
+    gdp = "NULL"
+    gdp_per_capita = "NULL"
+    
+    # Setor distribution (placeholder)
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
     sector_distribution = "NULL"
     
     sql = f"""INSERT INTO economic_indicators (id, territory_id, year, gdp, gdp_per_capita, employment_rate, revenue, sector_distribution)
 VALUES (
+<<<<<<< HEAD
     '{record_id}',
     '{codigo_ibge}',
     {ano},
@@ -231,6 +263,19 @@ VALUES (
     {receita_total if receita_total > 0 else 'NULL'},
     {sector_distribution}
 );
+=======
+    '{record_id}',  -- id (UUID)
+    '{codigo_ibge}',  -- territory_id
+    {ano},  -- year
+    {gdp},  -- gdp (será preenchido depois)
+    {gdp_per_capita},  -- gdp_per_capita (será preenchido depois)
+    {employment_rate},  -- employment_rate (será preenchido depois)
+    {receita_total if receita_total > 0 else 'NULL'},  -- revenue
+    {sector_distribution}  -- sector_distribution (será preenchido depois)
+)
+ON CONFLICT (territory_id, year) DO UPDATE SET
+    revenue = EXCLUDED.revenue;
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
 """
     
     return sql

@@ -1,0 +1,132 @@
+{
+  "project_info": {
+    "title": "Dashboard de Inteligência Territorial",
+    "created": 1763065451.535051,
+    "last_updated": 1763065490.0393214,
+    "total_slides": 15
+  },
+  "slides": {
+    "capa": "edited",
+    "arquitetura_geral": "edit_pending",
+    "painel_controle": "edit_pending",
+    "aba_visao_geral": "edit_pending",
+    "aba_economica": "edit_pending",
+    "aba_social": "edit_pending",
+    "aba_territorial": "edit_pending",
+    "aba_ambiental": "edit_pending",
+    "aba_comparacao": "edit_pending",
+    "chat_ia_detalhamento": "edit_pending",
+    "fluxos_interacao": "edit_pending",
+    "exportacao": "edit_pending",
+    "responsividade": "edit_pending",
+    "paleta_cores": "edit_pending",
+    "proximos_passos": "edit_pending"
+  },
+  "outline": [
+    {
+      "id": "capa",
+      "title": "Dashboard de Inteligência Territorial",
+      "summary": "Slide de capa apresentando o título do projeto Framework V6.0 e subtítulo sobre Layout em Abas com Chat IA Persistente. Estética Data-Driven Cartography com paleta navy blue e cyan.",
+      "image_plan": "/home/ubuntu/framework-v6-mvp/docs/design/slide_capa_framework_v6.png - Image 7 is a strong visual representation of \"Territorial Intelligence Dashboard\" with a digital brain icon and a gradient background, matching the slide's theme and content.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "arquitetura_geral",
+      "title": "Arquitetura do Dashboard",
+      "summary": "Visão geral da arquitetura com 6 abas principais (Visão Geral, Econômica, Social, Territorial, Ambiental, Comparação) mais Chat IA lateral fixo. Diagrama visual da estrutura do layout com componentes comuns.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "painel_controle",
+      "title": "Painel de Controle Superior",
+      "summary": "Detalhamento dos seletores hierárquicos: Tipo de Território (6 opções), Território Específico (dinâmico, 140 entidades), Período Temporal (5-20 anos), Indicadores (multi-select). Mockup visual dos dropdowns.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_visao_geral",
+      "title": "Aba Visão Geral - Wireframe",
+      "summary": "Wireframe da aba Visão Geral mostrando grid 2x2 com síntese das 4 dimensões. Cada quadrante com 2 KPIs, mini gráfico e badge de status. Caixa de Análise IA integrada abaixo. Chat lateral sempre visível.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_economica",
+      "title": "Aba Econômica - Wireframe",
+      "summary": "Wireframe detalhado da aba Econômica: 4 KPIs principais (PIB, Emprego, Arrecadação), 2 gráficos (evolução PIB e composição setorial), Caixa de Análise IA, tabela de dados históricos, chat lateral com sugestões contextuais.",
+      "image_plan": "/home/ubuntu/wireframe_dashboard_visual.png - Image 3 is a wireframe that clearly illustrates the \"Chat Lateral Fixo\" concept (Alternative 1), with the dashboard on the left and the AI chat on the right, matching the slide's content.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_social",
+      "title": "Aba Social - Wireframe",
+      "summary": "Wireframe da aba Social: KPIs de desenvolvimento humano (IDH-M, População, Alfabetização, Renda), gráfico radar (componentes IDH), gráfico de barras (indicadores educacionais), análise IA, tabela de dados demográficos.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_territorial",
+      "title": "Aba Territorial - Wireframe",
+      "summary": "Wireframe da aba Territorial: KPIs de uso do solo e infraestrutura, mapa interativo com camadas geoespaciais, gráfico de pizza (uso do solo), análise IA sobre padrões de ocupação, tabela de dados territoriais.",
+      "image_plan": "/home/ubuntu/wireframe_chat_interaction.png - Image 4 shows a dashboard with a chat interface that could represent the \"Chat Flutuante Expansível\" (Alternative 2) or a similar hybrid approach, maximizing space for data visualization. It also features a comparison graph, which is a key function.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_ambiental",
+      "title": "Aba Ambiental - Wireframe",
+      "summary": "Wireframe da aba Ambiental: KPIs de recursos naturais (Cobertura Vegetal, Desmatamento, Qualidade Água, Emissões), gráfico de área empilhada (evolução cobertura vegetal), gráfico de linha (qualidade água), análise IA ambiental.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "aba_comparacao",
+      "title": "Aba Comparação - Wireframe",
+      "summary": "Wireframe da nova aba de Comparação: seletor multi-território (até 5), seletor de dimensão e indicadores, gráfico de barras agrupadas, gráfico radar comparativo, tabela comparativa, análise IA de benchmarking.",
+      "image_plan": "/home/ubuntu/wireframe_regional_comparison.png - Image 6 shows a dashboard with a clear separation between the main content (Regional Comparison) and a side menu/tab structure (\"Dashboard,\" \"AI Chat\"), which is the core concept of the \"Chat em Abas\" (Alternative 3).",
+      "slide_template_key": ""
+    },
+    {
+      "id": "chat_ia_detalhamento",
+      "title": "Chat IA Lateral - Detalhamento Funcional",
+      "summary": "Detalhamento completo do Chat IA: estrutura (header, área de mensagens, sugestões contextuais, input), funcionalidades (contexto automático, typing indicator, markdown, exportação), estados visuais (normal, minimizado, expandido).",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "fluxos_interacao",
+      "title": "Fluxos de Interação Principais",
+      "summary": "Quatro jornadas do usuário: Análise Rápida de Município (8 passos), Comparação entre Municípios (10 passos), Análise Temporal de Região (7 passos), Exploração Guiada por IA (7 passos). Diagramas de fluxo visual.",
+      "image_plan": "",
+      "slide_template_key": ""
+    },
+    {
+      "id": "exportacao",
+      "title": "Funcionalidades de Exportação",
+      "summary": "Detalhamento de exportação PDF (escopo, conteúdo, opções) e CSV (formato, metadados). Mockup dos botões de exportação e modais de configuração. Funcionalidade de compartilhamento de links.",
+      "image_plan": "/home/ubuntu/wireframe_dashboard_v2_regional.png - Image 5 is a wireframe showing a dashboard with clear selectors for territory and a central AI chat area, which is highly relevant to the technical guide and architecture discussion. It visually represents the system's components.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "responsividade",
+      "title": "Responsividade e Adaptações Mobile",
+      "summary": "Adaptações por dispositivo: Desktop (layout completo), Tablet (chat em drawer), Mobile (abas em accordion, chat fullscreen). Wireframes comparativos dos 3 tamanhos. Touch optimization.",
+      "image_plan": "/home/ubuntu/upload/pasted_file_dzC0wi_image.png; /home/ubuntu/upload/pasted_file_j1yCaq_image.png - Images 1 and 2 show the Replit interface and the process of starting a design, which directly relates to the \"Prompt para Replit\" section and the overall implementation guide on this final slide.",
+      "slide_template_key": ""
+    },
+    {
+      "id": "paleta_cores",
+      "title": "Paleta de Cores e Identidade Visual",
+      "summary": "Sistema de design completo: paleta de cores Framework V6.0 (navy, cyan, orange, green, yellow, white, gray), aplicação de cores por contexto, tipografia Inter com hierarquia de tamanhos, ícones Font Awesome.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    },
+    {
+      "id": "proximos_passos",
+      "title": "Próximos Passos - Implementação",
+      "summary": "Roadmap de implementação em 6 fases: Protótipo HTML/CSS (1-2 dias), Integração React (2-3 dias), Backend e BD (3-4 dias), Integração IA (2-3 dias), Funcionalidades Avançadas (2-3 dias), Testes (1-2 dias). Total: 11-17 dias.",
+      "image_plan": "Use a suitable image if needed",
+      "slide_template_key": ""
+    }
+  ]
+}

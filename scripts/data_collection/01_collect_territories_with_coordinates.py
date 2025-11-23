@@ -87,7 +87,11 @@ def get_estado_tocantins():
             "nome": data["nome"],  # "Tocantins"
             "sigla": data["sigla"],  # "TO"
             "regiao": data["regiao"]["nome"],  # "Norte"
+<<<<<<< HEAD
             "tipo": "Estado"
+=======
+            "tipo": "estado"
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
         }
         
         log(f"✓ Estado coletado: {estado['nome']}")
@@ -124,7 +128,11 @@ def get_municipios_tocantins():
                 "nome": mun["nome"],
                 "microrregiao": mun["microrregiao"]["nome"],
                 "mesorregiao": mun["microrregiao"]["mesorregiao"]["nome"],
+<<<<<<< HEAD
                 "tipo": "Município",
+=======
+                "tipo": "municipio",
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
                 "uf": "TO"
             }
             
@@ -151,7 +159,11 @@ def generate_sql_insert(territorio, parent_id=None):
     nome_escaped = territorio["nome"].replace("'", "''")
     
     # Metadados em JSON
+<<<<<<< HEAD
     if territorio["tipo"] == "Estado":
+=======
+    if territorio["tipo"] == "estado":
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8
         metadata = json.dumps({
             "regiao": territorio["regiao"],
             "codigo_ibge": territorio["id"]

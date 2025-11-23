@@ -1,0 +1,241 @@
+{
+  "name": "WF-AGENT-SOCIAL - Especialista Social",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-social",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-recebe-tarefa",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "agent-social-webhook",
+      "notes": "FUNÇÃO: Ponto de entrada do Agente SOCIAL.\n\nRECEBE: Requisição HTTP POST do Orquestrador com:\n- task_id: ID único da tarefa\n- territory_id: ID do território a analisar\n- territory_name: Nome do território\n- dimension: 'social'\n- task_description: Descrição da análise solicitada\n- context: Contexto adicional (comparações, período, etc.)\n\nEXEMPLO DE PAYLOAD:\n{\n  \"task_id\": \"uuid-12345\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"social\",\n  \"task_description\": \"Analisar evolução social de Palmas (2019-2023)\",\n  \"context\": {\n    \"user_question\": \"Como está a situação social de Palmas?\",\n    \"comparison_territories\": [],\n    \"time_range\": \"2019-2023\"\n  }\n}\n\nCONFIGURAÇÕES:\n- Método: POST (para receber dados)\n- Path: /agent-social (URL será https://galactic-ai.app.n8n.cloud/webhook/agent-social)\n- Response Mode: responseNode (resposta será enviada por nó específico)\n- CORS: Permitido de qualquer origem (para testes)"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- CONSULTA DADOS SOCIAIS DO TERRITÓRIO\n-- Esta query faz JOIN em 3 tabelas para coletar todos os indicadores sociais disponíveis\n\nSELECT \n  -- Dados do território\n  t.id AS territory_id,\n  t.name AS territory_name,\n  t.state,\n  t.population,\n  t.area_km2,\n  \n  -- Indicadores sociais\n  si.year,\n  \n  -- Educação\n  si.ideb_early_years,\n  si.ideb_final_years,\n  si.literacy_rate,\n  si.school_enrollment_rate,\n  si.dropout_rate,\n  \n  -- Saúde\n  si.infant_mortality_rate,\n  si.life_expectancy,\n  si.esf_coverage,\n  si.hospital_beds_per_1000,\n  \n  -- Desenvolvimento Humano\n  si.idhm,\n  si.idhm_education,\n  si.idhm_longevity,\n  si.idhm_income,\n  \n  -- Habitação e Saneamento\n  si.water_coverage,\n  si.sewage_coverage,\n  si.garbage_collection_coverage,\n  \n  -- Assistência Social\n  si.bolsa_familia_families,\n  si.extreme_poverty_rate,\n  si.cadunico_families,\n  \n  -- Segurança\n  si.homicide_rate_per_100k,\n  si.robbery_rate_per_100k\n  \nFROM territories t\nLEFT JOIN social_indicators si ON t.id = si.territory_id\n\nWHERE t.id = {{ $json.body.territory_id }}\n  AND si.year >= 2019\n  AND si.year <= 2023\n\nORDER BY si.year ASC;",
+        "additionalFields": {}
+      },
+      "id": "consultar-dados-postgresql",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Buscar todos os dados sociais do território no banco de dados.\n\nO QUE FAZ:\n1. Consulta a tabela 'territories' para dados básicos\n2. Faz JOIN com 'social_indicators' para indicadores sociais\n3. Filtra pelo territory_id recebido no webhook\n4. Filtra pelo período 2019-2023 (últimos 5 anos)\n5. Ordena por ano (crescente)\n\nÁREAS COBERTAS:\n- Educação (IDEB, alfabetização, matrícula, evasão)\n- Saúde (mortalidade infantil, expectativa de vida, ESF, leitos)\n- Desenvolvimento Humano (IDH-M e componentes)\n- Habitação e Saneamento (água, esgoto, coleta de lixo)\n- Assistência Social (Bolsa Família, pobreza, CadÚnico)\n- Segurança (homicídios, roubos)\n\nRESULTADO ESPERADO:\nLista de objetos JSON, um para cada ano:\n[\n  {\n    \"territory_id\": 1,\n    \"territory_name\": \"Palmas\",\n    \"year\": 2019,\n    \"ideb_early_years\": 5.8,\n    \"infant_mortality_rate\": 12.4,\n    \"idhm\": 0.788,\n    \"water_coverage\": 82.0,\n    ...\n  },\n  { ... ano 2020 ... },\n  ...\n]\n\nTRATAMENTO DE ERROS:\n- Se territory_id não existir, retorna array vazio []\n- LEFT JOIN garante que território aparece mesmo sem dados"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ========================================\n// PREPARAR CONTEXTO PARA O LLM - AGENTE SOCIAL\n// ========================================\n\nconst items = $input.all();\n\n// 1. VALIDAR SE HÁ DADOS\nif (!items || items.length === 0) {\n  return [\n    {\n      json: {\n        error: true,\n        message: 'Nenhum dado social encontrado para o território especificado.',\n        territory_id: $node['Webhook - Recebe Tarefa'].json.body.territory_id\n      }\n    }\n  ];\n}\n\n// 2. EXTRAIR DADOS DO WEBHOOK\nconst webhookData = $node['Webhook - Recebe Tarefa'].json.body;\nconst taskId = webhookData.task_id;\nconst territoryId = webhookData.territory_id;\nconst territoryName = webhookData.territory_name;\nconst taskDescription = webhookData.task_description;\nconst userQuestion = webhookData.context?.user_question || 'Análise social geral';\nconst timeRange = webhookData.context?.time_range || '2019-2023';\n\n// 3. ORGANIZAR DADOS POR ANO\nconst dataByYear = items.map(item => item.json);\n\n// 4. CALCULAR ESTATÍSTICAS AGREGADAS\nconst firstYear = dataByYear[0];\nconst lastYear = dataByYear[dataByYear.length - 1];\n\n// Variação do IDH-M\nconst idhmChange = (lastYear.idhm - firstYear.idhm).toFixed(3);\n\n// Variação da taxa de alfabetização (p.p.)\nconst literacyChange = (lastYear.literacy_rate - firstYear.literacy_rate).toFixed(1);\n\n// Variação da mortalidade infantil (%)\nconst infantMortalityChange = ((lastYear.infant_mortality_rate - firstYear.infant_mortality_rate) / firstYear.infant_mortality_rate * 100).toFixed(1);\n\n// Variação da cobertura de saneamento (p.p.)\nconst waterCoverageChange = (lastYear.water_coverage - firstYear.water_coverage).toFixed(1);\nconst sewageCoverageChange = (lastYear.sewage_coverage - firstYear.sewage_coverage).toFixed(1);\n\n// Taxa de pobreza extrema (último ano)\nconst extremePovertyRate = lastYear.extreme_poverty_rate.toFixed(1);\n\n// Cobertura ESF (último ano)\nconst esfCoverage = lastYear.esf_coverage.toFixed(0);\n\n// 5. FORMATAR DADOS PARA O PROMPT\nconst formattedData = dataByYear.map(d => {\n  return `\nANO ${d.year}:\nEDUCAÇÃO:\n- IDEB Anos Iniciais: ${d.ideb_early_years}\n- IDEB Anos Finais: ${d.ideb_final_years}\n- Taxa de alfabetização: ${d.literacy_rate}%\n- Taxa de matrícula: ${d.school_enrollment_rate}%\n- Taxa de evasão: ${d.dropout_rate}%\n\nSAÚDE:\n- Mortalidade infantil: ${d.infant_mortality_rate}/1000 nascidos vivos\n- Expectativa de vida: ${d.life_expectancy} anos\n- Cobertura ESF: ${d.esf_coverage}%\n- Leitos hospitalares: ${d.hospital_beds_per_1000} por 1000 hab.\n\nDESENVOLVIMENTO HUMANO:\n- IDH-M: ${d.idhm}\n- IDH-M Educação: ${d.idhm_education}\n- IDH-M Longevidade: ${d.idhm_longevity}\n- IDH-M Renda: ${d.idhm_income}\n\nHABITAÇÃO E SANEAMENTO:\n- Cobertura de água: ${d.water_coverage}%\n- Cobertura de esgoto: ${d.sewage_coverage}%\n- Coleta de lixo: ${d.garbage_collection_coverage}%\n\nASSISTÊNCIA SOCIAL:\n- Famílias Bolsa Família: ${d.bolsa_familia_families.toLocaleString('pt-BR')}\n- Taxa de pobreza extrema: ${d.extreme_poverty_rate}%\n- Famílias no CadÚnico: ${d.cadunico_families.toLocaleString('pt-BR')}\n\nSEGURANÇA:\n- Taxa de homicídios: ${d.homicide_rate_per_100k} por 100 mil hab.\n- Taxa de roubos: ${d.robbery_rate_per_100k} por 100 mil hab.`;\n}).join('\\n');\n\n// 6. CONSTRUIR PROMPT PARA O LLM\nconst prompt = `Você é um sociólogo especializado em políticas públicas, trabalhando como parte do Framework de Inteligência Territorial V6.0.\n\nTAREFA:\n${taskDescription}\n\nPERGUNTA DO USUÁRIO:\n\"${userQuestion}\"\n\nTERRITÓRIO:\n${territoryName} (ID: ${territoryId})\nPopulação: ${lastYear.population.toLocaleString('pt-BR')} habitantes\nÁrea: ${lastYear.area_km2.toLocaleString('pt-BR')} km²\n\nDADOS SOCIAIS (${timeRange}):\n${formattedData}\n\nESTATÍSTICAS AGREGADAS:\n- Variação do IDH-M (${firstYear.year}-${lastYear.year}): ${idhmChange > 0 ? '+' : ''}${idhmChange}\n- Variação da alfabetização: ${literacyChange > 0 ? '+' : ''}${literacyChange} p.p.\n- Variação da mortalidade infantil: ${infantMortalityChange > 0 ? '+' : ''}${infantMortalityChange}%\n- Variação da cobertura de água: ${waterCoverageChange > 0 ? '+' : ''}${waterCoverageChange} p.p.\n- Variação da cobertura de esgoto: ${sewageCoverageChange > 0 ? '+' : ''}${sewageCoverageChange} p.p.\n- Taxa de pobreza extrema (${lastYear.year}): ${extremePovertyRate}%\n- Cobertura ESF (${lastYear.year}): ${esfCoverage}%\n\nINSTRUÇÕES:\n1. Analise a evolução social do território no período especificado\n2. Identifique os principais avanços e retrocessos\n3. Destaque os desafios persistentes e grupos vulneráveis\n4. Forneça recomendações práticas e prioritárias para gestores públicos\n\nFORMATO DA RESPOSTA:\nEstruture sua análise em 5 seções:\n\n**RESUMO EXECUTIVO** (2-3 frases)\nVisão geral da situação social\n\n**AVANÇOS PRINCIPAIS** (3-4 pontos)\n• Avanço 1\n• Avanço 2\n• Avanço 3\n\n**DESAFIOS PERSISTENTES** (3-4 pontos)\n• Desafio 1\n• Desafio 2\n• Desafio 3\n\n**GRUPOS VULNERÁVEIS** (2-3 grupos)\n• Grupo 1 e suas necessidades\n• Grupo 2 e suas necessidades\n\n**RECOMENDAÇÕES PRIORITÁRIAS** (3-4 ações)\n1. Recomendação 1 (curto prazo)\n2. Recomendação 2 (médio prazo)\n3. Recomendação 3 (longo prazo)\n\nTOM:\n- Profissional mas acessível\n- Baseado em evidências (cite os dados)\n- Acionável (foco em \"o que fazer\")\n- Sensível a vulnerabilidades sociais\n- Máximo 400 palavras`;\n\n// 7. RETORNAR DADOS ESTRUTURADOS\nreturn [\n  {\n    json: {\n      task_id: taskId,\n      territory_id: territoryId,\n      territory_name: territoryName,\n      prompt: prompt,\n      raw_data: dataByYear,\n      statistics: {\n        idhm_change: parseFloat(idhmChange),\n        literacy_change: parseFloat(literacyChange),\n        infant_mortality_change: parseFloat(infantMortalityChange),\n        water_coverage_change: parseFloat(waterCoverageChange),\n        sewage_coverage_change: parseFloat(sewageCoverageChange),\n        extreme_poverty_rate: parseFloat(extremePovertyRate),\n        esf_coverage: parseInt(esfCoverage)\n      },\n      metadata: {\n        data_sources: ['INEP', 'DataSUS', 'MDS', 'IBGE', 'SSP'],\n        time_range: timeRange,\n        years_analyzed: dataByYear.length,\n        last_update: lastYear.year\n      }\n    }\n  }\n];\n"
+      },
+      "id": "preparar-contexto-llm",
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "notes": "FUNÇÃO: Processar dados sociais e construir prompt estruturado para o LLM.\n\nO QUE FAZ:\n1. Valida se há dados\n2. Extrai informações do webhook\n3. Organiza dados por ano\n4. Calcula estatísticas agregadas:\n   - Variação do IDH-M\n   - Variação da alfabetização (p.p.)\n   - Variação da mortalidade infantil (%)\n   - Variação da cobertura de água/esgoto (p.p.)\n   - Taxa de pobreza extrema atual\n   - Cobertura ESF atual\n5. Formata dados em texto legível\n6. Constrói prompt com instruções específicas para análise social\n7. Retorna objeto estruturado\n\nDIFERENÇAS DO AGENTE ECON:\n- Foco em indicadores de qualidade de vida e bem-estar\n- Ênfase em vulnerabilidades e grupos em risco\n- Análise de 6 áreas sociais (educação, saúde, etc.)\n- Tom mais sensível a questões sociais\n\nESTATÍSTICAS SOCIAIS:\n- IDH-M: Índice sintético de desenvolvimento\n- Alfabetização: Acesso à educação básica\n- Mortalidade infantil: Qualidade da saúde materno-infantil\n- Saneamento: Infraestrutura básica de qualidade de vida\n- Pobreza extrema: Vulnerabilidade econômica\n- ESF: Acesso a atenção primária de saúde"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1500
+        }
+      },
+      "id": "gerar-analise-openai",
+      "name": "Gerar Análise com OpenAI",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [850, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Gerar análise social usando GPT-4o-mini.\n\nCONFIGURAÇÕES IDÊNTICAS AO AGENTE ECON:\n- Modelo: gpt-4o-mini\n- Temperature: 0.7\n- Max Tokens: 1500\n\nDIFERENÇAS NA ANÁLISE:\n- Foco em qualidade de vida e bem-estar\n- Identificação de grupos vulneráveis\n- Recomendações para políticas sociais\n- Tom mais sensível e humanizado\n\nO QUE O LLM FAZ:\n1. Lê dados sociais formatados\n2. Analisa avanços e retrocessos\n3. Identifica vulnerabilidades\n4. Gera recomendações para inclusão social\n5. Formata resposta conforme instruções\n\nTEMPO E CUSTO:\n- Tempo: 3-8 segundos\n- Custo: ~$0,0008 por análise"
+    },
+    {
+      "parameters": {
+        "functionCode": "// ========================================\n// ESTRUTURAR RESPOSTA FINAL - AGENTE SOCIAL\n// ========================================\n\nconst items = $input.all();\nconst llmResponse = items[0].json.message.content;\n\nconst contextData = $node['Preparar Contexto para LLM'].json;\n\nconst processingTime = Date.now() - new Date($node['Webhook - Recebe Tarefa'].json.headers['x-request-time'] || Date.now()).getTime();\n\nconst response = {\n  task_id: contextData.task_id,\n  agent_name: 'SOCIAL',\n  status: 'success',\n  \n  analysis: {\n    text: llmResponse,\n    summary: llmResponse.split('**RESUMO EXECUTIVO**')[1]?.split('**')[0]?.trim() || 'Análise social completa gerada.',\n    territory: {\n      id: contextData.territory_id,\n      name: contextData.territory_name\n    },\n    statistics: contextData.statistics\n  },\n  \n  metadata: {\n    processing_time_ms: processingTime,\n    data_sources: contextData.metadata.data_sources,\n    time_range: contextData.metadata.time_range,\n    years_analyzed: contextData.metadata.years_analyzed,\n    last_data_update: contextData.metadata.last_update,\n    model_used: 'gpt-4o-mini',\n    confidence_score: 0.90,\n    generated_at: new Date().toISOString()\n  },\n  \n  raw_data: contextData.raw_data\n};\n\nreturn [{ json: response }];\n"
+      },
+      "id": "estruturar-resposta",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "notes": "FUNÇÃO: Consolidar análise social com metadados.\n\nESTRUTURA IDÊNTICA AO AGENTE ECON:\n- task_id, agent_name, status\n- analysis (text, summary, territory, statistics)\n- metadata (tempo, fontes, modelo, confiança)\n- raw_data (para auditoria)\n\nDIFERENÇA:\n- agent_name: 'SOCIAL' (em vez de 'ECON')\n- confidence_score: 0.90 (vs 0.92 do ECON)\n  • Ligeiramente menor devido a maior variabilidade de dados sociais\n  • Dados de segurança e habitação são menos confiáveis\n\nPADRONIZAÇÃO:\n- Todos os agentes usam mesma estrutura de resposta\n- Facilita consolidação pelo Orquestrador\n- Permite rastreamento e auditoria uniforme"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- SALVAR ANÁLISE SOCIAL NA BASE DE CONHECIMENTO\n\nINSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  key_insights,\n  metadata,\n  created_at,\n  updated_at\n)\nVALUES (\n  {{ $json.analysis.territory.id }},\n  'social',\n  'single',\n  '{{ $json.analysis.text }}',\n  '{{ $json.analysis.summary }}',\n  '{{ JSON.stringify($json.analysis.statistics) }}',\n  '{{ JSON.stringify($json.metadata) }}',\n  NOW(),\n  NOW()\n)\nON CONFLICT (territory_id, dimension, analysis_type)\nDO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  key_insights = EXCLUDED.key_insights,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();\n\nSELECT \n  id,\n  territory_id,\n  dimension,\n  created_at,\n  updated_at\nFROM knowledge_base\nWHERE territory_id = {{ $json.analysis.territory.id }}\n  AND dimension = 'social'\n  AND analysis_type = 'single'\nORDER BY updated_at DESC\nLIMIT 1;",
+        "additionalFields": {}
+      },
+      "id": "salvar-analise-postgresql",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1250, 300],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Salvar análise social na tabela 'knowledge_base'.\n\nDIMENSION: 'social' (em vez de 'economic')\n\nCOMPORTAMENTO UPSERT:\n- Se análise social já existe para o território, ATUALIZA\n- Se não existe, INSERE nova\n- Chave única: (territory_id, dimension='social', analysis_type='single')\n\nBENEFÍCIOS:\n- Cache de análises sociais\n- RAG para contexto em futuras análises\n- Histórico de evolução social\n- Dashboard consulta rapidamente\n\nINTEGRAÇÃO COM OUTRAS DIMENSÕES:\n- Análises sociais podem ser cruzadas com econômicas\n- Ex: \"Pobreza extrema\" (social) + \"Desemprego\" (econômico)\n- Orquestrador pode consolidar múltiplas dimensões"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-ao-orquestrador",
+      "name": "Responder ao Orquestrador",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 300],
+      "notes": "FUNÇÃO: Enviar resposta estruturada ao Orquestrador.\n\nFORMATO IDÊNTICO AO AGENTE ECON:\n- JSON estruturado\n- Headers HTTP apropriados\n- Status 200 OK\n\nTEMPO DE RESPOSTA TOTAL:\n- Similar ao ECON: ~6-8 segundos\n\nPRÓXIMOS PASSOS:\n- Orquestrador recebe resposta\n- Consolida com outras dimensões (se houver)\n- Retorna análise integrada ao dashboard"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "responseCode": 404,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-erro",
+      "name": "Responder Erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 500],
+      "notes": "FUNÇÃO: Enviar resposta de erro se não houver dados sociais.\n\nQUANDO É ACIONADO:\n- Quando não há dados sociais para o território\n- Quando territory_id não existe\n- Quando não há indicadores para o período\n\nRESPOSTA:\n{\n  \"error\": true,\n  \"message\": \"Nenhum dado social encontrado...\",\n  \"territory_id\": X\n}\n\nSTATUS CODE: 404 Not Found"
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Tarefa": {
+      "main": [
+        [
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Análise no PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Análise no PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Orquestrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-16T21:30:00.000Z",
+  "versionId": "1"
+}

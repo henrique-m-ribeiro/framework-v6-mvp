@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exemplo de Integração Dashboard ↔ n8n</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+
+    .section h2 {
+      margin-top: 0;
+      color: #667eea;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 6px;
+      border: 1px solid #ddd;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .result pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 12px;
+      color: #333;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .success {
+      color: #28a745;
+      font-weight: bold;
+    }
+
+    .error {
+      color: #dc3545;
+      font-weight: bold;
+    }
+
+    .info {
+      background: #e7f3ff;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+
+    .info strong {
+      color: #2196F3;
+    }
+
+    select, input {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+
+    .controls {
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Integração Dashboard ↔ n8n Cloud</h1>
+    <p class="subtitle">Framework de Inteligência Territorial V6.0</p>
+
+    <div class="info">
+      <strong>ℹ️ Instruções:</strong> Use os botões abaixo para testar a integração com os workflows do n8n Cloud. 
+      Os resultados aparecerão em tempo real abaixo de cada seção.
+    </div>
+
+    <!-- SEÇÃO 1: TESTE DE INTEGRAÇÃO -->
+    <div class="section">
+      <h2>1. Teste de Integração</h2>
+      <p>Verifica se a comunicação entre o dashboard e o n8n está funcionando.</p>
+      <button id="btnTest" onclick="testIntegration()">
+        🧪 Testar Integração
+      </button>
+      <div id="resultTest" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- SEÇÃO 2: ANÁLISE TERRITORIAL COMPLETA -->
+    <div class="section">
+      <h2>2. Análise Territorial Completa</h2>
+      <p>Gera uma análise territorial completa usando LLM e dados do PostgreSQL.</p>
+      <div class="controls">
+        <select id="territorySelect">
+          <option value="1">Palmas</option>
+          <option value="2">Araguaína</option>
+          <option value="3">Gurupi</option>
+          <option value="4">Porto Nacional</option>
+          <option value="5">Paraíso do Tocantins</option>
+        </select>
+        <select id="yearSelect">
+          <option value="2023">2023</option>
+          <option value="2022">2022</option>
+          <option value="2021">2021</option>
+          <option value="2020">2020</option>
+          <option value="2019">2019</option>
+        </select>
+      </div>
+      <button id="btnAnalysis" onclick="requestAnalysis()">
+        📊 Gerar Análise Territorial
+      </button>
+      <div id="resultAnalysis" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- SEÇÃO 3: ANÁLISES POR DIMENSÃO -->
+    <div class="section">
+      <h2>3. Análises por Dimensão</h2>
+      <p>Solicita análises específicas por dimensão (Econômica, Social, Ambiental).</p>
+      <button onclick="requestDimensionalAnalysis('economic')">
+        💰 Análise Econômica
+      </button>
+      <button onclick="requestDimensionalAnalysis('social')">
+        👥 Análise Social
+      </button>
+      <button onclick="requestDimensionalAnalysis('environmental')">
+        🌳 Análise Ambiental
+      </button>
+      <div id="resultDimensional" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- SEÇÃO 4: COMPARAÇÃO TERRITORIAL -->
+    <div class="section">
+      <h2>4. Comparação Territorial</h2>
+      <p>Compara múltiplos territórios em uma dimensão específica.</p>
+      <button onclick="requestComparison()">
+        🔄 Comparar Palmas vs Araguaína (Econômica)
+      </button>
+      <div id="resultComparison" class="result" style="display:none;"></div>
+    </div>
+
+    <!-- SEÇÃO 5: COLETA DE DADOS -->
+    <div class="section">
+      <h2>5. Coleta de Dados</h2>
+      <p>Aciona o agente Data Collector para buscar dados de APIs governamentais.</p>
+      <button onclick="requestDataCollection()">
+        📥 Coletar Dados (IBGE, INPE, etc.)
+      </button>
+      <div id="resultDataCollection" class="result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- IMPORTAR N8N CLIENT -->
+  <script src="n8n-client.js"></script>
+
+  <!-- LÓGICA DE INTEGRAÇÃO -->
+  <script>
+    // Criar instância do cliente n8n
+    const n8nClient = new N8NClient();
+
+    // Função auxiliar para exibir resultado
+    function showResult(elementId, data, isError = false) {
+      const element = document.getElementById(elementId);
+      element.style.display = 'block';
+      
+      if (isError) {
+        element.innerHTML = `<div class="error">❌ Erro</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      } else {
+        element.innerHTML = `<div class="success">✅ Sucesso</div><pre>${JSON.stringify(data, null, 2)}</pre>`;
+      }
+    }
+
+    // Função auxiliar para mostrar loading
+    function showLoading(buttonId) {
+      const button = document.getElementById(buttonId);
+      button.disabled = true;
+      button.innerHTML += '<span class="loading"></span>';
+    }
+
+    // Função auxiliar para esconder loading
+    function hideLoading(buttonId, originalText) {
+      const button = document.getElementById(buttonId);
+      button.disabled = false;
+      button.innerHTML = originalText;
+    }
+
+    // 1. TESTE DE INTEGRAÇÃO
+    async function testIntegration() {
+      const buttonId = 'btnTest';
+      const originalText = '🧪 Testar Integração';
+      
+      showLoading(buttonId);
+      
+      try {
+        const result = await n8nClient.testIntegration(1, 'Tocantins');
+        showResult('resultTest', result, !result.success);
+      } catch (error) {
+        showResult('resultTest', { error: error.message }, true);
+      } finally {
+        hideLoading(buttonId, originalText);
+      }
+    }
+
+    // 2. ANÁLISE TERRITORIAL COMPLETA
+    async function requestAnalysis() {
+      const buttonId = 'btnAnalysis';
+      const originalText = '📊 Gerar Análise Territorial';
+      
+      const territoryId = parseInt(document.getElementById('territorySelect').value);
+      const territoryName = document.getElementById('territorySelect').options[document.getElementById('territorySelect').selectedIndex].text;
+      const year = parseInt(document.getElementById('yearSelect').value);
+      
+      showLoading(buttonId);
+      
+      try {
+        const result = await n8nClient.requestTerritorialAnalysis(territoryId, territoryName, year);
+        showResult('resultAnalysis', result, !result.success);
+      } catch (error) {
+        showResult('resultAnalysis', { error: error.message }, true);
+      } finally {
+        hideLoading(buttonId, originalText);
+      }
+    }
+
+    // 3. ANÁLISE POR DIMENSÃO
+    async function requestDimensionalAnalysis(dimension) {
+      const territoryId = 1;
+      const territoryName = 'Palmas';
+      const year = 2023;
+      
+      try {
+        let result;
+        if (dimension === 'economic') {
+          result = await n8nClient.requestEconomicAnalysis(territoryId, territoryName, year);
+        } else if (dimension === 'social') {
+          result = await n8nClient.requestSocialAnalysis(territoryId, territoryName, year);
+        } else if (dimension === 'environmental') {
+          result = await n8nClient.requestEnvironmentalAnalysis(territoryId, territoryName, year);
+        }
+        
+        showResult('resultDimensional', result, !result.success);
+      } catch (error) {
+        showResult('resultDimensional', { error: error.message }, true);
+      }
+    }
+
+    // 4. COMPARAÇÃO TERRITORIAL
+    async function requestComparison() {
+      try {
+        const result = await n8nClient.requestComparison(
+          1, 
+          'Palmas', 
+          [2], // Araguaína
+          'economic', 
+          2023
+        );
+        
+        showResult('resultComparison', result, !result.success);
+      } catch (error) {
+        showResult('resultComparison', { error: error.message }, true);
+      }
+    }
+
+    // 5. COLETA DE DADOS
+    async function requestDataCollection() {
+      try {
+        const result = await n8nClient.requestDataCollection(1, 'Palmas', 'economic', 2023);
+        showResult('resultDataCollection', result, !result.success);
+      } catch (error) {
+        showResult('resultDataCollection', { error: error.message }, true);
+      }
+    }
+
+    // Log de inicialização
+    console.log('N8N Client inicializado:', n8nClient);
+    console.log('Configuração:', n8nClient.config);
+  </script>
+</body>
+</html>

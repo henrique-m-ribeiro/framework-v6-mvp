@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alternativa 1: Detalhamento</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #1e3a8a;
+            padding: 32px 80px;
+            position: relative;
+        }
+        
+        .slide-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #06b6d4;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .accent-line-small {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316 0%, #10b981 100%);
+            margin-bottom: 14px;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 32px;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title i {
+            font-size: 26px;
+            color: #f97316;
+        }
+        
+        .component-box {
+            background: rgba(6, 182, 212, 0.05);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        
+        .component-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .component-title i {
+            font-size: 18px;
+            color: #06b6d4;
+        }
+        
+        .component-desc {
+            font-size: 16px;
+            color: #ffffff;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+        
+        .feature-item {
+            background: rgba(249, 115, 22, 0.08);
+            padding: 12px 14px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #f97316;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-title i {
+            font-size: 16px;
+        }
+        
+        .feature-desc {
+            font-size: 16px;
+            color: #ffffff;
+            line-height: 1.3;
+            opacity: 0.85;
+        }
+        
+        .flow-section {
+            margin-top: 14px;
+            background: rgba(16, 185, 129, 0.08);
+            padding: 14px 16px;
+        }
+        
+        .flow-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #10b981;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .flow-title i {
+            font-size: 20px;
+        }
+        
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 7px;
+            font-size: 16px;
+            color: #ffffff;
+        }
+        
+        .flow-number {
+            width: 26px;
+            height: 26px;
+            background: #10b981;
+            color: #1e3a8a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .hexagon-small {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #06b6d4;
+            opacity: 0.2;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        
+        .hex-1 { top: 10%; right: 10%; }
+        .hex-2 { bottom: 12%; left: 48%; transform: rotate(30deg); }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="accent-line-small"></div>
+        <h1 class="slide-title">Alternativa 1: Detalhamento</h1>
+        
+        <div class="hexagon-small hex-1"></div>
+        <div class="hexagon-small hex-2"></div>
+        
+        <div class="content-grid">
+            <!-- Componentes -->
+            <div>
+                <h2 class="section-title">
+                    <i class="fas fa-cubes"></i>
+                    Componentes Principais
+                </h2>
+                
+                <div class="component-box">
+                    <div class="component-title">
+                        <i class="fas fa-folder-open"></i>
+                        Estrutura de Abas Horizontais
+                    </div>
+                    <div class="component-desc">
+                        4 abas fixas no topo (Econômica, Social, Territorial, Ambiental). Aba ativa destacada em cyan, inativas em cinza transparente.
+                    </div>
+                </div>
+                
+                <div class="component-box">
+                    <div class="component-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Conteúdo Dimensional
+                    </div>
+                    <div class="component-desc">
+                        Cada aba contém: 3-4 KPIs principais, 2 gráficos interativos (Chart.js), caixa de análise IA com texto gerado, tabela de dados históricos.
+                    </div>
+                </div>
+                
+                <div class="component-box">
+                    <div class="component-title">
+                        <i class="fas fa-comments"></i>
+                        Chat IA Lateral Fixo
+                    </div>
+                    <div class="component-desc">
+                        Painel fixo à direita (300px largura), sempre visível independente da aba. Input na base, histórico acima, contexto da dimensão atual no topo.
+                    </div>
+                </div>
+                
+                <div class="component-box">
+                    <div class="component-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Painel de Controle Superior
+                    </div>
+                    <div class="component-desc">
+                        Seletores de tipo de território e território específico, filtro de período temporal, botões de exportação (PDF/CSV).
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Funcionalidades e Fluxo -->
+            <div>
+                <h2 class="section-title">
+                    <i class="fas fa-cogs"></i>
+                    Funcionalidades
+                </h2>
+                
+                <div class="feature-item">
+                    <div class="feature-title">
+                        <i class="fas fa-file-export"></i>
+                        Exportação Contextual
+                    </div>
+                    <div class="feature-desc">
+                        PDF: relatório da dimensão ativa. CSV: dados da tabela visível.
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-title">
+                        <i class="fas fa-exchange-alt"></i>
+                        Navegação Rápida
+                    </div>
+                    <div class="feature-desc">
+                        Clique nas abas para alternar dimensões. Chat mantém contexto.
+                    </div>
+                </div>
+                
+                <div class="feature-item">
+                    <div class="feature-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Seleção Territorial
+                    </div>
+                    <div class="feature-desc">
+                        Dropdown hierárquico: Estado → Região → Município.
+                    </div>
+                </div>
+                
+                <div class="flow-section">
+                    <div class="flow-title">
+                        <i class="fas fa-route"></i>
+                        Fluxo de Navegação
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">1</div>
+                        <div>Selecionar território no painel superior</div>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">2</div>
+                        <div>Visualizar dimensão Econômica (aba padrão)</div>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">3</div>
+                        <div>Ler análise IA gerada automaticamente</div>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">4</div>
+                        <div>Fazer perguntas no chat lateral</div>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">5</div>
+                        <div>Alternar abas para outras dimensões</div>
+                    </div>
+                    
+                    <div class="flow-step">
+                        <div class="flow-number">6</div>
+                        <div>Exportar relatório ou dados</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

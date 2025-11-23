@@ -1,0 +1,106 @@
+{
+  "name": "WF-TEST-INTEGRATION: Teste Dashboard ↔ n8n",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "test-integration",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-test-trigger",
+      "name": "Webhook - Recebe Teste",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [250, 300],
+      "webhookId": "test-integration-framework-v6",
+      "notes": "FUNÇÃO: Recebe requisições POST do dashboard para teste de integração.\n\nENDPOINT: https://galactic-ai.app.n8n.cloud/webhook/test-integration\n\nPAYLOAD ESPERADO:\n{\n  \"territory_id\": 1,\n  \"territory_name\": \"Tocantins\",\n  \"test_message\": \"Teste de integração\"\n}\n\nRESPOSTA: Retorna confirmação de recebimento com timestamp."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================\n// FUNÇÃO: Processar dados de teste recebidos\n// ============================================\n\n// Extrair dados do webhook\nconst payload = $input.item.json.body || $input.item.json;\n\nconst territory_id = payload.territory_id || null;\nconst territory_name = payload.territory_name || \"Desconhecido\";\nconst test_message = payload.test_message || \"Sem mensagem\";\n\n// Gerar timestamp\nconst timestamp = new Date().toISOString();\n\n// Construir resposta de sucesso\nconst response = {\n  success: true,\n  message: \"✅ Integração funcionando perfeitamente!\",\n  received_data: {\n    territory_id: territory_id,\n    territory_name: territory_name,\n    test_message: test_message\n  },\n  n8n_info: {\n    workflow: \"WF-TEST-INTEGRATION\",\n    instance: \"galactic-ai.app.n8n.cloud\",\n    processed_at: timestamp\n  },\n  next_steps: [\n    \"✅ Webhook configurado corretamente\",\n    \"✅ Comunicação dashboard → n8n estabelecida\",\n    \"🚀 Pronto para implementar workflows de análise\"\n  ]\n};\n\n// Retornar resposta\nreturn { json: response };"
+      },
+      "id": "code-process-test",
+      "name": "Processar Teste",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "notes": "FUNÇÃO: Processa os dados recebidos do webhook e gera resposta de confirmação.\n\nPROCESSAMENTO:\n1. Extrai dados do payload (territory_id, territory_name, test_message)\n2. Gera timestamp de processamento\n3. Constrói resposta estruturada com:\n   - Status de sucesso\n   - Dados recebidos (eco)\n   - Informações do n8n\n   - Próximos passos\n\nOUTPUT: JSON estruturado para retorno ao dashboard."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "respond-to-webhook",
+      "name": "Responder ao Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [650, 300],
+      "notes": "FUNÇÃO: Envia resposta HTTP de volta ao dashboard.\n\nCONFIGURAÇÃO:\n- Formato: JSON\n- Headers CORS: Permite requisições do Replit\n- Status: 200 OK\n\nRESPOSTA: JSON com confirmação de integração bem-sucedida."
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Teste": {
+      "main": [
+        [
+          {
+            "node": "Processar Teste",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Teste": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Framework V6.0",
+      "id": "framework-v6"
+    },
+    {
+      "name": "Teste",
+      "id": "test"
+    },
+    {
+      "name": "Webhook",
+      "id": "webhook"
+    }
+  ],
+  "meta": {
+    "instanceId": "galactic-ai"
+  },
+  "triggerCount": 0,
+  "updatedAt": "2025-11-16T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

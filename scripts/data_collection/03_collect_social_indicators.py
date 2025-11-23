@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #!/usr/bin/env python3
 """
 Script de Coleta de Indicadores Sociais - DADOS REAIS
@@ -291,3 +292,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+=======
+# (Script será recriado)
+>>>>>>> 1a5c493f251a13cd1457ec398665cc6721dc37f8

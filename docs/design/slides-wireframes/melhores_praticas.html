@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melhores Práticas Pesquisadas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .slide-container {
+            width: 1280px;
+            min-height: 720px;
+            background: #1e3a8a;
+            padding: 40px 80px;
+            position: relative;
+        }
+        
+        .slide-title {
+            font-size: 36px;
+            font-weight: 700;
+            color: #06b6d4;
+            margin-bottom: 36px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .accent-line-small {
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316 0%, #10b981 100%);
+            margin-bottom: 16px;
+        }
+        
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 24px;
+            height: 540px;
+        }
+        
+        .principle-card {
+            background: rgba(6, 182, 212, 0.05);
+            padding: 24px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            justify-content: center;
+        }
+        
+        .principle-icon {
+            font-size: 36px;
+            margin-bottom: 16px;
+        }
+        
+        .principle-card:nth-child(1) .principle-icon { color: #f97316; }
+        .principle-card:nth-child(2) .principle-icon { color: #10b981; }
+        .principle-card:nth-child(3) .principle-icon { color: #fbbf24; }
+        .principle-card:nth-child(4) .principle-icon { color: #06b6d4; }
+        .principle-card:nth-child(5) .principle-icon { color: #10b981; }
+        .principle-card:nth-child(6) .principle-icon { color: #f97316; }
+        .principle-card:nth-child(7) .principle-icon { color: #06b6d4; }
+        .principle-card:nth-child(8) .principle-icon { color: #fbbf24; }
+        
+        .principle-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #06b6d4;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+        
+        .principle-description {
+            font-size: 14px;
+            color: #ffffff;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+        
+        .hexagon-small {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1.5px solid #06b6d4;
+            opacity: 0.15;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+        
+        .hex-a { top: 10%; right: 10%; }
+        .hex-b { bottom: 12%; left: 8%; transform: rotate(30deg); }
+        .hex-c { top: 50%; left: 3%; transform: rotate(60deg); }
+    </style>
+</head>
+<body>
+    <div class="slide-container">
+        <div class="accent-line-small"></div>
+        <h1 class="slide-title">Melhores Práticas Pesquisadas</h1>
+        
+        <div class="hexagon-small hex-a"></div>
+        <div class="hexagon-small hex-b"></div>
+        <div class="hexagon-small hex-c"></div>
+        
+        <div class="principles-grid">
+            <!-- Principle 1 -->
+            <div class="principle-card">
+                <i class="fas fa-comments principle-icon"></i>
+                <div class="principle-title">Chat Persistente</div>
+                <div class="principle-description">Interface de conversação sempre visível e acessível em qualquer contexto</div>
+            </div>
+            
+            <!-- Principle 2 -->
+            <div class="principle-card">
+                <i class="fas fa-brain principle-icon"></i>
+                <div class="principle-title">Análise Contextual</div>
+                <div class="principle-description">IA considera território, dimensão e histórico para respostas relevantes</div>
+            </div>
+            
+            <!-- Principle 3 -->
+            <div class="principle-card">
+                <i class="fas fa-layer-group principle-icon"></i>
+                <div class="principle-title">Visualização Progressiva</div>
+                <div class="principle-description">Informação revelada gradualmente, do geral ao específico</div>
+            </div>
+            
+            <!-- Principle 4 -->
+            <div class="principle-card">
+                <i class="fas fa-file-export principle-icon"></i>
+                <div class="principle-title">Exportação Flexível</div>
+                <div class="principle-description">Relatórios PDF e dados CSV disponíveis em todos os contextos</div>
+            </div>
+            
+            <!-- Principle 5 -->
+            <div class="principle-card">
+                <i class="fas fa-spinner principle-icon"></i>
+                <div class="principle-title">Feedback Visual</div>
+                <div class="principle-description">Estados de carregamento, progresso e confirmação sempre claros</div>
+            </div>
+            
+            <!-- Principle 6 -->
+            <div class="principle-card">
+                <i class="fas fa-sitemap principle-icon"></i>
+                <div class="principle-title">Hierarquia Clara</div>
+                <div class="principle-description">Informações organizadas por importância e relevância visual</div>
+            </div>
+            
+            <!-- Principle 7 -->
+            <div class="principle-card">
+                <i class="fas fa-mobile-alt principle-icon"></i>
+                <div class="principle-title">Responsividade</div>
+                <div class="principle-description">Adaptação fluida para desktop, tablet e dispositivos móveis</div>
+            </div>
+            
+            <!-- Principle 8 -->
+            <div class="principle-card">
+                <i class="fas fa-universal-access principle-icon"></i>
+                <div class="principle-title">Acessibilidade</div>
+                <div class="principle-description">Contraste adequado, navegação por teclado e leitores de tela</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
