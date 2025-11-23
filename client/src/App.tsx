@@ -15,7 +15,7 @@ import ComparisonTab from "@/components/tabs/ComparisonTab";
 import type { Territory } from "@shared/schema";
 
 function Dashboard() {
-  const [territoryType, setTerritoryType] = useState("estado");
+  const [territoryType, setTerritoryType] = useState("Estado");
   const [territoryId, setTerritoryId] = useState("");
   const [period, setPeriod] = useState("5");
   const [activeTab, setActiveTab] = useState("overview");
@@ -34,6 +34,26 @@ function Dashboard() {
       }
     }
   }, [territories, territoryId]);
+
+  // Atualizar territoryId quando territoryType muda
+  useEffect(() => {
+    if (territories.length > 0) {
+      const filtered = territories.filter((t: Territory) => 
+        t.type.toLowerCase() === territoryType.toLowerCase()
+      );
+      
+      if (filtered.length === 0) return;
+      
+      // Se territoryId está vazio OU não pertence ao tipo atual, selecionar primeiro do tipo
+      const currentTerritory = territoryId ? territories.find(t => t.id === territoryId) : null;
+      const isCurrentTypeMismatch = currentTerritory && 
+        currentTerritory.type.toLowerCase() !== territoryType.toLowerCase();
+      
+      if (!territoryId || isCurrentTypeMismatch) {
+        setTerritoryId(filtered[0].id);
+      }
+    }
+  }, [territoryType, territories, territoryId]);
 
   const getTerritories = () => {
     const filtered = territories.filter((t: Territory) => 
@@ -58,7 +78,7 @@ function Dashboard() {
   };
 
   const handleReset = () => {
-    setTerritoryType("estado");
+    setTerritoryType("Estado");
     const stateTerritories = territories.filter((t: Territory) => 
       t.type.toLowerCase() === "estado"
     );

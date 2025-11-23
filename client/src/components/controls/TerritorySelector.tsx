@@ -27,12 +27,8 @@ export default function TerritorySelector({
             <SelectValue placeholder="Selecione o tipo" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="estado">Estado</SelectItem>
-            <SelectItem value="regiao-intermediaria">Região Intermediária</SelectItem>
-            <SelectItem value="regiao-imediata">Região Imediata</SelectItem>
-            <SelectItem value="municipio">Município</SelectItem>
-            <SelectItem value="mesorregiao">Mesorregião</SelectItem>
-            <SelectItem value="microrregiao">Microrregião</SelectItem>
+            <SelectItem value="Estado">Estado</SelectItem>
+            <SelectItem value="Município">Município</SelectItem>
           </SelectContent>
         </Select>
       </div>
