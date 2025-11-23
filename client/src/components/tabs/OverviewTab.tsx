@@ -44,7 +44,10 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
     };
   };
 
-  if (!latestEconomic || !latestSocial || !latestTerritorial || !latestEnvironmental) {
+  // Check if we have at least some data to show
+  const hasAnyData = latestEconomic || latestSocial || latestTerritorial || latestEnvironmental;
+  
+  if (!hasAnyData) {
     return <div className="p-6">Carregando dados...</div>;
   }
 
@@ -71,90 +74,126 @@ export default function OverviewTab({ territoryId }: OverviewTabProps) {
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Dimensão Econômica */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-secondary flex items-center gap-2">
             <DollarSign className="w-6 h-6" />
             Dimensão Econômica
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <KPICard
-              title="PIB Total"
-              value={`R$ ${formatNumber(latestEconomic.gdp, 1)} bi`}
-              trend={economicTrend}
-              icon={DollarSign}
-              status="success"
-            />
-            <KPICard
-              title="PIB per Capita"
-              value={formatCurrency(latestEconomic.gdpPerCapita, 0)}
-              trend={gdpPerCapitaTrend}
-              icon={DollarSign}
-              status={gdpPerCapitaTrend.direction === "up" ? "success" : undefined}
-            />
-          </div>
+          {latestEconomic ? (
+            <div className="grid grid-cols-2 gap-4">
+              <KPICard
+                title="PIB Total"
+                value={`R$ ${formatNumber(latestEconomic.gdp, 1)} bi`}
+                trend={economicTrend}
+                icon={DollarSign}
+                status="success"
+                data-testid="kpi-gdp"
+              />
+              <KPICard
+                title="PIB per Capita"
+                value={formatCurrency(latestEconomic.gdpPerCapita, 0)}
+                trend={gdpPerCapitaTrend}
+                icon={DollarSign}
+                status={gdpPerCapitaTrend.direction === "up" ? "success" : undefined}
+                data-testid="kpi-gdp-per-capita"
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
+              Dados econômicos não disponíveis para este território
+            </div>
+          )}
         </div>
 
+        {/* Dimensão Social */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-secondary flex items-center gap-2">
             <Users className="w-6 h-6" />
             Dimensão Social
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <KPICard
-              title="IDH-M"
-              value={formatNumber(latestSocial.idhm, 3)}
-              trend={socialTrend}
-              icon={Users}
-              status="success"
-            />
-            <KPICard
-              title="População"
-              value={formatNumber(latestSocial.population, 0)}
-              trend={populationTrend}
-              icon={Users}
-            />
-          </div>
+          {latestSocial ? (
+            <div className="grid grid-cols-2 gap-4">
+              <KPICard
+                title="IDH-M"
+                value={formatNumber(latestSocial.idhm, 3)}
+                trend={socialTrend}
+                icon={Users}
+                status="success"
+                data-testid="kpi-idhm"
+              />
+              <KPICard
+                title="População"
+                value={formatNumber(latestSocial.population, 0)}
+                trend={populationTrend}
+                icon={Users}
+                data-testid="kpi-population"
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
+              Dados sociais não disponíveis para este território
+            </div>
+          )}
         </div>
 
+        {/* Dimensão Territorial */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-secondary flex items-center gap-2">
             <MapPin className="w-6 h-6" />
             Dimensão Territorial
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <KPICard
-              title="Densidade"
-              value={`${formatNumber(latestTerritorial.density, 1)} hab/km²`}
-              icon={MapPin}
-            />
-            <KPICard
-              title="Saneamento"
-              value={formatPercent(latestTerritorial.sanitationCoverage, 1)}
-              icon={MapPin}
-            />
-          </div>
+          {latestTerritorial ? (
+            <div className="grid grid-cols-2 gap-4">
+              <KPICard
+                title="Densidade"
+                value={`${formatNumber(latestTerritorial.density, 1)} hab/km²`}
+                icon={MapPin}
+                data-testid="kpi-density"
+              />
+              <KPICard
+                title="Saneamento"
+                value={formatPercent(latestTerritorial.sanitationCoverage, 1)}
+                icon={MapPin}
+                data-testid="kpi-sanitation"
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
+              Dados territoriais não disponíveis para este território
+            </div>
+          )}
         </div>
 
+        {/* Dimensão Ambiental */}
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold text-secondary flex items-center gap-2">
             <Leaf className="w-6 h-6" />
             Dimensão Ambiental
           </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <KPICard
-              title="Cobertura Vegetal"
-              value={formatPercent(latestEnvironmental.vegetationCoverage, 1)}
-              trend={environmentalTrend}
-              icon={Leaf}
-              status={latestEnvironmental.vegetationCoverage && latestEnvironmental.vegetationCoverage > 85 ? "success" : "warning"}
-            />
-            <KPICard
-              title="Qualidade Água"
-              value={`${formatNumber(latestEnvironmental.waterQuality, 0)} IQA`}
-              icon={Leaf}
-              status={latestEnvironmental.waterQuality && latestEnvironmental.waterQuality > 70 ? "success" : "warning"}
-            />
-          </div>
+          {latestEnvironmental ? (
+            <div className="grid grid-cols-2 gap-4">
+              <KPICard
+                title="Cobertura Vegetal"
+                value={formatPercent(latestEnvironmental.vegetationCoverage, 1)}
+                trend={environmentalTrend}
+                icon={Leaf}
+                status={latestEnvironmental.vegetationCoverage && latestEnvironmental.vegetationCoverage > 85 ? "success" : "warning"}
+                data-testid="kpi-vegetation"
+              />
+              <KPICard
+                title="Qualidade Água"
+                value={`${formatNumber(latestEnvironmental.waterQuality, 0)} IQA`}
+                icon={Leaf}
+                status={latestEnvironmental.waterQuality && latestEnvironmental.waterQuality > 70 ? "success" : "warning"}
+                data-testid="kpi-water-quality"
+              />
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground p-4 bg-muted rounded-md">
+              Dados ambientais não disponíveis para este território
+            </div>
+          )}
         </div>
       </div>
 

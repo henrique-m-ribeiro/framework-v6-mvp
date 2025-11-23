@@ -26,7 +26,9 @@ function Dashboard() {
 
   useEffect(() => {
     if (territories.length > 0 && !territoryId) {
-      const stateTerritories = territories.filter((t: Territory) => t.type === "estado");
+      const stateTerritories = territories.filter((t: Territory) => 
+        t.type.toLowerCase() === "estado"
+      );
       if (stateTerritories.length > 0) {
         setTerritoryId(stateTerritories[0].id);
       }
@@ -34,7 +36,9 @@ function Dashboard() {
   }, [territories, territoryId]);
 
   const getTerritories = () => {
-    const filtered = territories.filter((t: Territory) => t.type === territoryType);
+    const filtered = territories.filter((t: Territory) => 
+      t.type.toLowerCase() === territoryType.toLowerCase()
+    );
     return filtered.map((t: Territory) => ({
       value: t.id,
       label: t.name,
@@ -55,7 +59,9 @@ function Dashboard() {
 
   const handleReset = () => {
     setTerritoryType("estado");
-    const stateTerritories = territories.filter((t: Territory) => t.type === "estado");
+    const stateTerritories = territories.filter((t: Territory) => 
+      t.type.toLowerCase() === "estado"
+    );
     if (stateTerritories.length > 0) {
       setTerritoryId(stateTerritories[0].id);
     }
