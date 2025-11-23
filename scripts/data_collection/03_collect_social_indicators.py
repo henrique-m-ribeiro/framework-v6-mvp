@@ -1,0 +1,1 @@
+# (Script será recriado)
