@@ -1,313 +1,430 @@
-# Framework V6.0 - Sistema de Inteligência Territorial
+# Framework de Inteligência Territorial V6.0
 
-[![Status](https://img.shields.io/badge/status-em%20desenvolvimento-yellow)](https://github.com)
-[![Versão](https://img.shields.io/badge/versão-0.80-blue)](https://github.com)
-[![Progresso](https://img.shields.io/badge/progresso-80%25-green)](https://github.com)
+[![Status](https://img.shields.io/badge/status-MVP%20em%20desenvolvimento-yellow)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
+[![Versão MVP](https://img.shields.io/badge/MVP-0.80%20(80%25)-blue)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
+[![Versão Arquitetura](https://img.shields.io/badge/arquitetura-V6.0-green)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
 [![Licença](https://img.shields.io/badge/licença-Proprietária-red)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org/)
 [![PostgreSQL](https://img.shields.io/badge/postgresql-15+-blue)](https://www.postgresql.org/)
 
-> **🎉 ATUALIZAÇÃO (17/11/2025):** Núcleo de Especialistas criado! 4 agentes dimensionais (ECON, SOCIAL, TERRA, AMBIENT) prontos para importação. Progresso: 65% → 80% (+15%). [Ver detalhes](#atualizações-recentes)
+> **Transformando Gestão Pública através de Inteligência Artificial**
 
-**Sistema abrangente de inteligência territorial para gestão pública, integrando análises multi-dimensionais com arquitetura RAG (Retrieval-Augmented Generation).**
-
----
-
-## 📋 Sobre o Projeto
-
-O **Framework V6.0** (também conhecido como "Framework de Interação Galáctica") é um sistema de inteligência territorial desenvolvido para apoiar a gestão pública do estado de Tocantins, Brasil, com potencial de expansão para outros territórios.
-
-### Características Principais
-
-- 🌍 **Multi-dimensional:** Integra 4 dimensões (Econômica, Social, Territorial, Ambiental)
-- 🤖 **RAG Avançado:** Análises fundamentadas em dados reais usando GPT-4o e embeddings vetoriais
-- 🗄️ **PostgreSQL + Extensões:** PostGIS (geoespacial) e pgvector (busca vetorial)
-- 🔄 **Automação n8n:** Sistema multi-agentes para coleta e processamento de dados
-- 📊 **140 Entidades:** Cobertura completa do Tocantins (1 estado + 139 municípios)
-- 💰 **Custo Competitivo:** ~R$ 0,01/análise (com cache) ou ~R$ 0,03/análise (sem cache)
+**Sistema avançado de inteligência territorial com 19 agentes especializados, memória distribuída e arquitetura RAG para análises multidimensionais automatizadas.**
 
 ---
 
-## 🎯 Objetivo
+## 🎯 O QUE É O FRAMEWORK V6.0?
 
-Fornecer aos gestores públicos análises profundas, atualizadas e contextualizadas para tomada de decisão baseada em evidências, sem necessidade de expertise técnica em ciência de dados.
+O **Framework de Inteligência Territorial V6.0** (também conhecido como "Framework de Interação Galáctica") é um **sistema multi-agentes de IA** que funciona como um "time de 19 especialistas" trabalhando 24/7 para analisar territórios (municípios, estados, países) em múltiplas dimensões e fornecer insights acionáveis para gestores públicos.
+
+**Em uma frase:**
+> Um sistema que transforma dados públicos em inteligência territorial através de 19 agentes especializados que aprendem continuamente, custando 99% menos que consultorias tradicionais.
+
+### 🚀 Visão Estratégica
+
+- **Missão:** Democratizar o acesso à inteligência territorial avançada
+- **Visão:** Tornar-se a plataforma líder global de inteligência territorial
+- **Impacto:** Capacitar governos a tomar decisões baseadas em evidências
+
+📖 **Leia mais:** [VISION.md](VISION.md) | [O que é o Framework V6.0](docs/00-overview/WHAT_IS_V6.md)
 
 ---
 
-## 🏗️ Arquitetura
+## 📊 MVP vs. PRODUTO COMPLETO
+
+### ⚡ MVP (Versão 0.80 - 80% completo)
+
+**Status atual:** Em desenvolvimento (4-6 semanas para conclusão)
+
+**O que está pronto:**
+- ✅ 4 agentes dimensionais (ECON, SOCIAL, TERRA, ENVIRO)
+- ✅ RAG Central (knowledge_base)
+- ✅ 140 territórios (Tocantins completo)
+- ✅ 4.089 indicadores carregados
+- ✅ 35 metadados criados
+- ✅ Workflows n8n prontos
+
+**Foco:** Validar conceito com usuários beta no Tocantins
+
+### 🌟 Produto Completo (V1.0+ - 15% completo)
+
+**Previsão:** 12-18 meses
+
+**Visão completa:**
+- 🎯 19 agentes especializados (3 camadas neurais)
+- 🧠 Memória distribuída (aprendizado contínuo)
+- 🌍 Cobertura nacional (5.570 municípios)
+- 💼 Plataforma SaaS escalável
+- 🚀 Expansão internacional
+
+📖 **Leia mais:** [MVP vs. Produto Completo](docs/00-overview/MVP_VS_FULL.md)
+
+---
+
+## 🏗️ ARQUITETURA
+
+### Visão Geral
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                   FONTES DE DADOS EXTERNAS                   │
-│  • IBGE  • INPE  • ANA  • INMET  • MapBiomas  • Ministérios │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│              CAMADA DE ORQUESTRAÇÃO (n8n)                    │
-│  • WF01: Data Collector  • WF-RAG-01: Análises              │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│         CAMADA DE DADOS (PostgreSQL + PostGIS + pgvector)    │
-│  • 40 tabelas  • 140 entidades  • Dados históricos 5 anos   │
-└─────────────────────────────────────────────────────────────┘
-                              ↓
-┌─────────────────────────────────────────────────────────────┐
-│          CAMADA DE INTELIGÊNCIA (RAG + OpenAI)               │
-│  • GPT-4o-mini/GPT-4o  • text-embedding-3-small  • Cache     │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│                  FRAMEWORK V6.0 - ARQUITETURA               │
+├────────────────────────────────────────────────────────────┤
+│                                                             │
+│  🧠 META-ORQUESTRADOR (Coordenação Central)                │
+│                                                             │
+│  ──────────────────────────────────────────────────────── │
+│                                                             │
+│  📊 CAMADA 3: INTELIGÊNCIA (3 agentes)                     │
+│     AUDIT • RESEARCH • SENTIMENT                           │
+│                                                             │
+│  ──────────────────────────────────────────────────────── │
+│                                                             │
+│  💬 CAMADA 2: INTERFACE (3 agentes)                        │
+│     COMM • INTERACT • AUTO                                 │
+│                                                             │
+│  ──────────────────────────────────────────────────────── │
+│                                                             │
+│  🌍 CAMADA 1: ANÁLISE TERRITORIAL (10 agentes)             │
+│     ECON • SOCIAL • TERRA • ENVIRO • INSTIT                │
+│     CULTURAL • INNOV • HEALTH • EDUCAT • AGRO              │
+│                                                             │
+│  ──────────────────────────────────────────────────────── │
+│                                                             │
+│  📚 SUPORTE: Data Collector + RAG                          │
+│                                                             │
+└────────────────────────────────────────────────────────────┘
 ```
+
+**Total:** 19 agentes + Meta-Orquestrador + Data Collector + RAG
+
+📖 **Leia mais:** [19 Agentes Completos](docs/01-architecture-full/19_AGENTS_COMPLETE.md)
 
 ---
 
-## 📁 Estrutura do Repositório
+## ✨ DIFERENCIAIS
+
+### 1. 🧠 Memória Distribuída (Único no Mercado)
+
+Agentes que **aprendem continuamente** como especialistas humanos:
+- RAG Central (biblioteca corporativa)
+- RAG Individual (caderno de cada agente)
+- 4 tipos de memória (episódica, semântica, reflexão, padrões)
+- **Resultado:** Análise #100 > Análise #1
+
+### 2. 🎯 19 Agentes Especializados
+
+**10x mais completo** que concorrentes (1-3 agentes):
+- 10 dimensões de análise territorial
+- 3 agentes de interface e comunicação
+- 3 agentes de inteligência e supervisão
+- Colaboração e sinergia entre agentes
+
+### 3. 💰 Custo 99% Menor
+
+**R$ 0,01 - R$ 0,03 por análise** vs. R$ 50k - R$ 500k de consultorias:
+- Democratização do acesso
+- Viável para pequenos municípios
+- ROI imediato
+
+### 4. ⚡ Velocidade 1.000x Maior
+
+**15-30 segundos** vs. 3-6 meses de consultorias:
+- Análises em tempo real
+- Decisões mais rápidas
+- Monitoramento contínuo
+
+---
+
+## 🚀 INÍCIO RÁPIDO
+
+### Para Usuários Beta (MVP)
+
+1. **Acesse o dashboard:** [Em breve]
+2. **Selecione seu município:** Tocantins
+3. **Escolha a dimensão:** Econômica, Social, Territorial ou Ambiental
+4. **Receba análise:** Em 30 segundos
+
+### Para Desenvolvedores
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/henrique-m-ribeiro/framework-v6-mvp.git
+   cd framework-v6-mvp
+   ```
+
+2. **Leia a documentação:**
+   - [Guia de Configuração no Replit](docs/02-mvp/guides/GUIA_CONFIGURACAO_REPLIT_POSTGRESQL_PGVECTOR.md)
+   - [Como Executar no Replit](docs/COMO_EXECUTAR_NO_REPLIT.md)
+   - [Índice de Documentação](docs/INDEX.md)
+
+3. **Configure o ambiente:**
+   - Siga o [Quick Start](docs/02-mvp/scripts/data_collection/QUICK_START.md)
+
+---
+
+## 📁 ESTRUTURA DO REPOSITÓRIO
 
 ```
 framework-v6-mvp/
 │
 ├── README.md                          # Este arquivo
-├── QUICKSTART.md                      # Guia rápido (em breve)
+├── VISION.md                          # Visão estratégica da startup
+├── QUICKSTART_MVP.md                  # Quick start para MVP
 ├── LICENSE                            # Licença
-├── .gitignore                         # Arquivos ignorados
-├── .env.example                       # Template de variáveis
 │
 ├── docs/                              # Documentação completa
-│   ├── planejamento/                  # Planos e configurações
-│   ├── analises_dimensionais/         # Análises das 4 dimensões
-│   ├── arquitetura/                   # Documentação arquitetural
-│   ├── guias/                         # Guias de implementação
-│   └── diarios/                       # Diários de pesquisa-ação
+│   ├── INDEX.md                       # Índice master
+│   ├── 00-overview/                   # Visão geral do projeto
+│   ├── 01-architecture-full/          # Arquitetura completa (19 agentes)
+│   ├── 02-mvp/                        # Documentação do MVP
+│   ├── 03-methodology/                # Metodologias
+│   ├── 04-research/                   # Pesquisa e artigos
+│   ├── 05-use-cases/                  # Casos de uso
+│   ├── 06-api/                        # APIs
+│   └── 07-database/                   # Database
 │
-├── database/                          # Schema e scripts SQL
-│   ├── schema/                        # Schema completo (40 tabelas)
-│   ├── migrations/                    # Migrações (futuro)
-│   └── seeds/                         # Dados iniciais (futuro)
-│
+├── database/                          # Schema e migrações SQL
+├── scripts/                           # Scripts de coleta e população
+├── n8n/                               # Workflows n8n
 ├── rag/                               # Sistema RAG
-│   ├── python/                        # Scripts Python
-│   │   ├── rag_manager.py            # Classe principal RAG
-│   │   └── requirements.txt          # Dependências
-│   └── n8n_workflows/                # Workflows RAG
-│
-├── workflows/                         # Workflows n8n
-│   └── WF01_Data_Collector.json      # (em desenvolvimento)
-│
-├── scripts/                           # Scripts auxiliares
-└── tests/                             # Testes (futuro)
+├── client/                            # Frontend (dashboard)
+├── server/                            # Backend
+└── tests/                             # Testes
+
 ```
+
+📖 **Navegação completa:** [Índice de Documentação](docs/INDEX.md)
 
 ---
 
-## 🚀 Guia de Início Rápido
+## 📊 PROGRESSO DO MVP
 
-### Pré-requisitos
+| Componente | Status | Progresso |
+|------------|--------|-----------|
+| **Banco de Dados** | ✅ Completo | 100% |
+| **Coleta de Dados** | ✅ Completo | 100% |
+| **Metadados** | ✅ Completo | 100% |
+| **Workflows n8n** | ✅ Completo | 100% |
+| **Knowledge Base** | 🔄 Em andamento | 50% |
+| **Dashboard** | ⏳ Planejado | 0% |
+| **Testes Beta** | ⏳ Planejado | 0% |
+| **TOTAL MVP** | 🔄 Em andamento | **80%** |
 
-- Python 3.9+
-- PostgreSQL 15+ com PostGIS e pgvector
-- Conta OpenAI com créditos
-- Conta n8n Cloud ou self-hosted
-- Conta Replit (opcional, para hospedagem)
-
-### Instalação
-
-**1. Clone o repositório:**
-```bash
-git clone https://github.com/SEU_USUARIO/framework-v6-mvp.git
-cd framework-v6-mvp
-```
-
-**2. Configure variáveis de ambiente:**
-```bash
-cp .env.example .env
-# Edite .env com suas credenciais
-```
-
-**3. Instale dependências Python:**
-```bash
-cd rag/python
-pip install -r requirements.txt
-```
-
-**4. Crie o schema do banco:**
-```bash
-psql $DATABASE_URL -f database/schema/SCHEMA_COMPLETO_40_TABELAS_POSTGRESQL.sql
-```
-
-**5. Configure n8n:**
-- Importe workflows de `rag/n8n_workflows/` e `workflows/`
-- Configure credenciais PostgreSQL e OpenAI
-- Ative workflows
-
-### Documentação Detalhada
-
-Para instruções completas, consulte:
-- **Planejamento:** [`docs/planejamento/plano_implementacao_mvp.md`](docs/planejamento/plano_implementacao_mvp.md)
-- **Configuração:** [`docs/planejamento/configuracao_personalizada_mvp.md`](docs/planejamento/configuracao_personalizada_mvp.md)
-- **Checklist:** [`docs/planejamento/checklist_pre_requisitos.md`](docs/planejamento/checklist_pre_requisitos.md)
+**Próximos passos:**
+1. Popular knowledge_base com análises
+2. Implementar dashboard básico
+3. Recrutar e testar com usuários beta
+4. Iterar baseado em feedback
 
 ---
 
-## 📊 Status do Desenvolvimento
+## 🎓 FUNDAMENTOS CIENTÍFICOS
 
-### Fases Concluídas ✅
+### Metodologia de Interação Galáctica
 
-- [x] **Fase 1:** Análise da documentação e contexto
-- [x] **Fase 2:** Planejamento detalhado da implementação
+Co-evolução humano-IA através de ciclos iterativos de documentação reflexiva e aprendizado mútuo.
 
-### Fases em Desenvolvimento 🔄
+### Metodologia de Pesquisa-Ação
 
-- [ ] **Fase 3:** Configuração do ambiente Replit (PostgreSQL + extensões)
-- [ ] **Fase 4:** Implementação do schema do banco de dados (40 tabelas)
-- [ ] **Fase 5:** População inicial de dados territoriais (Tocantins + 139 municípios)
-- [ ] **Fase 6:** Configuração do n8n Cloud e credenciais
-- [ ] **Fase 7:** Implementação do agente Data Collector no n8n
-- [ ] **Fase 8:** Implementação do sistema RAG (Python + OpenAI)
-- [ ] **Fase 9:** Testes integrados e validação do MVP
-- [ ] **Fase 10:** Documentação do processo e checkpoint de aprendizados
+Ciclos de planejamento → ação → observação → reflexão, documentados em diários de campo.
 
-**Progresso:** 8.5/12 fases concluídas (80%)
-
-### Atualizações Recentes (17/11/2025) 🆕
-
-**Sessão 5 - Criação do Núcleo de Especialistas:**
-- ✅ Sistema de Continuidade 100% validado (Fase 7)
-- ✅ 4 Agentes Dimensionais criados (ECON, SOCIAL, TERRA, AMBIENT)
-- ✅ Base de Conhecimento projetada (PostgreSQL + pgvector)
-- ✅ 140 territórios do Tocantins processados
-- 🔄 Pesquisa de APIs governamentais iniciada (30%)
-- 📚 ~60.000 palavras de documentação técnica
-
-**Próximos Passos:**
-- Data Collector (catalogação de APIs + implementação)
-- Prompts para IA do n8n (meta-mediação)
-- Orquestrador (Meta-LLM)
-
-[📖 Ver Resumo Completo da Sessão 5](docs/diarios/SESSAO_2025-11-17_DATA_COLLECTOR_INICIO.md) | [📓 Ver Diário de Campo](docs/diarios/DIARIO_DE_CAMPO_2025-11-17.md) | [💡 Ver Lições Aprendidas](docs/LICOES_APRENDIDAS_E_DICAS.md)
+📖 **Leia mais:** [Metodologias](docs/03-methodology/)
 
 ---
 
-## 💰 Estimativas
+## 💻 TECNOLOGIAS
 
-### Tempo
-- **Total estimado:** 20-27 horas
-- **Sessões:** 15-18 sessões de 1-1.5h
-- **Duração:** 6-9 semanas
+### Stack Atual (MVP)
 
-### Custo
-- **Inicial:** ~$30 USD (OpenAI + n8n primeiro mês)
-- **Mensal:** ~$25-27 USD (com cache 70%)
-- **Por análise:** ~$0.01 USD (com cache) ou ~$0.03 USD (sem cache)
+- **Backend:** PostgreSQL 15+, PostGIS, pgvector, Python 3.9+
+- **Orquestração:** n8n Cloud, Webhooks
+- **IA:** OpenAI GPT-4o-mini, text-embedding-3-small
+- **Infraestrutura:** Replit (MVP)
 
----
+### Stack Futuro (Produto Completo)
 
-## 🛠️ Stack Tecnológico
-
-| Componente | Tecnologia | Versão | Custo |
-|------------|------------|--------|-------|
-| **Banco de Dados** | PostgreSQL | 15+ | Gratuito (Replit) |
-| **Extensão Geoespacial** | PostGIS | 3.3+ | Gratuito |
-| **Extensão Vetorial** | pgvector | 0.5+ | Gratuito |
-| **Orquestração** | n8n Cloud | Latest | $20/mês |
-| **LLM** | OpenAI GPT-4o-mini | Latest | $15-20/mês |
-| **Embeddings** | text-embedding-3-small | Latest | Incluído |
-| **Backend** | Python | 3.9+ | Gratuito |
-| **Hospedagem** | Replit | Latest | Gratuito (tier free) |
+- **Frontend:** React, TypeScript, Tailwind CSS
+- **Backend:** FastAPI, Supabase
+- **Infraestrutura:** AWS/GCP, Docker, Kubernetes
+- **Monitoramento:** Prometheus, Grafana
 
 ---
 
-## 📖 Documentação
+## 🤝 PARA QUEM É?
 
-### Planejamento
-- [Plano de Implementação do MVP](docs/planejamento/plano_implementacao_mvp.md)
-- [Configuração Personalizada](docs/planejamento/configuracao_personalizada_mvp.md)
-- [Checklist de Pré-Requisitos](docs/planejamento/checklist_pre_requisitos.md)
-- [Síntese da Análise](docs/planejamento/sintese_analise_framework.md)
+### Gestores Públicos
+- Prefeitos e secretários municipais
+- Governadores e secretários estaduais
+- Técnicos de planejamento
 
-### Análises Dimensionais
-- [Dimensão Econômica](docs/analises_dimensionais/ANALISE_DIMENSAO_ECONOMICA_FRAMEWORK_V6.md)
-- [Dimensão Social](docs/analises_dimensionais/ANALISE_DIMENSAO_SOCIAL_FRAMEWORK_V6.md)
-- [Dimensão Territorial](docs/analises_dimensionais/ANALISE_DIMENSAO_TERRITORIAL_FRAMEWORK_V6.md)
-- [Dimensão Ambiental](docs/analises_dimensionais/ANALISE_DIMENSAO_AMBIENTAL_FRAMEWORK_V6.md)
+### Pesquisadores
+- Análise de políticas públicas
+- Estudos territoriais
+- Benchmarking
 
-### Arquitetura
-- [Arquitetura RAG Integrado](docs/arquitetura/ARQUITETURA_RAG_INTEGRADO_FRAMEWORK_V6.md)
-- [Documentação do Schema (40 Tabelas)](docs/arquitetura/DOCUMENTACAO_SCHEMA_40_TABELAS.md)
-- [Síntese das 4 Dimensões](docs/arquitetura/SINTESE_4_DIMENSOES_ESTRUTURA_RAG_FINAL.md)
+### Consultores
+- Complemento a análises manuais
+- Aceleração de projetos
 
-### Guias
-- [Configuração de Variáveis de Ambiente](docs/guias/GUIA_CONFIGURACAO_VARIAVEIS_AMBIENTE.md)
-- [Configuração Replit PostgreSQL](docs/guias/GUIA_CONFIGURACAO_REPLIT_POSTGRESQL_PGVECTOR.md)
-- [Revisão Técnica](docs/guias/REVISAO_TECNICA_IMPLEMENTACAO_RAG.md)
-- [Importância do GitHub](docs/guias/importancia_github.md)
+---
+
+## 📈 MODELO DE NEGÓCIO
+
+### Planos de Assinatura (Futuro)
+
+| Plano | Preço/mês | Agentes | Análises/mês | Público |
+|-------|-----------|---------|--------------|---------|
+| **Básico** | R$ 500 | 4 | 100 | Municípios pequenos |
+| **Profissional** | R$ 2.000 | 10 | 500 | Municípios médios |
+| **Premium** | R$ 5.000 | 19 | Ilimitadas | Capitais e estados |
+| **Enterprise** | Consulta | 19 | Ilimitadas | Governo Federal |
+
+📖 **Leia mais:** [Modelo de Negócio](docs/00-overview/BUSINESS_MODEL.md)
+
+---
+
+## 🛣️ ROADMAP
+
+### Fase 1: MVP - Tocantins (Meses 1-6) ✅ 80%
+- 4 agentes, RAG Central, 140 territórios
+
+### Fase 2: Expansão Regional (Meses 7-12)
+- +6 agentes, memória distribuída, Norte/Centro-Oeste
+
+### Fase 3: Expansão Nacional (Ano 2)
+- 19 agentes, Brasil completo, plataforma SaaS
+
+### Fase 4: Expansão Internacional (Anos 3-4)
+- América Latina, multilíngue
+
+### Fase 5: Plataforma Global (Ano 5+)
+- 50+ países, código aberto, marketplace
+
+📖 **Leia mais:** [Roadmap Completo](docs/00-overview/ROADMAP_STARTUP.md)
+
+---
+
+## 📚 DOCUMENTAÇÃO
+
+### Documentos Essenciais
+
+- [**VISION.md**](VISION.md) - Visão estratégica da startup
+- [**O que é o Framework V6.0**](docs/00-overview/WHAT_IS_V6.md) - Explicação completa
+- [**MVP vs. Produto Completo**](docs/00-overview/MVP_VS_FULL.md) - Comparação detalhada
+- [**19 Agentes Completos**](docs/01-architecture-full/19_AGENTS_COMPLETE.md) - Arquitetura
+- [**Índice de Documentação**](docs/INDEX.md) - Navegação completa
+
+### Guias Práticos (MVP)
+
+- [Como Executar no Replit](docs/COMO_EXECUTAR_NO_REPLIT.md)
+- [Quick Start](docs/02-mvp/scripts/data_collection/QUICK_START.md)
+- [Configuração de Variáveis](docs/02-mvp/guides/GUIA_CONFIGURACAO_VARIAVEIS_AMBIENTE.md)
+
+---
+
+## 🌟 CASOS DE USO
+
+### 1. Diagnóstico Territorial Completo
+Novo gestor recebe análise completa em 4-10 dimensões em 1 dia (vs. 3-6 meses)
+
+### 2. Monitoramento de Políticas
+Acompanhamento contínuo de indicadores com alertas automáticos
+
+### 3. Captação de Recursos
+Identificação automática de oportunidades de financiamento
+
+### 4. Transparência e Prestação de Contas
+Análises públicas e auditáveis aumentam confiança
+
+📖 **Leia mais:** [Casos de Uso](docs/05-use-cases/)
+
+---
+
+## 🔬 PESQUISA E PUBLICAÇÕES
 
 ### Diários de Pesquisa-Ação
-- [Sessão 10/11/2025 - Planejamento](docs/diarios/resumo_sessao_fase1_fase2.md)
+
+Documentação reflexiva de cada sessão de desenvolvimento:
+- [Diários de Campo](docs/02-mvp/diaries/)
+
+### Artigos Científicos
+
+- [The Mediator Effect](docs/04-research/papers/THE_MEDIATOR_EFFECT_COMPLETE.md) - Submetido ao TOCHI
 
 ---
 
-## 🤝 Contribuindo
+## 🤝 CONTRIBUINDO
 
-Este é um projeto em desenvolvimento ativo. Contribuições serão bem-vindas após a conclusão do MVP.
+### Atualmente (MVP)
 
-### Roadmap Futuro
+- **Beta Testers:** Recrutando 10 usuários beta
+- **Feedback:** Bem-vindo via Issues ou email
 
-**Curto Prazo (1-2 meses):**
-- Adicionar agentes especializados (TERRA, ECON, SOCIAL, INTERACT)
-- Implementar Meta Orchestrator
-- Expandir coleta para todas as 4 dimensões
-- Implementar frontend básico (dashboard)
+### Futuro (Produto Completo)
 
-**Médio Prazo (3-6 meses):**
-- Adicionar mais municípios brasileiros (benchmark)
-- Implementar sistema de reranking (Cohere)
-- Otimizar performance (Redis cache)
-- Implementar autenticação e controle de acesso
-
-**Longo Prazo (6-12 meses):**
-- Expansão internacional
-- Sistema de alertas automáticos
-- API pública para terceiros
-- Modelo de negócio SaaS
+- **Código Aberto:** Core será aberto após Série A (Ano 2-3)
+- **Contribuidores:** Guia de contribuição será publicado
 
 ---
 
-## 📝 Licença
+## 📞 CONTATO
 
-Este projeto está sob licença proprietária. Todos os direitos reservados.
+**Para investidores, parceiros ou imprensa:**
 
-Para uso comercial ou acadêmico, entre em contato.
-
----
-
-## 👤 Autor
-
-**Henrique Ribeiro**
-- Pesquisador e Desenvolvedor
-- Projeto de Startup em Inteligência Territorial
-
-**Colaboração:**
-- Manus AI (Assistente de Desenvolvimento)
-
----
-
-## 📧 Contato
-
-Para dúvidas, sugestões ou parcerias:
 - **Email:** [seu-email@exemplo.com]
 - **LinkedIn:** [seu-linkedin]
-- **GitHub:** [seu-usuario]
+- **GitHub:** https://github.com/henrique-m-ribeiro/framework-v6-mvp
 
 ---
 
-## 🙏 Agradecimentos
+## 📄 LICENÇA
 
-- IBGE, INPE, ANA, INMET e demais fontes de dados públicas
-- Comunidades open source (PostgreSQL, PostGIS, pgvector, n8n)
-- OpenAI pela API de LLMs e embeddings
+Código proprietário. Todos os direitos reservados.
+
+Planejamos abrir o core após captação de Série A (Ano 2-3).
 
 ---
 
-**Última atualização:** 17 de Novembro de 2025  
-**Versão:** 0.80  
-**Status:** Em Desenvolvimento Ativo 🚀  
-**Última Sessão:** Sessão 5 - Criação do Núcleo de Especialistas
+## 🙏 AGRADECIMENTOS
+
+- **Comunidade Open Source:** PostgreSQL, PostGIS, pgvector, n8n
+- **Fontes de Dados:** IBGE, INPE, ANA, INMET, DataSUS, INEP
+- **Manus AI:** Parceiro fundamental no desenvolvimento
+
+---
+
+## 🎯 ATUALIZAÇÕES RECENTES
+
+### 24/11/2025 - Reorganização Completa do Repositório
+- ✅ Documentação estratégica criada (VISION.md)
+- ✅ Estrutura reorganizada (docs/00-overview/, docs/01-architecture-full/, etc.)
+- ✅ Separação clara MVP vs. Produto Completo
+- ✅ 19 agentes documentados
+- ✅ Roadmap de longo prazo definido
+
+### 17/11/2025 - Núcleo de Especialistas Criado
+- ✅ 4 agentes dimensionais prontos (ECON, SOCIAL, TERRA, AMBIENT)
+- ✅ Workflows n8n para importação
+- ✅ Progresso: 65% → 80%
+
+### 23/11/2025 - Estruturação de Dados e Inteligência
+- ✅ 4.089 indicadores carregados
+- ✅ 35 metadados criados
+- ✅ Knowledge base estruturada
+
+---
+
+**Framework de Inteligência Territorial V6.0**  
+**Transformando Gestão Pública através de Inteligência Artificial**
+
+**Versão MVP:** 0.80 (80% completo)  
+**Versão Arquitetura:** V6.0  
+**Última atualização:** 24 de novembro de 2025
+
+---
+
+> *"O futuro da gestão pública não é substituir humanos por IA, mas capacitar humanos com IA."*  
+> — Framework V6.0
+
+> *"Pense grande, comece pequeno, escale rápido."*  
+> — Framework V6.0
