@@ -404,21 +404,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Triggers para cada tabela de memória
+DROP TRIGGER IF EXISTS update_agent_econ_memory_updated_at ON agent_econ_memory;
 CREATE TRIGGER update_agent_econ_memory_updated_at
 BEFORE UPDATE ON agent_econ_memory
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_agent_social_memory_updated_at ON agent_social_memory;
 CREATE TRIGGER update_agent_social_memory_updated_at
 BEFORE UPDATE ON agent_social_memory
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_agent_terra_memory_updated_at ON agent_terra_memory;
 CREATE TRIGGER update_agent_terra_memory_updated_at
 BEFORE UPDATE ON agent_terra_memory
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_agent_ambient_memory_updated_at ON agent_ambient_memory;
 CREATE TRIGGER update_agent_ambient_memory_updated_at
 BEFORE UPDATE ON agent_ambient_memory
 FOR EACH ROW
