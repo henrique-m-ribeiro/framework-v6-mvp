@@ -75,9 +75,31 @@ Com a fundação de dados sólida que construímos, a próxima sessão será foc
 
 ## 📈 Status da Sessão
 
-- **Tokens usados:** ~150.000 / 200.000 (75%)
-- **Tokens restantes:** ~50.000 (25%)
-- **Decisão:** Encerrar a sessão para garantir que a próxima comece com 100% de capacidade.
+- **Tokens usados:** ~70.000 / 200.000 (35%)
+- **Tokens restantes:** ~130.000 (65%)
+- **Decisão:** Encerrar a sessão para garantir que a próxima comece com 100% de capacidade e foco total na implementação da inteligência.
+
+---
+
+## 🔬 Metodologia de Pesquisa-Ação
+
+Esta sessão foi documentada seguindo a **Metodologia de Pesquisa-Ação**, com ciclos iterativos de planejamento, ação, observação e reflexão.
+
+**Diário completo desta sessão:**
+- 📄 `/docs/diarios/Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md`
+
+**Diários de sessões anteriores:**
+- 📄 `/docs/diarios/Diario_Pesquisa_Acao_2025-11-10_Planejamento_Implementacao.md` - Sessão 1
+- 📄 `/docs/diarios/Diario_Pesquisa_Acao_2025-11-10_Sessao_2_Implementacao_Completa.md` - Sessão 2
+
+Cada diário documenta:
+- Contexto e objetivos
+- Ciclos de ação-reflexão
+- Decisões estratégicas
+- Aprendizados e insights
+- Tensões e dilemas
+- Contribuições metodológicas
+- Co-evolução humano-IA
 
 ---
 

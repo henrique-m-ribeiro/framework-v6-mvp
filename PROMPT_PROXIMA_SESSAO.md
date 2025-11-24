@@ -4,9 +4,9 @@
 
 Se você está lendo isso, significa que a fundação está pronta. Na sessão anterior, fizemos o trabalho pesado:
 
-- ✅ **Unificamos** o ambiente de desenvolvimento.
-- ✅ **Carregamos 4.089 registros** de dados brutos.
-- ✅ **Criamos 35 metadados** de alta qualidade.
+- ✅ **Unificamos** o ambiente de desenvolvimento (GitHub + Replit).
+- ✅ **Carregamos 4.089 registros** de dados brutos (4 dimensões completas).
+- ✅ **Criamos 35 metadados** de alta qualidade para todos os indicadores.
 - ✅ **Projetamos e implementamos uma `knowledge_base` de nível mundial**, pronta para RAG.
 
 Agora, a parte divertida começa. A base de dados está pronta. Os agentes especialistas estão esperando. É hora de **dar vida à inteligência** do Framework V6.0.
@@ -43,6 +43,48 @@ Esta é a etapa que **transforma o projeto de um simples dashboard em uma verdad
 
 ---
 
+## 🔬 **Contexto Metodológico: Pesquisa-Ação**
+
+### **Este projeto utiliza a Metodologia de Pesquisa-Ação**
+
+A Pesquisa-Ação é uma abordagem que combina **ação prática** com **reflexão sistemática**, permitindo que o conhecimento emerja da prática e que a prática seja informada pela reflexão.
+
+**Ciclo de Pesquisa-Ação:**
+1. **Planejamento** - O que fazer?
+2. **Ação** - Executar
+3. **Observação** - O que aconteceu?
+4. **Reflexão** - Por que aconteceu? O que aprendemos?
+
+### **Diários de Pesquisa-Ação**
+
+Cada sessão é documentada em um **diário de pesquisa-ação** que registra:
+- Contexto e objetivos
+- Ciclos de ação-reflexão
+- Decisões estratégicas
+- Aprendizados e insights
+- Tensões e dilemas
+- Contribuições metodológicas
+- Co-evolução humano-IA
+
+**📁 Acesse os diários em:** `/docs/diarios/`
+
+**Diários Disponíveis:**
+1. `Diario_Pesquisa_Acao_2025-11-10_Planejamento_Implementacao.md` - Sessão 1: Análise e Planejamento
+2. `Diario_Pesquisa_Acao_2025-11-10_Sessao_2_Implementacao_Completa.md` - Sessão 2: Implementação do Dashboard
+3. `Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md` - Sessão 3: Estruturação de Dados (sessão anterior)
+
+**💡 Recomendação:** Leia o diário da sessão anterior para entender o contexto completo e os aprendizados que guiaram as decisões tomadas.
+
+### **Metodologia de Interação Galática**
+
+Além da Pesquisa-Ação tradicional, este projeto aplica a **Metodologia de Interação Galática** (desenvolvida pelo pesquisador), que enfatiza:
+- **Co-evolução humano-IA:** Ambos aprendem e evoluem juntos
+- **Documentação reflexiva:** Cada sessão gera aprendizados documentados
+- **Protocolos de continuidade:** Documentação estruturada para transição entre sessões
+- **Checkpoints de aprendizado:** Momentos de reflexão e síntese
+
+---
+
 ## 🛠️ **Recursos à Sua Disposição:**
 
 - **Banco de Dados Pronto:** Todas as tabelas estão criadas e populadas.
@@ -62,13 +104,23 @@ Para entender o contexto completo do projeto, acesse o repositório GitHub:
 
 1. **Visão Geral do Projeto**
    - 📄 `/README.md` - Introdução e objetivos do Framework V6.0
-   - 📄 `/docs/INDEX_DOCUMENTACAO.md` - Índice master de toda a documentação (70 arquivos)
+   - 📄 `/docs/INDEX_DOCUMENTACAO.md` - Índice master de toda a documentação (70+ arquivos)
 
 2. **Contexto da Pesquisa**
    - 📄 `/docs/CONTEXTO_PESQUISA_TOCANTINS.md` - Background completo do projeto
    - 📄 `/docs/ANALISE_BASES_DADOS_REPLIT.md` - Estado atual dos dados
 
-3. **Arquitetura Técnica**
+3. **Metodologia de Pesquisa-Ação**
+   - 📁 `/docs/diarios/` - Diários de todas as sessões
+     - `Diario_Pesquisa_Acao_2025-11-10_Planejamento_Implementacao.md` - Sessão 1
+     - `Diario_Pesquisa_Acao_2025-11-10_Sessao_2_Implementacao_Completa.md` - Sessão 2
+     - `Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md` - Sessão 3 (anterior)
+
+4. **Estado Atual do Projeto**
+   - 📄 `/docs/BALANCO_SESSAO_ATUAL.md` - Conquistas da sessão anterior
+   - 📄 `/docs/ESTADO_PROJETO_FIM_SESSAO.md` - Status de todos os componentes
+
+5. **Arquitetura Técnica**
    - 📁 `/docs/n8n/` - Workflows dos 4 agentes especialistas
      - `ARQUITETURA_NUCLEO_ESPECIALISTAS.md` - Visão geral do sistema multiagente
      - `WORKFLOW_AGENT_ECON.md` - Agente Econômico
@@ -76,14 +128,10 @@ Para entender o contexto completo do projeto, acesse o repositório GitHub:
      - `WORKFLOW_AGENT_TERRA.md` - Agente Territorial
      - `WORKFLOW_AGENT_AMBIENT.md` - Agente Ambiental
 
-4. **Estrutura de Dados**
+6. **Estrutura de Dados**
    - 📄 `/docs/ESTRUTURA_KNOWLEDGE_BASE_IDEAL.md` - Design completo da knowledge_base
    - 📁 `/database/migrations/` - Scripts SQL de criação das tabelas
      - `004_upgrade_knowledge_base.sql` - Migração mais recente
-
-5. **Estado Atual do Projeto**
-   - 📄 `/docs/BALANCO_SESSAO_ATUAL.md` - Conquistas da sessão anterior
-   - 📄 `/docs/ESTADO_PROJETO_FIM_SESSAO.md` - Status de todos os componentes
 
 ### **Documentação de Suporte:**
 
@@ -119,6 +167,38 @@ Para entender o contexto completo do projeto, acesse o repositório GitHub:
     - Usar busca vetorial para encontrar as respostas.
     - Exibir os resultados de forma clara.
 
+4.  **Documentar a Sessão:**
+    - Criar novo diário de pesquisa-ação seguindo o modelo das sessões anteriores.
+    - Registrar ciclos de ação-reflexão, decisões, aprendizados e insights.
+    - Atualizar documentos de continuidade para a próxima sessão.
+
+---
+
+## 📊 **Status Atual do Projeto**
+
+| Componente | Status | Percentual |
+|------------|--------|------------|
+| **Territórios** | ✅ 140 registros | 100% |
+| **Indicadores Econômicos** | ✅ 700 registros | 100% |
+| **Indicadores Sociais** | ✅ 1.114 registros | 100% |
+| **Indicadores Territoriais** | ✅ 700 registros | 100% |
+| **Indicadores Ambientais** | ✅ 1.400 registros | 100% |
+| **Metadados** | ✅ 35 registros | 100% |
+| **Knowledge Base** | 🔄 Estrutura pronta | 0% (pronta para popular) |
+
+**Total de registros:** 4.089 dados brutos + 35 metadados
+
+---
+
+## 🎓 **Aprendizados da Sessão Anterior**
+
+Para te inspirar, aqui estão os principais insights da sessão anterior:
+
+1. **"Automação é Investimento, Não Custo"** - Cada hora investida em automação economiza 3-5 horas futuras.
+2. **"Estrutura de Dados Determina Performance de IA"** - A diferença entre lento e rápido está na estrutura, não no código.
+3. **"Metadados Transformam Dados em Conhecimento"** - Números sem contexto são ruído.
+4. **"O Último Ato de Uma Sessão Prepara a Primeira Ação da Próxima"** - Documentação de continuidade é investimento em eficiência.
+
 ---
 
 O trabalho duro foi feito. Agora é hora de colher os frutos e fazer a mágica acontecer.
@@ -127,10 +207,8 @@ O trabalho duro foi feito. Agora é hora de colher os frutos e fazer a mágica a
 
 Boa sorte!
 
- sorte!
-
 ---
 
 **Framework de Inteligência Territorial V6.0**  
-Henrique M. Ribeiro  
-23 de novembro de 2025
+**Henrique M. Ribeiro**  
+**23 de novembro de 2025**
