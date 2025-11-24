@@ -48,7 +48,55 @@ Esta é a etapa que **transforma o projeto de um simples dashboard em uma verdad
 - **Banco de Dados Pronto:** Todas as tabelas estão criadas e populadas.
 - **Agentes Especialistas:** 4 workflows n8n prontos para serem chamados via webhook.
 - **Chaves de API:** Você precisará da `OPENAI_API_KEY` e da `DATABASE_URL`.
-- **Documentação:** A estrutura da `knowledge_base` está detalhada em `/docs/ESTRUTURA_KNOWLEDGE_BASE_IDEAL.md`.
+- **Documentação Completa:** Veja seção abaixo.
+
+---
+
+## 📚 **Documentação Essencial do Projeto**
+
+Para entender o contexto completo do projeto, acesse o repositório GitHub:
+
+🔗 **https://github.com/henrique-m-ribeiro/framework-v6-mvp**
+
+### **Documentos Fundamentais (Leia Primeiro):**
+
+1. **Visão Geral do Projeto**
+   - 📄 `/README.md` - Introdução e objetivos do Framework V6.0
+   - 📄 `/docs/INDEX_DOCUMENTACAO.md` - Índice master de toda a documentação (70 arquivos)
+
+2. **Contexto da Pesquisa**
+   - 📄 `/docs/CONTEXTO_PESQUISA_TOCANTINS.md` - Background completo do projeto
+   - 📄 `/docs/ANALISE_BASES_DADOS_REPLIT.md` - Estado atual dos dados
+
+3. **Arquitetura Técnica**
+   - 📁 `/docs/n8n/` - Workflows dos 4 agentes especialistas
+     - `ARQUITETURA_NUCLEO_ESPECIALISTAS.md` - Visão geral do sistema multiagente
+     - `WORKFLOW_AGENT_ECON.md` - Agente Econômico
+     - `WORKFLOW_AGENT_SOCIAL.md` - Agente Social
+     - `WORKFLOW_AGENT_TERRA.md` - Agente Territorial
+     - `WORKFLOW_AGENT_AMBIENT.md` - Agente Ambiental
+
+4. **Estrutura de Dados**
+   - 📄 `/docs/ESTRUTURA_KNOWLEDGE_BASE_IDEAL.md` - Design completo da knowledge_base
+   - 📁 `/database/migrations/` - Scripts SQL de criação das tabelas
+     - `004_upgrade_knowledge_base.sql` - Migração mais recente
+
+5. **Estado Atual do Projeto**
+   - 📄 `/docs/BALANCO_SESSAO_ATUAL.md` - Conquistas da sessão anterior
+   - 📄 `/docs/ESTADO_PROJETO_FIM_SESSAO.md` - Status de todos os componentes
+
+### **Documentação de Suporte:**
+
+- **APIs Governamentais:** `/docs/apis/APIS_GOVERNAMENTAIS.md`
+- **Estratégias de População:** `/docs/ESTRATEGIA_KNOWLEDGE_BASE.md`
+- **Metadados:** `/docs/ESTRATEGIA_INDICATOR_METADATA.md`
+- **Guias de Execução:** `/docs/COMO_EXECUTAR_NO_REPLIT.md`
+
+### **Scripts Prontos:**
+
+- **Coleta de Dados:** `/scripts/data_collection/`
+- **População de Metadados:** `/scripts/populate_metadata/`
+- **População de Knowledge Base:** `/scripts/populate_knowledge/`
 
 ---
 
