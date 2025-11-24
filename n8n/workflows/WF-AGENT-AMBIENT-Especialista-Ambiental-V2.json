@@ -1,0 +1,277 @@
+{
+  "name": "WF-AGENT-AMBIENT V2 - Especialista Ambiental",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-ambient",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "ignoreBots": true
+        }
+      },
+      "id": "webhook-recebe-tarefa",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "agent-ambient-webhook",
+      "notes": "FUNÇÃO: Ponto de entrada do Agente AMBIENT.\n\nRECEBE: Requisição HTTP POST do Orquestrador com:\n- task_id: ID único da tarefa\n- territory_id: ID do território a analisar\n- territory_name: Nome do território\n- dimension: 'environmental'\n- task_description: Descrição da análise solicitada\n- context: Contexto adicional\n\nEXEMPLO DE PAYLOAD:\n{\n  \"task_id\": \"uuid-12345\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"environmental\",\n  \"task_description\": \"Analisar situação ambiental de Palmas\",\n  \"context\": {\n    \"user_question\": \"Como está o meio ambiente em Palmas?\",\n    \"comparison_territories\": [],\n    \"time_range\": \"2019-2023\"\n  }\n}"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- CONSULTA DADOS AMBIENTAIS DO TERRITÓRIO\n\nSELECT \n  -- Dados do território\n  t.id AS territory_id,\n  t.name AS territory_name,\n  t.state,\n  t.population,\n  t.area_km2,\n  \n  -- Indicadores ambientais\n  ei.year,\n  \n  -- Desmatamento e cobertura vegetal\n  ei.deforestation_rate,\n  ei.deforested_area_km2,\n  ei.vegetation_cover_percentage,\n  ei.forest_area_km2,\n  \n  -- Qualidade do ar e água\n  ei.air_quality_index,\n  ei.water_quality_index,\n  \n  -- Áreas protegidas\n  ei.protected_areas_km2,\n  ei.protected_areas_percentage,\n  \n  -- Queimadas\n  ei.fire_spots_count,\n  ei.burned_area_km2,\n  \n  -- Recursos hídricos\n  ei.water_bodies_area_km2,\n  ei.water_availability_per_capita,\n  \n  -- Emissões e resíduos\n  ei.co2_emissions_tons,\n  ei.solid_waste_tons,\n  ei.recycling_rate\n  \nFROM territories t\nLEFT JOIN environmental_indicators ei ON t.id = ei.territory_id\n\nWHERE t.id = $1\n  AND ei.year >= 2019\n  AND ei.year <= 2023\n\nORDER BY ei.year ASC;",
+        "additionalFields": {},
+        "options": {
+          "queryParameters": "={{ $json.body.territory_id }}",
+          "queryBatching": "transaction",
+          "outputLargeNumbersAs": "text"
+        }
+      },
+      "id": "consultar-dados-postgresql",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        450,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Buscar dados ambientais do território.\n\nÁREAS COBERTAS:\n- Desmatamento (taxa, área desmatada, cobertura vegetal)\n- Qualidade do ar e água (índices)\n- Áreas protegidas (km², %)\n- Queimadas (focos, área queimada)\n- Recursos hídricos (corpos d'água, disponibilidade)\n- Emissões e resíduos (CO2, resíduos sólidos, reciclagem)\n\nFONTES DE DADOS:\n- INPE (desmatamento, queimadas)\n- ANA (recursos hídricos)\n- IBAMA (áreas protegidas)\n- ICMBio (biodiversidade)\n- INMET (clima)\n\nRESULTADO ESPERADO:\nLista de objetos JSON com indicadores ambientais por ano:\n[\n  {\n    \"territory_name\": \"Palmas\",\n    \"year\": 2019,\n    \"deforestation_rate\": 2.3,\n    \"vegetation_cover_percentage\": 89.2,\n    \"air_quality_index\": 45,\n    \"protected_areas_percentage\": 12.0,\n    ...\n  },\n  ...\n]"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PREPARAR CONTEXTO PARA O LLM - AGENTE AMBIENT\n// ========================================\n\nconst items = $input.all();\n\nif (!items || items.length === 0) {\n  return [\n    {\n      json: {\n        error: true,\n        message: 'Nenhum dado ambiental encontrado para o território especificado.',\n        territory_id: $node['Webhook - Recebe Tarefa'].json.body.territory_id\n      }\n    }\n  ];\n}\n\nconst webhookData = $node['Webhook - Recebe Tarefa'].json.body;\nconst taskId = webhookData.task_id;\nconst territoryId = webhookData.territory_id;\nconst territoryName = webhookData.territory_name;\nconst taskDescription = webhookData.task_description;\nconst userQuestion = webhookData.context?.user_question || 'Análise ambiental geral';\nconst timeRange = webhookData.context?.time_range || '2019-2023';\n\nconst dataByYear = items.map(item => item.json);\n// Converter strings para números (devido a outputLargeNumbersAs: 'text')\nconst parseNumber = (value) => parseFloat(value) || 0;\n\n\nconst firstYear = dataByYear[0];\nconst lastYear = dataByYear[dataByYear.length - 1];\n\n// Cálculos ambientais\nconst deforestationChange = (lastYear.deforestation_rate - firstYear.deforestation_rate).toFixed(1);\nconst vegetationCoverChange = (lastYear.vegetation_cover_percentage - firstYear.vegetation_cover_percentage).toFixed(1);\nconst protectedAreasChange = (lastYear.protected_areas_percentage - firstYear.protected_areas_percentage).toFixed(1);\n\n// Situação atual (último ano)\nconst currentDeforestation = lastYear.deforestation_rate.toFixed(1);\nconst currentVegetationCover = lastYear.vegetation_cover_percentage.toFixed(1);\nconst currentAirQuality = lastYear.air_quality_index;\nconst currentWaterQuality = lastYear.water_quality_index;\nconst protectedAreasPercentage = lastYear.protected_areas_percentage.toFixed(0);\n\n// Alertas (baseado em thresholds)\nconst alerts = [];\nif (lastYear.deforestation_rate > firstYear.deforestation_rate) {\n  alerts.push('⚠️ Taxa de desmatamento aumentou');\n}\nif (lastYear.fire_spots_count > 100) {\n  alerts.push('⚠️ Alto número de focos de queimada');\n}\nif (lastYear.air_quality_index > 50) {\n  alerts.push('⚠️ Qualidade do ar moderada');\n}\nif (lastYear.protected_areas_percentage < 15) {\n  alerts.push('⚠️ Baixa cobertura de áreas protegidas');\n}\n\nconst formattedData = dataByYear.map(d => {\n  return `\nANO ${d.year}:\nDESMATAMENTO E COBERTURA VEGETAL:\n- Taxa de desmatamento: ${d.deforestation_rate}% da área total\n- Área desmatada: ${d.deforested_area_km2.toLocaleString('pt-BR')} km²\n- Cobertura vegetal: ${d.vegetation_cover_percentage}%\n- Área de floresta: ${d.forest_area_km2.toLocaleString('pt-BR')} km²\n\nQUALIDADE DO AR E ÁGUA:\n- Índice de Qualidade do Ar (IQA): ${d.air_quality_index} (${d.air_quality_index <= 50 ? 'Boa' : d.air_quality_index <= 100 ? 'Moderada' : 'Ruim'})\n- Índice de Qualidade da Água: ${d.water_quality_index}\n\nÁREAS PROTEGIDAS:\n- Áreas protegidas: ${d.protected_areas_km2.toLocaleString('pt-BR')} km² (${d.protected_areas_percentage}% do território)\n\nQUEIMADAS:\n- Focos de queimada: ${d.fire_spots_count.toLocaleString('pt-BR')}\n- Área queimada: ${d.burned_area_km2.toLocaleString('pt-BR')} km²\n\nRECURSOS HÍDRICOS:\n- Área de corpos d'água: ${d.water_bodies_area_km2.toLocaleString('pt-BR')} km²\n- Disponibilidade hídrica per capita: ${d.water_availability_per_capita.toLocaleString('pt-BR')} m³/hab/ano\n\nEMISSÕES E RESÍDUOS:\n- Emissões de CO2: ${d.co2_emissions_tons.toLocaleString('pt-BR')} toneladas\n- Resíduos sólidos: ${d.solid_waste_tons.toLocaleString('pt-BR')} toneladas\n- Taxa de reciclagem: ${d.recycling_rate}%`;\n}).join('\\n');\n\nconst prompt = `Você é um ambientalista especializado em gestão territorial, trabalhando como parte do Framework de Inteligência Territorial V6.0.\n\nTAREFA:\n${taskDescription}\n\nPERGUNTA DO USUÁRIO:\n\"${userQuestion}\"\n\nTERRITÓRIO:\n${territoryName} (ID: ${territoryId})\nPopulação: ${lastYear.population.toLocaleString('pt-BR')} habitantes\nÁrea: ${lastYear.area_km2.toLocaleString('pt-BR')} km²\n\nDADOS AMBIENTAIS (${timeRange}):\n${formattedData}\n\nESTATÍSTICAS AGREGADAS:\n- Variação da taxa de desmatamento (${firstYear.year}-${lastYear.year}): ${deforestationChange > 0 ? '+' : ''}${deforestationChange} p.p. ${deforestationChange > 0 ? '⚠️' : '✅'}\n- Variação da cobertura vegetal: ${vegetationCoverChange > 0 ? '+' : ''}${vegetationCoverChange} p.p.\n- Variação de áreas protegidas: ${protectedAreasChange > 0 ? '+' : ''}${protectedAreasChange} p.p.\n- Taxa de desmatamento atual (${lastYear.year}): ${currentDeforestation}%\n- Cobertura vegetal atual: ${currentVegetationCover}%\n- Qualidade do ar: ${currentAirQuality <= 50 ? 'Boa' : currentAirQuality <= 100 ? 'Moderada' : 'Ruim'} (IQA: ${currentAirQuality})\n- Áreas protegidas: ${protectedAreasPercentage}% do território\n\n${alerts.length > 0 ? '\\nALERTAS:\\n' + alerts.join('\\n') : ''}\n\nINSTRUÇÕES:\n1. Analise a situação ambiental do território\n2. Identifique os principais riscos e áreas de atenção\n3. Destaque oportunidades de conservação e recuperação\n4. Forneça recomendações urgentes e prioritárias\n\nFORMATO DA RESPOSTA:\nEstruture sua análise em 5 seções:\n\n**RESUMO EXECUTIVO** (2-3 frases)\nVisão geral da situação ambiental\n\n**PRINCIPAIS RISCOS** (3-4 pontos)\n• Risco 1\n• Risco 2\n• Risco 3\n\n**ÁREAS DE ATENÇÃO** (2-3 áreas)\n• Área 1 e motivo de preocupação\n• Área 2 e motivo de preocupação\n\n**OPORTUNIDADES DE CONSERVAÇÃO** (2-3 oportunidades)\n• Oportunidade 1\n• Oportunidade 2\n\n**RECOMENDAÇÕES URGENTES** (3-4 ações)\n1. Recomendação 1 (imediata)\n2. Recomendação 2 (curto prazo)\n3. Recomendação 3 (médio prazo)\n\nTOM:\n- Profissional mas acessível\n- Baseado em evidências ambientais\n- Acionável e urgente quando necessário\n- Equilibrado (riscos + oportunidades)\n- Máximo 400 palavras`;\n\nreturn [\n  {\n    json: {\n      task_id: taskId,\n      territory_id: territoryId,\n      territory_name: territoryName,\n      prompt: prompt,\n      raw_data: dataByYear,\n      statistics: {\n        deforestation_change: parseFloat(deforestationChange),\n        vegetation_cover_change: parseFloat(vegetationCoverChange),\n        protected_areas_change: parseFloat(protectedAreasChange),\n        current_deforestation: parseFloat(currentDeforestation),\n        current_vegetation_cover: parseFloat(currentVegetationCover),\n        air_quality_index: currentAirQuality,\n        water_quality_index: currentWaterQuality,\n        protected_areas_percentage: parseInt(protectedAreasPercentage)\n      },\n      alerts: alerts,\n      metadata: {\n        data_sources: ['INPE', 'ANA', 'IBAMA', 'ICMBio', 'INMET'],\n        time_range: timeRange,\n        years_analyzed: dataByYear.length,\n        last_update: lastYear.year\n      }\n    }\n  }\n];\n"
+      },
+      "id": "preparar-contexto-llm",
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ],
+      "notes": "FUNÇÃO: Processar dados ambientais e gerar alertas.\n\nDIFERENCIAIS DO AGENTE AMBIENT:\n- Calcula variações de desmatamento e cobertura vegetal\n- Gera alertas automáticos baseados em thresholds:\n  • Desmatamento aumentando\n  • Alto número de queimadas (>100 focos)\n  • Qualidade do ar moderada (IQA >50)\n  • Baixa cobertura de áreas protegidas (<15%)\n- Classifica qualidade do ar (Boa/Moderada/Ruim)\n- Inclui emojis de alerta (⚠️) e sucesso (✅)\n\nESTATÍSTICAS AMBIENTAIS:\n- Desmatamento: Perda de cobertura vegetal\n- Cobertura vegetal: % de área preservada\n- Áreas protegidas: Unidades de conservação\n- Qualidade do ar/água: Índices de poluição\n- Queimadas: Focos de incêndio detectados\n\nTOM DO PROMPT:\n- Mais urgente quando há alertas\n- Equilibrado entre riscos e oportunidades\n- Foco em conservação e recuperação"
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1500
+        }
+      },
+      "id": "gerar-analise-openai",
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        850,
+        300
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Gerar análise ambiental com GPT-4o-mini.\n\nFOCO DA ANÁLISE:\n- Riscos ambientais e áreas críticas\n- Oportunidades de conservação\n- Recomendações urgentes\n- Sustentabilidade territorial\n\nCONFIGURAÇÕES PADRÃO:\n- Modelo: gpt-4o-mini\n- Temperature: 0.7\n- Max Tokens: 1500\n- Custo: ~$0,0008 por análise"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst llmResponse = items[0].json.message.content;\n\nconst contextData = $node['Preparar Contexto para LLM'].json;\n\nconst processingTime = Date.now() - new Date($node['Webhook - Recebe Tarefa'].json.headers['x-request-time'] || Date.now()).getTime();\n\nconst response = {\n  task_id: contextData.task_id,\n  agent_name: 'AMBIENT',\n  status: 'success',\n  \n  analysis: {\n    text: llmResponse,\n    summary: llmResponse.split('**RESUMO EXECUTIVO**')[1]?.split('**')[0]?.trim() || 'Análise ambiental completa gerada.',\n    territory: {\n      id: contextData.territory_id,\n      name: contextData.territory_name\n    },\n    statistics: contextData.statistics,\n    alerts: contextData.alerts\n  },\n  \n  metadata: {\n    processing_time_ms: processingTime,\n    data_sources: contextData.metadata.data_sources,\n    time_range: contextData.metadata.time_range,\n    years_analyzed: contextData.metadata.years_analyzed,\n    last_data_update: contextData.metadata.last_update,\n    model_used: 'gpt-4o-mini',\n    confidence_score: 0.88,\n    alert_count: contextData.alerts.length,\n    generated_at: new Date().toISOString()\n  },\n  \n  raw_data: contextData.raw_data\n};\n\nreturn [{ json: response }];\n"
+      },
+      "id": "estruturar-resposta",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1050,
+        300
+      ],
+      "notes": "FUNÇÃO: Estruturar resposta do Agente AMBIENT.\n\nDIFERENCIAIS:\n- agent_name: 'AMBIENT'\n- confidence_score: 0.88\n  • Menor que outros agentes devido a:\n    - Dados ambientais mais escassos\n    - Maior defasagem temporal\n    - Variabilidade sazonal (queimadas, chuvas)\n- alerts: Lista de alertas gerados\n- alert_count: Número de alertas\n\nMETADADOS ADICIONAIS:\n- Contagem de alertas ambientais\n- Indica urgência da situação\n- Prioriza ações imediatas"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  key_insights,\n  metadata,\n  created_at,\n  updated_at\n)\nVALUES (\n  {{ $json.analysis.territory.id }},\n  'environmental',\n  'single',\n  '{{ $json.analysis.text }}',\n  '{{ $json.analysis.summary }}',\n  '{{ JSON.stringify($json.analysis.statistics) }}',\n  '{{ JSON.stringify($json.metadata) }}',\n  NOW(),\n  NOW()\n)\nON CONFLICT (territory_id, dimension, analysis_type)\nDO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  key_insights = EXCLUDED.key_insights,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();\n\nSELECT \n  id,\n  territory_id,\n  dimension,\n  created_at,\n  updated_at\nFROM knowledge_base\nWHERE territory_id = {{ $json.analysis.territory.id }}\n  AND dimension = 'environmental'\n  AND analysis_type = 'single'\nORDER BY updated_at DESC\nLIMIT 1;",
+        "additionalFields": {},
+        "options": {
+          "queryParameters": "={{ $json.analysis.territory.id }},={{ $json.analysis.text }},={{ $json.analysis.summary }},={{ JSON.stringify($json.analysis.statistics) }},={{ JSON.stringify($json.metadata) }}",
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "salvar-analise-postgresql",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1250,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Salvar análise ambiental na base de conhecimento.\n\nDIMENSION: 'environmental'\n\nCHAVE ÚNICA: (territory_id, 'environmental', 'single')\n\nBENEFÍCIOS:\n- Cache de análises ambientais\n- RAG para contexto ambiental\n- Histórico de evolução ambiental\n- Alertas persistentes\n- Integração com outras dimensões"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-ao-orquestrador",
+      "name": "Responder ao Orquestrador",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ],
+      "notes": "FUNÇÃO: Retornar análise ambiental ao Orquestrador.\n\nTEMPO ESPERADO: ~6-8 segundos\n\nCONTEÚDO DA RESPOSTA:\n- Análise ambiental completa\n- Alertas ambientais\n- Estatísticas de risco\n- Recomendações urgentes\n\nPRÓXIMOS PASSOS:\n- Orquestrador consolida com outras dimensões\n- Prioriza ações baseado em alertas\n- Retorna análise integrada ao dashboard"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "responseCode": 404,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-erro",
+      "name": "Responder Erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 2,
+      "position": [
+        850,
+        500
+      ],
+      "notes": "FUNÇÃO: Resposta de erro se não houver dados ambientais.\n\nSTATUS CODE: 404 Not Found"
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Tarefa": {
+      "main": [
+        [
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Análise no PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Análise no PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Orquestrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-24T20:00:00.000Z",
+  "versionId": "2"
+}

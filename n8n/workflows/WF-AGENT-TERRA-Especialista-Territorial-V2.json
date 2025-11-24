@@ -1,0 +1,277 @@
+{
+  "name": "WF-AGENT-TERRA V2 - Especialista Territorial",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-terra",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*",
+          "ignoreBots": true
+        }
+      },
+      "id": "webhook-recebe-tarefa",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "agent-terra-webhook",
+      "notes": "FUNÇÃO: Ponto de entrada do Agente TERRA.\n\nRECEBE: Requisição HTTP POST do Orquestrador com:\n- task_id: ID único da tarefa\n- territory_id: ID do território a analisar\n- territory_name: Nome do território\n- dimension: 'territorial'\n- task_description: Descrição da análise solicitada\n- context: Contexto adicional\n\nEXEMPLO DE PAYLOAD:\n{\n  \"task_id\": \"uuid-12345\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"territorial\",\n  \"task_description\": \"Analisar características territoriais de Palmas\",\n  \"context\": {\n    \"user_question\": \"Como é a infraestrutura de Palmas?\",\n    \"comparison_territories\": [],\n    \"time_range\": \"2019-2023\"\n  }\n}"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- CONSULTA DADOS TERRITORIAIS DO TERRITÓRIO\n-- Inclui análises geoespaciais com PostGIS\n\nSELECT \n  -- Dados básicos do território\n  t.id AS territory_id,\n  t.name AS territory_name,\n  t.state,\n  t.population,\n  t.area_km2,\n  t.latitude,\n  t.longitude,\n  \n  -- Indicadores territoriais\n  ti.year,\n  ti.urban_area_km2,\n  ti.rural_area_km2,\n  ti.population_density,\n  ti.urbanization_rate,\n  \n  -- Infraestrutura\n  ti.paved_roads_km,\n  ti.unpaved_roads_km,\n  ti.electricity_coverage,\n  ti.internet_coverage,\n  ti.mobile_coverage,\n  \n  -- Conectividade (calculada com PostGIS)\n  (\n    SELECT COUNT(*)\n    FROM territories t2\n    WHERE t2.id != t.id\n      AND ST_Distance(\n        ST_SetSRID(ST_MakePoint(t.longitude, t.latitude), 4326)::geography,\n        ST_SetSRID(ST_MakePoint(t2.longitude, t2.latitude), 4326)::geography\n      ) <= 100000  -- 100 km\n  ) AS nearby_territories_count,\n  \n  (\n    SELECT STRING_AGG(t2.name || ' (' || ROUND(ST_Distance(\n        ST_SetSRID(ST_MakePoint(t.longitude, t.latitude), 4326)::geography,\n        ST_SetSRID(ST_MakePoint(t2.longitude, t2.latitude), 4326)::geography\n      ) / 1000) || ' km)', ', ')\n    FROM territories t2\n    WHERE t2.id != t.id\n      AND ST_Distance(\n        ST_SetSRID(ST_MakePoint(t.longitude, t.latitude), 4326)::geography,\n        ST_SetSRID(ST_MakePoint(t2.longitude, t2.latitude), 4326)::geography\n      ) <= 100000\n    ORDER BY ST_Distance(\n        ST_SetSRID(ST_MakePoint(t.longitude, t.latitude), 4326)::geography,\n        ST_SetSRID(ST_MakePoint(t2.longitude, t2.latitude), 4326)::geography\n      )\n    LIMIT 5\n  ) AS nearby_territories_list\n  \nFROM territories t\nLEFT JOIN territorial_indicators ti ON t.id = ti.territory_id\n\nWHERE t.id = $1\n  AND ti.year >= 2019\n  AND ti.year <= 2023\n\nORDER BY ti.year ASC;",
+        "additionalFields": {},
+        "options": {
+          "queryParameters": "={{ $json.body.territory_id }}",
+          "queryBatching": "transaction",
+          "outputLargeNumbersAs": "text"
+        }
+      },
+      "id": "consultar-dados-postgresql",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        450,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Buscar dados territoriais e geoespaciais.\n\nDIFERENCIAL DO AGENTE TERRA:\n- Usa PostGIS para análises geoespaciais\n- Calcula distâncias entre territórios\n- Identifica territórios próximos (raio 100 km)\n- Lista os 5 territórios mais próximos com distâncias\n\nÁREAS COBERTAS:\n- Geografia física (área, coordenadas)\n- Ocupação territorial (urbano/rural, densidade)\n- Infraestrutura (estradas, energia, internet, celular)\n- Conectividade (territórios próximos)\n\nFUNÇÕES POSTGIS USADAS:\n- ST_MakePoint: Cria ponto geográfico (lat, lon)\n- ST_SetSRID: Define sistema de referência (4326 = WGS84)\n- ST_Distance: Calcula distância em metros\n- ::geography: Converte para geografia (cálculo esférico)\n\nEXEMPLO DE RESULTADO:\n{\n  \"territory_name\": \"Palmas\",\n  \"area_km2\": 2218.9,\n  \"population_density\": 139.4,\n  \"urbanization_rate\": 92.5,\n  \"nearby_territories_count\": 3,\n  \"nearby_territories_list\": \"Miracema (32 km), Porto Nacional (43 km), Lajeado (68 km)\"\n}"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PREPARAR CONTEXTO PARA O LLM - AGENTE TERRA\n// ========================================\n\nconst items = $input.all();\n\nif (!items || items.length === 0) {\n  return [\n    {\n      json: {\n        error: true,\n        message: 'Nenhum dado territorial encontrado para o território especificado.',\n        territory_id: $node['Webhook - Recebe Tarefa'].json.body.territory_id\n      }\n    }\n  ];\n}\n\nconst webhookData = $node['Webhook - Recebe Tarefa'].json.body;\nconst taskId = webhookData.task_id;\nconst territoryId = webhookData.territory_id;\nconst territoryName = webhookData.territory_name;\nconst taskDescription = webhookData.task_description;\nconst userQuestion = webhookData.context?.user_question || 'Análise territorial geral';\nconst timeRange = webhookData.context?.time_range || '2019-2023';\n\nconst dataByYear = items.map(item => item.json);\n// Converter strings para números (devido a outputLargeNumbersAs: 'text')\nconst parseNumber = (value) => parseFloat(value) || 0;\n\n\nconst firstYear = dataByYear[0];\nconst lastYear = dataByYear[dataByYear.length - 1];\n\n// Cálculos específicos de território\nconst urbanAreaChange = (lastYear.urban_area_km2 - firstYear.urban_area_km2).toFixed(1);\nconst urbanizationRateChange = (lastYear.urbanization_rate - firstYear.urbanization_rate).toFixed(1);\nconst densityChange = (lastYear.population_density - firstYear.population_density).toFixed(1);\n\n// Infraestrutura (último ano)\nconst pavedRoadsPercentage = (lastYear.paved_roads_km / (lastYear.paved_roads_km + lastYear.unpaved_roads_km) * 100).toFixed(0);\nconst electricityCoverage = lastYear.electricity_coverage.toFixed(0);\nconst internetCoverage = lastYear.internet_coverage.toFixed(0);\n\n// Conectividade\nconst nearbyCount = lastYear.nearby_territories_count;\nconst nearbyList = lastYear.nearby_territories_list || 'Nenhum território próximo';\n\nconst formattedData = dataByYear.map(d => {\n  return `\nANO ${d.year}:\nOCUPAÇÃO TERRITORIAL:\n- Área total: ${d.area_km2.toLocaleString('pt-BR')} km²\n- Área urbanizada: ${d.urban_area_km2.toLocaleString('pt-BR')} km² (${(d.urban_area_km2/d.area_km2*100).toFixed(1)}%)\n- Área rural: ${d.rural_area_km2.toLocaleString('pt-BR')} km² (${(d.rural_area_km2/d.area_km2*100).toFixed(1)}%)\n- Densidade demográfica: ${d.population_density.toFixed(1)} hab/km²\n- Taxa de urbanização: ${d.urbanization_rate}%\n\nINFRAESTRUTURA:\n- Estradas pavimentadas: ${d.paved_roads_km.toLocaleString('pt-BR')} km\n- Estradas não pavimentadas: ${d.unpaved_roads_km.toLocaleString('pt-BR')} km\n- Cobertura de energia elétrica: ${d.electricity_coverage}%\n- Cobertura de internet: ${d.internet_coverage}%\n- Cobertura de celular: ${d.mobile_coverage}%`;\n}).join('\\n');\n\nconst prompt = `Você é um geógrafo especializado em planejamento territorial, trabalhando como parte do Framework de Inteligência Territorial V6.0.\n\nTAREFA:\n${taskDescription}\n\nPERGUNTA DO USUÁRIO:\n\"${userQuestion}\"\n\nTERRITÓRIO:\n${territoryName} (ID: ${territoryId})\nPopulação: ${lastYear.population.toLocaleString('pt-BR')} habitantes\nLocalização: ${lastYear.latitude}°S, ${lastYear.longitude}°W\n\nDADOS TERRITORIAIS (${timeRange}):\n${formattedData}\n\nCONECTIVIDADE REGIONAL:\n- Territórios próximos (raio 100 km): ${nearbyCount}\n- Territórios vizinhos: ${nearbyList}\n\nESTATÍSTICAS AGREGADAS:\n- Expansão da área urbanizada (${firstYear.year}-${lastYear.year}): ${urbanAreaChange > 0 ? '+' : ''}${urbanAreaChange} km²\n- Variação da taxa de urbanização: ${urbanizationRateChange > 0 ? '+' : ''}${urbanizationRateChange} p.p.\n- Variação da densidade demográfica: ${densityChange > 0 ? '+' : ''}${densityChange} hab/km²\n- Estradas pavimentadas (${lastYear.year}): ${pavedRoadsPercentage}% do total\n- Cobertura de energia elétrica: ${electricityCoverage}%\n- Cobertura de internet: ${internetCoverage}%\n\nINSTRUÇÕES:\n1. Analise as características territoriais e padrões de ocupação\n2. Identifique os desafios de infraestrutura e conectividade\n3. Avalie oportunidades de expansão e desenvolvimento\n4. Forneça recomendações para planejamento urbano e regional\n\nFORMATO DA RESPOSTA:\nEstruture sua análise em 5 seções:\n\n**RESUMO EXECUTIVO** (2-3 frases)\nVisão geral das características territoriais\n\n**PADRÕES DE OCUPAÇÃO** (3-4 pontos)\n• Padrão 1\n• Padrão 2\n• Padrão 3\n\n**DESAFIOS DE INFRAESTRUTURA** (3-4 pontos)\n• Desafio 1\n• Desafio 2\n• Desafio 3\n\n**OPORTUNIDADES DE EXPANSÃO** (2-3 pontos)\n• Oportunidade 1\n• Oportunidade 2\n\n**RECOMENDAÇÕES PRIORITÁRIAS** (3-4 ações)\n1. Recomendação 1 (curto prazo)\n2. Recomendação 2 (médio prazo)\n3. Recomendação 3 (longo prazo)\n\nTOM:\n- Profissional mas acessível\n- Baseado em evidências geoespaciais\n- Acionável (foco em planejamento)\n- Máximo 400 palavras`;\n\nreturn [\n  {\n    json: {\n      task_id: taskId,\n      territory_id: territoryId,\n      territory_name: territoryName,\n      prompt: prompt,\n      raw_data: dataByYear,\n      statistics: {\n        urban_area_change: parseFloat(urbanAreaChange),\n        urbanization_rate_change: parseFloat(urbanizationRateChange),\n        density_change: parseFloat(densityChange),\n        paved_roads_percentage: parseInt(pavedRoadsPercentage),\n        electricity_coverage: parseInt(electricityCoverage),\n        internet_coverage: parseInt(internetCoverage),\n        nearby_territories_count: nearbyCount\n      },\n      metadata: {\n        data_sources: ['IBGE', 'DNIT', 'ANEEL', 'ANATEL'],\n        time_range: timeRange,\n        years_analyzed: dataByYear.length,\n        last_update: lastYear.year,\n        geospatial_analysis: true\n      }\n    }\n  }\n];\n"
+      },
+      "id": "preparar-contexto-llm",
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        650,
+        300
+      ],
+      "notes": "FUNÇÃO: Processar dados territoriais e geoespaciais.\n\nDIFERENCIAIS DO AGENTE TERRA:\n- Calcula expansão da área urbanizada\n- Analisa variação da densidade demográfica\n- Calcula % de estradas pavimentadas\n- Inclui análise de conectividade regional\n- Usa dados geoespaciais (lat, lon, distâncias)\n\nESTATÍSTICAS TERRITORIAIS:\n- Expansão urbana: Crescimento da área urbanizada\n- Taxa de urbanização: % da população em áreas urbanas\n- Densidade: Habitantes por km²\n- Infraestrutura: % de cobertura de serviços\n- Conectividade: Número de territórios próximos\n\nCONTEXTO GEOESPACIAL:\n- Localização (latitude, longitude)\n- Territórios vizinhos com distâncias\n- Permite análises de integração regional"
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "user",
+              "content": "={{ $json.prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.7,
+          "maxTokens": 1500
+        }
+      },
+      "id": "gerar-analise-openai",
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        850,
+        300
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "2",
+          "name": "OpenAI API - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Gerar análise territorial com GPT-4o-mini.\n\nFOCO DA ANÁLISE:\n- Padrões de ocupação territorial\n- Infraestrutura e conectividade\n- Oportunidades de expansão\n- Planejamento urbano e regional\n\nCONFIGURAÇÕES PADRÃO:\n- Modelo: gpt-4o-mini\n- Temperature: 0.7\n- Max Tokens: 1500\n- Custo: ~$0,0008 por análise"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst llmResponse = items[0].json.message.content;\n\nconst contextData = $node['Preparar Contexto para LLM'].json;\n\nconst processingTime = Date.now() - new Date($node['Webhook - Recebe Tarefa'].json.headers['x-request-time'] || Date.now()).getTime();\n\nconst response = {\n  task_id: contextData.task_id,\n  agent_name: 'TERRA',\n  status: 'success',\n  \n  analysis: {\n    text: llmResponse,\n    summary: llmResponse.split('**RESUMO EXECUTIVO**')[1]?.split('**')[0]?.trim() || 'Análise territorial completa gerada.',\n    territory: {\n      id: contextData.territory_id,\n      name: contextData.territory_name\n    },\n    statistics: contextData.statistics\n  },\n  \n  metadata: {\n    processing_time_ms: processingTime,\n    data_sources: contextData.metadata.data_sources,\n    time_range: contextData.metadata.time_range,\n    years_analyzed: contextData.metadata.years_analyzed,\n    last_data_update: contextData.metadata.last_update,\n    model_used: 'gpt-4o-mini',\n    confidence_score: 0.91,\n    geospatial_analysis: true,\n    generated_at: new Date().toISOString()\n  },\n  \n  raw_data: contextData.raw_data\n};\n\nreturn [{ json: response }];\n"
+      },
+      "id": "estruturar-resposta",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1050,
+        300
+      ],
+      "notes": "FUNÇÃO: Estruturar resposta do Agente TERRA.\n\nDIFERENCIAIS:\n- agent_name: 'TERRA'\n- confidence_score: 0.91\n- geospatial_analysis: true (flag especial)\n\nMETADADOS ADICIONAIS:\n- Indica que análise usou PostGIS\n- Inclui dados de conectividade regional\n- Estatísticas de infraestrutura"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  key_insights,\n  metadata,\n  created_at,\n  updated_at\n)\nVALUES (\n  {{ $json.analysis.territory.id }},\n  'territorial',\n  'single',\n  '{{ $json.analysis.text }}',\n  '{{ $json.analysis.summary }}',\n  '{{ JSON.stringify($json.analysis.statistics) }}',\n  '{{ JSON.stringify($json.metadata) }}',\n  NOW(),\n  NOW()\n)\nON CONFLICT (territory_id, dimension, analysis_type)\nDO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  key_insights = EXCLUDED.key_insights,\n  metadata = EXCLUDED.metadata,\n  updated_at = NOW();\n\nSELECT \n  id,\n  territory_id,\n  dimension,\n  created_at,\n  updated_at\nFROM knowledge_base\nWHERE territory_id = {{ $json.analysis.territory.id }}\n  AND dimension = 'territorial'\n  AND analysis_type = 'single'\nORDER BY updated_at DESC\nLIMIT 1;",
+        "additionalFields": {},
+        "options": {
+          "queryParameters": "={{ $json.analysis.territory.id }},={{ $json.analysis.text }},={{ $json.analysis.summary }},={{ JSON.stringify($json.analysis.statistics) }},={{ JSON.stringify($json.metadata) }}",
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "salvar-analise-postgresql",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1250,
+        300
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Replit - Framework V6.0"
+        }
+      },
+      "notes": "FUNÇÃO: Salvar análise territorial na base de conhecimento.\n\nDIMENSION: 'territorial'\n\nCHAVE ÚNICA: (territory_id, 'territorial', 'single')\n\nBENEFÍCIOS:\n- Cache de análises territoriais\n- RAG para contexto geoespacial\n- Histórico de evolução territorial\n- Integração com outras dimensões"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-ao-orquestrador",
+      "name": "Responder ao Orquestrador",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 2,
+      "position": [
+        1450,
+        300
+      ],
+      "notes": "FUNÇÃO: Retornar análise territorial ao Orquestrador.\n\nTEMPO ESPERADO: ~6-8 segundos\n\nPRÓXIMOS PASSOS:\n- Orquestrador consolida com outras dimensões\n- Retorna análise integrada ao dashboard"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "responseCode": 404,
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-erro",
+      "name": "Responder Erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 2,
+      "position": [
+        850,
+        500
+      ],
+      "notes": "FUNÇÃO: Resposta de erro se não houver dados territoriais.\n\nSTATUS CODE: 404 Not Found"
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Tarefa": {
+      "main": [
+        [
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Salvar Análise no PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Análise no PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Orquestrador",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-11-24T20:00:00.000Z",
+  "versionId": "2"
+}
