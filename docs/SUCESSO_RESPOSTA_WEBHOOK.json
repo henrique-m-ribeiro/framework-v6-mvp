@@ -1,0 +1,37 @@
+{
+  "success": true,
+  "task_id": "test-007-FIRST-ITEM",
+  "agent_name": "ECON",
+  "analysis": {
+    "analysis_id": "kb-2025-11-26-8vrq8v",
+    "territory": {
+      "id": "1721000",
+      "name": "Palmas",
+      "type": "municipality"
+    },
+    "summary": "Análise econômica completa gerada.",
+    "confidence_score": 0.92,
+    "key_findings": [
+      "A volatilidade na taxa de emprego formal, que não acompanha o crescimento do PIB.",
+      "A necessidade de qualificação da força de trabalho para atender às demandas do setor de serviços em expansão.",
+      "A dependência do setor de serviços, que pode ser vulnerável a crises econômicas.",
+      "Investimento em capacitação profissional para aumentar a empregabilidade no setor de serviços.",
+      "Estímulo a setores industriais que possam complementar a economia local e diversificar a base produtiva."
+    ]
+  },
+  "metadata": {
+    "timestamp": "2025-11-26T17:28:32.883Z",
+    "processing_time_ms": 3000,
+    "indicators_analyzed": 0,
+    "years_covered": "2023, 2022, 2021, 2020, 2019",
+    "data_sources": [
+      "IBGE",
+      "SICONFI"
+    ],
+    "model_used": "gpt-4o-mini"
+  },
+  "storage": {
+    "saved_to_knowledge_base": true,
+    "knowledge_base_id": null
+  }
+}
