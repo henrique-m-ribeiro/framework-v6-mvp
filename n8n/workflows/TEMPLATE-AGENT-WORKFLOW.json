@@ -1,0 +1,81 @@
+{
+  "name": "TEMPLATE-AGENT-WORKFLOW",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-template",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-node",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Substitua {DATA_SOURCE} pela tabela correta (ex: social_indicators)\nSELECT * FROM {DATA_SOURCE} WHERE territory_id = '{{ $(\'Webhook - Recebe Tarefa\').first().json.body.territory_id }}';",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "postgres-query-node",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        176,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": ""
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- INÍCIO DO CÓDIGO TEMPLATE ---\n\n// Pega os dados do nó \"Estruturar Resposta\" (nó anterior)\nconst structuredData = $input.first().json;\n\n// Pega os dados do webhook original\nconst webhookData = $items(\"Webhook - Recebe Tarefa\")[0].json.body;\n\n// Monta o objeto de metadados\nconst metadata = {\n  task_id: structuredData.task_id || webhookData.task_id,\n  model_used: structuredData.metadata.model_used,\n  generated_at: structuredData.metadata.generated_at,\n  original_parameters: webhookData.parameters\n};\n\n// Monta o objeto final com TODOS os campos necessários\nconst finalData = {\n  territory_id: structuredData.analysis.territory.id,\n  analysis_content: structuredData.analysis.text,\n  analysis_summary: structuredData.analysis.summary,\n  confidence_score: structuredData.metadata.confidence_score,\n  metadata: JSON.stringify(metadata),\n  time_range: JSON.stringify({ \n    start: webhookData.parameters.time_period.split(\"-\")[0],\n    end: webhookData.parameters.time_period.split(\"-\")[1]\n  }),\n  data_sources: JSON.stringify([{ \n    type: \"internal_db\", \n    source: \"{DATA_SOURCE}\"  // Substitua {DATA_SOURCE}\n  }]),\n  indicators_used: JSON.stringify(webhookData.parameters.focus_areas)\n};\n\nreturn { json: finalData };\n\n// --- FIM DO CÓDIGO TEMPLATE ---"
+      },
+      "id": "prepare-data-node",
+      "name": "Preparar Dados para Salvar",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Substitua {DIMENSION} e {GENERATED_BY}\nINSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  content,\n  summary,\n  confidence_score,\n  metadata,\n  analysis_type,\n  embedding,\n  generated_by\n)\nVALUES (\n  \'{{ $json.territory_id }}\',\n  \'{DIMENSION}\',\n  $${{ $json.analysis_content }}$$,\n  $${{ $json.analysis_summary }}$$,\n  {{ $json.confidence_score }},\n  \'{{ $json.metadata }}\'::jsonb,\n  \'diagnostic\',\n  \'\',\n  \'{GENERATED_BY}\'\n);",
+        "options": {}
+      },
+      "id": "save-data-node",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        928,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "",
+          "name": ""
+        }
+      }
+    }
+  ],
+  "connections": {}
+}
