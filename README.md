@@ -1,7 +1,7 @@
 # Framework de Inteligência Territorial V6.0
 
 [![Status](https://img.shields.io/badge/status-MVP%20em%20desenvolvimento-yellow)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
-[![Versão MVP](https://img.shields.io/badge/MVP-0.80%20(80%25)-blue)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
+[![Versão MVP](https://img.shields.io/badge/MVP-0.95%20(95%25)-blue)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
 [![Versão Arquitetura](https://img.shields.io/badge/arquitetura-V6.0-green)](https://github.com/henrique-m-ribeiro/framework-v6-mvp)
 [![Licença](https://img.shields.io/badge/licença-Proprietária-red)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.9+-blue)](https://www.python.org/)
@@ -32,9 +32,9 @@ O **Framework de Inteligência Territorial V6.0** (também conhecido como "Frame
 
 ## 📊 MVP vs. PRODUTO COMPLETO
 
-### ⚡ MVP (Versão 0.80 - 80% completo)
+### ⚡ MVP (Versão 0.95 - 95% completo)
 
-**Status atual:** Em desenvolvimento (4-6 semanas para conclusão)
+**Status atual:** Arquitetura RAG Evolutiva definida (Sessão #6 - 28/11/2025)
 
 **O que está pronto:**
 - ✅ 4 agentes dimensionais (ECON, SOCIAL, TERRA, ENVIRO)
@@ -42,9 +42,13 @@ O **Framework de Inteligência Territorial V6.0** (também conhecido como "Frame
 - ✅ 140 territórios (Tocantins completo)
 - ✅ 4.089 indicadores carregados
 - ✅ 35 metadados criados
-- ✅ Workflows n8n prontos
+- ✅ Workflows n8n padronizados
+- ✅ **NOVO:** Modelo Conceitual RAG Evolutivo v3.0
+- ✅ **NOVO:** Plano de Implementação (6 semanas)
 
-**Foco:** Validar conceito com usuários beta no Tocantins
+**Próxima fase:** Implementação da arquitetura RAG de 3 camadas (4-6 semanas)
+
+**Foco:** Validar evolução de expertise dos agentes
 
 ### 🌟 Produto Completo (V1.0+ - 15% completo)
 
@@ -103,13 +107,14 @@ O **Framework de Inteligência Territorial V6.0** (também conhecido como "Frame
 
 ## ✨ DIFERENCIAIS
 
-### 1. 🧠 Memória Distribuída (Único no Mercado)
+### 1. 🧠 Memória Distribuída e Evolutiva (Único no Mercado)
 
-Agentes que **aprendem continuamente** como especialistas humanos:
-- RAG Central (biblioteca corporativa)
-- RAG Individual (caderno de cada agente)
-- 4 tipos de memória (episódica, semântica, reflexão, padrões)
-- **Resultado:** Análise #100 > Análise #1
+Agentes que **evoluem sua expertise** como especialistas humanos:
+- **Camada 1:** Memória Especializada (documentos de referência curados)
+- **Camada 2:** Aprendizado Evolutivo (padrões e heurísticas descobertos)
+- **Camada 3:** Memória Organizacional (análises completas de todos os agentes)
+- **5 estágios de expertise:** Novato → Iniciante → Competente → Proficiente → Especialista
+- **Resultado:** Análise #100 > Análise #1 (evolução mensurável)
 
 ### 2. 🎯 19 Agentes Especializados
 
@@ -205,16 +210,17 @@ framework-v6-mvp/
 | **Coleta de Dados** | ✅ Completo | 100% |
 | **Metadados** | ✅ Completo | 100% |
 | **Workflows n8n** | ✅ Completo | 100% |
-| **Knowledge Base** | 🔄 Em andamento | 50% |
+| **Arquitetura RAG Evolutiva** | ✅ Completo | 100% |
+| **Implementação RAG** | ⏳ Próxima fase | 0% |
 | **Dashboard** | ⏳ Planejado | 0% |
 | **Testes Beta** | ⏳ Planejado | 0% |
-| **TOTAL MVP** | 🔄 Em andamento | **80%** |
+| **TOTAL MVP** | 🔄 Em andamento | **95%** |
 
-**Próximos passos:**
-1. Popular knowledge_base com análises
-2. Implementar dashboard básico
-3. Recrutar e testar com usuários beta
-4. Iterar baseado em feedback
+**Próximos passos (Sessão #6 - 28/11/2025):**
+1. **Fase 1 (Semanas 1-2):** Infraestrutura e Curadoria
+2. **Fase 2 (Semanas 3-4):** Ciclo de Aprendizagem
+3. **Fase 3 (Semanas 5-6):** Refinamento e Validação
+4. **Meta:** 50 análises de alta qualidade, 20-30 padrões validados
 
 ---
 

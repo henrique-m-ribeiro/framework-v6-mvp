@@ -62,15 +62,15 @@ Democratizar o acesso à inteligência territorial avançada, fornecendo aos ges
 - 1 Data Collector (gestão de conhecimento)
 - 1 Bibliotecário RAG (gestão de memória)
 
-✅ **Arquitetura de Memória Distribuída**
-- Cada agente evolui como um especialista humano
-- Aprendizado contínuo com cada análise
-- Qualidade crescente ao longo do tempo
-
-✅ **RAG (Retrieval-Augmented Generation) Avançado**
-- Análises fundamentadas em dados reais
-- Busca semântica em base de conhecimento
-- Contexto histórico e comparativo
+✅ **Arquitetura RAG Evolutiva de 3 Camadas** (Único no Mercado)
+- **Camada 1 - Memória Especializada:** Documentos de referência curados (artigos, relatórios, normas)
+- **Camada 2 - Aprendizado Evolutivo:** Padrões e heurísticas descobertos pela experiência
+- **Camada 3 - Memória Organizacional:** Análises completas de todos os agentes
+- **5 Estágios de Expertise:** Novato → Iniciante → Competente → Proficiente → Especialista
+- **Evolução Mensurável:** Análise #100 > Análise #1
+- **Comunicação Adaptativa:** Ajusta profundidade ao nível do usuário
+- **Rigor Científico Validado:** Garante fundamentação teórica
+- **Auditoria Completa:** Rastreabilidade total de todas as ações
 
 ✅ **Integração com Dados Oficiais**
 - APIs governamentais (IBGE, DataSUS, INEP, INPE, etc.)

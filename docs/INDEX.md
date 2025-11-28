@@ -56,7 +56,9 @@
 #### **Arquitetura do MVP**
 
 | Documento | Descrição |
-|-----------|-----------|
+|-----------|-----------|---|
+| [Modelo Conceitual RAG Evolutivo v3.0](sessao6/modelo_conceitual_RAG_evolutivo_v3.md) | **NOVO:** Arquitetura RAG Evolutiva de 3 Camadas |
+| [Plano de Implementação MVP](sessao6/plano_implementacao_mvp.md) | **NOVO:** Roadmap de 6 semanas para implementação |
 | [ARQUITETURA_RAG_INTEGRADO_FRAMEWORK_V6.md](02-mvp/architecture/ARQUITETURA_RAG_INTEGRADO_FRAMEWORK_V6.md) | Arquitetura RAG completa |
 | [DOCUMENTACAO_SCHEMA_40_TABELAS.md](02-mvp/architecture/DOCUMENTACAO_SCHEMA_40_TABELAS.md) | Schema de 40 tabelas |
 | [SINTESE_4_DIMENSOES_ESTRUTURA_RAG_FINAL.md](02-mvp/architecture/SINTESE_4_DIMENSOES_ESTRUTURA_RAG_FINAL.md) | Síntese das 4 dimensões |
@@ -68,6 +70,8 @@
 | [COMO_EXECUTAR_NO_REPLIT.md](COMO_EXECUTAR_NO_REPLIT.md) | Guia visual passo-a-passo | **COMECE AQUI** para executar |
 | [QUICK_START.md](02-mvp/scripts/data_collection/QUICK_START.md) | Início rápido (3 comandos) | Execução rápida |
 | [GUIA_CONFIGURACAO_REPLIT_POSTGRESQL_PGVECTOR.md](02-mvp/guides/GUIA_CONFIGURACAO_REPLIT_POSTGRESQL_PGVECTOR.md) | Configuração do Replit | Setup inicial |
+| [WORKFLOW_BEST_PRACTICES.md](WORKFLOW_BEST_PRACTICES.md) | Melhores práticas para workflows | Desenvolvimento de agentes |
+| [IMPLEMENTING_NEW_AGENTS.md](IMPLEMENTING_NEW_AGENTS.md) | Guia para implementar novos agentes | Expansão do sistema |
 
 #### **Workflows n8n**
 
@@ -79,7 +83,9 @@
 #### **Diários de Pesquisa-Ação**
 
 | Documento | Descrição |
-|-----------|-----------|
+|-----------|-----------|---|
+| [Diario_Pesquisa_Acao_2025-11-28_Sessao_6_Arquitetura_RAG.md](diarios/Diario_Pesquisa_Acao_2025-11-28_Sessao_6_Arquitetura_RAG.md) | Sessão 6: Arquitetura RAG Evolutiva |
+| [Diario_Pesquisa_Acao_2025-11-26_Sessao_5_Reflexivo.md](diarios/Diario_Pesquisa_Acao_2025-11-26_Sessao_5_Reflexivo.md) | Sessão 5: Debugging e Padronização |
 | [Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md](02-mvp/diaries/Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md) | Sessão 3: Estruturação de Dados |
 | [DIARIO_DE_CAMPO_2025-11-17.md](02-mvp/diaries/DIARIO_DE_CAMPO_2025-11-17.md) | Sessão 2: Núcleo de Especialistas |
 
@@ -269,7 +275,7 @@ framework-v6-mvp/
 | MVP | 20+ | ~60.000 |
 | Metodologias | 3 | ~15.000 |
 | Pesquisa | 10+ | ~30.000 |
-| **TOTAL** | **40+** | **~160.000** |
+| **TOTAL** | **43+** | **~170.000** |
 
 ---
 
@@ -300,7 +306,7 @@ Este índice é atualizado sempre que:
 - ✅ Estrutura do projeto muda
 - ✅ Novos fluxos de trabalho são identificados
 
-**Última atualização:** 24 de novembro de 2025
+**Última atualização:** 28 de novembro de 2025 (Sessão #6: Arquitetura RAG Evolutiva)
 
 ---
 
