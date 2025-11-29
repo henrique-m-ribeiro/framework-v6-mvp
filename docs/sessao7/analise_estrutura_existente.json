@@ -1,0 +1,1760 @@
+{
+  "total_tables": 17,
+  "categories": {
+    "memory": 4,
+    "learning": 4,
+    "indicators": 5,
+    "infrastructure": 4,
+    "other": 0
+  },
+  "tables": {
+    "agent_ambient_learning": {
+      "name": "agent_ambient_learning",
+      "columns": 13,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "applicable_to",
+        "examples"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "learning_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "territories_analyzed",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "confidence",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "applicable_to",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "examples",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'[]'::jsonb"
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "last_applied",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "times_applied",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        }
+      ]
+    },
+    "agent_ambient_memory": {
+      "name": "agent_ambient_memory",
+      "columns": 19,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata",
+        "user_feedback",
+        "time_range",
+        "data_sources",
+        "indicators_used"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_content",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_summary",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "confidence_score",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "user_feedback",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "iterations",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "analysis_date",
+          "data_type": "date",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "time_range",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "data_sources",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicators_used",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_latest",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "superseded_by",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "generated_by",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": "'WF-AGENT-AMBIENT'::character varying"
+        }
+      ]
+    },
+    "agent_econ_learning": {
+      "name": "agent_econ_learning",
+      "columns": 13,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "applicable_to",
+        "examples"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "learning_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "territories_analyzed",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "confidence",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "applicable_to",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "examples",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'[]'::jsonb"
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "last_applied",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "times_applied",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        }
+      ]
+    },
+    "agent_econ_memory": {
+      "name": "agent_econ_memory",
+      "columns": 19,
+      "records": 11,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata",
+        "user_feedback",
+        "time_range",
+        "data_sources",
+        "indicators_used"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_content",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_summary",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "confidence_score",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "user_feedback",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "iterations",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "analysis_date",
+          "data_type": "date",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "time_range",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "data_sources",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicators_used",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_latest",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "superseded_by",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "generated_by",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": "'WF-AGENT-ECON'::character varying"
+        }
+      ]
+    },
+    "agent_social_learning": {
+      "name": "agent_social_learning",
+      "columns": 13,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "applicable_to",
+        "examples"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "learning_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "territories_analyzed",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "confidence",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "applicable_to",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "examples",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'[]'::jsonb"
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "last_applied",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "times_applied",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        }
+      ]
+    },
+    "agent_social_memory": {
+      "name": "agent_social_memory",
+      "columns": 19,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata",
+        "user_feedback",
+        "time_range",
+        "data_sources",
+        "indicators_used"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_content",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_summary",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "confidence_score",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "user_feedback",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "iterations",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "analysis_date",
+          "data_type": "date",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "time_range",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "data_sources",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicators_used",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_latest",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "superseded_by",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "generated_by",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": "'WF-AGENT-SOCIAL'::character varying"
+        }
+      ]
+    },
+    "agent_terra_learning": {
+      "name": "agent_terra_learning",
+      "columns": 13,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "applicable_to",
+        "examples"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "learning_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "title",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "territories_analyzed",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "confidence",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "applicable_to",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "examples",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'[]'::jsonb"
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "last_applied",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "times_applied",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0"
+        },
+        {
+          "column_name": "is_active",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        }
+      ]
+    },
+    "agent_terra_memory": {
+      "name": "agent_terra_memory",
+      "columns": 19,
+      "records": 0,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata",
+        "user_feedback",
+        "time_range",
+        "data_sources",
+        "indicators_used"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_content",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_summary",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "confidence_score",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "user_feedback",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "'{}'::jsonb"
+        },
+        {
+          "column_name": "iterations",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "analysis_date",
+          "data_type": "date",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "time_range",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "data_sources",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicators_used",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_latest",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "superseded_by",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp without time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "generated_by",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": "'WF-AGENT-TERRA'::character varying"
+        }
+      ]
+    },
+    "audit_trail": {
+      "name": "audit_trail",
+      "columns": 20,
+      "records": 83,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "input_data",
+        "output_data",
+        "metadata"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "event_id",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "event_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "event_category",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "agent_id",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "user_id",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "action",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "input_data",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "output_data",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "parent_event_id",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "root_event_id",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "duration_ms",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "tokens_used",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "cost_usd",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "status",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": "'success'::character varying"
+        },
+        {
+          "column_name": "error_message",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    "economic_indicators": {
+      "name": "economic_indicators",
+      "columns": 8,
+      "records": 700,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "year",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "gdp",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "gdp_per_capita",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "employment_rate",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "revenue",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "sector_distribution",
+          "data_type": "json",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "environmental_indicators": {
+      "name": "environmental_indicators",
+      "columns": 7,
+      "records": 1400,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "year",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "vegetation_coverage",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "deforested_area",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "water_quality",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "co2_emissions",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "indicator_metadata": {
+      "name": "indicator_metadata",
+      "columns": 7,
+      "records": 35,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "dimension",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicator_key",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "indicator_name",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "description",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "unit",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "interpretation_guide",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "knowledge_base": {
+      "name": "knowledge_base",
+      "columns": 16,
+      "records": 1,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata",
+        "sources"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "dimension",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "content",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "embedding_vector",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "analysis_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "YES",
+          "column_default": "'diagnostic'::character varying"
+        },
+        {
+          "column_name": "summary",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "version",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "1"
+        },
+        {
+          "column_name": "is_latest",
+          "data_type": "boolean",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "true"
+        },
+        {
+          "column_name": "confidence_score",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "0.80"
+        },
+        {
+          "column_name": "sources",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "created_at",
+          "data_type": "timestamp with time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "now()"
+        },
+        {
+          "column_name": "generated_by",
+          "data_type": "character varying",
+          "character_maximum_length": 100,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "social_indicators": {
+      "name": "social_indicators",
+      "columns": 9,
+      "records": 1114,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "year",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "idhm",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "population",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "literacy_rate",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "income_per_capita",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "education_metrics",
+          "data_type": "json",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "health_metrics",
+          "data_type": "json",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "spatial_relations": {
+      "name": "spatial_relations",
+      "columns": 9,
+      "records": 190,
+      "embedding_columns": [],
+      "jsonb_columns": [
+        "metadata"
+      ],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "uuid",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id_a",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "territory_id_b",
+          "data_type": "character varying",
+          "character_maximum_length": 20,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "relation_type",
+          "data_type": "character varying",
+          "character_maximum_length": 50,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "distance_km",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "shared_border_length_km",
+          "data_type": "numeric",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "jsonb",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "computed_at",
+          "data_type": "timestamp with time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "column_name": "updated_at",
+          "data_type": "timestamp with time zone",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": "CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    "territorial_indicators": {
+      "name": "territorial_indicators",
+      "columns": 7,
+      "records": 700,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "territory_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "year",
+          "data_type": "integer",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "urbanized_area",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "density",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "sanitation_coverage",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "land_use",
+          "data_type": "json",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    },
+    "territories": {
+      "name": "territories",
+      "columns": 7,
+      "records": 140,
+      "embedding_columns": [],
+      "jsonb_columns": [],
+      "schema": [
+        {
+          "column_name": "id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": "gen_random_uuid()"
+        },
+        {
+          "column_name": "name",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "type",
+          "data_type": "text",
+          "character_maximum_length": null,
+          "is_nullable": "NO",
+          "column_default": null
+        },
+        {
+          "column_name": "parent_id",
+          "data_type": "character varying",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "area",
+          "data_type": "real",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "metadata",
+          "data_type": "json",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        },
+        {
+          "column_name": "coordinates",
+          "data_type": "USER-DEFINED",
+          "character_maximum_length": null,
+          "is_nullable": "YES",
+          "column_default": null
+        }
+      ]
+    }
+  },
+  "comparison": {
+    "aligned": [
+      "agent_econ_memory",
+      "agent_social_memory",
+      "agent_terra_memory",
+      "agent_ambient_memory",
+      "agent_econ_learning",
+      "agent_social_learning",
+      "agent_terra_learning",
+      "agent_ambient_learning",
+      "knowledge_base",
+      "territories",
+      "spatial_relations",
+      "audit_trail"
+    ],
+    "extra": [
+      "economic_indicators",
+      "environmental_indicators",
+      "indicator_metadata",
+      "social_indicators",
+      "territorial_indicators"
+    ],
+    "missing": []
+  }
+}
