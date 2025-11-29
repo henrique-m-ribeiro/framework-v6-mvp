@@ -1,0 +1,97 @@
+{
+  "name": "WF-AGENT-ECON - Especialista Econômico V2",
+  "node_count": 10,
+  "connection_count": 8,
+  "nodes": [
+    {
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        -32,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        176,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        368,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "position": [
+        576,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        832,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "position": [
+        1184,
+        0
+      ],
+      "has_notes": true
+    },
+    {
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        1600,
+        0
+      ],
+      "has_notes": false
+    },
+    {
+      "name": "Responder Erro",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [
+        480,
+        240
+      ],
+      "has_notes": false
+    },
+    {
+      "name": "Preparar Dados para Salvar",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1008,
+        0
+      ],
+      "has_notes": false
+    },
+    {
+      "name": "Preparar Resposta do Webhook",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        1392,
+        -96
+      ],
+      "has_notes": false
+    }
+  ]
+}

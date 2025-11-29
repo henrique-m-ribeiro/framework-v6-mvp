@@ -1,0 +1,149 @@
+================================================================================
+ANÁLISE DETALHADA DO WORKFLOW: AGENTE ECON V2
+================================================================================
+
+📋 Nome: WF-AGENT-ECON - Especialista Econômico V2
+📊 Total de Nós: 10
+🔗 Total de Conexões: 8
+
+================================================================================
+ANÁLISE DOS NÓS
+================================================================================
+
+1. Webhook - Recebe Tarefa
+   Tipo: n8n-nodes-base.webhook
+   Função: FUNÇÃO: Ponto de entrada do Agente ECON.
+   Parâmetros:
+      - method: POST
+      - path: agent-econ
+      - response_mode: responseNode
+   Tratamento de Erro: stopWorkflow
+
+2. Consultar Dados PostgreSQL
+   Tipo: n8n-nodes-base.postgres
+   Função: FUNÇÃO: Buscar todos os dados econômicos do território no banco de dados.
+   Parâmetros:
+      - operation: executeQuery
+      - has_query: True
+      - query_preview: SELECT 
+  t.id AS territory_id,
+  t.name AS territory_name,
+  t.type AS territory_type,
+  t.area AS ...
+   Credenciais: ['postgres']
+   Tratamento de Erro: continueErrorOutput
+
+3. Preparar Contexto para LLM
+   Tipo: n8n-nodes-base.code
+   Função: FUNÇÃO: Processar dados brutos do PostgreSQL e construir prompt estruturado para o LLM.
+   Parâmetros:
+      - has_code: True
+      - code_lines: 174
+      - code_preview: // ============================================================================
+// NÓ: PREPARAR CONT...
+   Tratamento de Erro: stopWorkflow
+
+4. Gerar Análise com OpenAI
+   Tipo: @n8n/n8n-nodes-langchain.openAi
+   Função: FUNÇÃO: Gerar análise econômica usando LLM da OpenAI.
+   Parâmetros:
+      - model: gpt-4o-mini
+      - has_messages: True
+   Credenciais: ['openAiApi']
+   Tratamento de Erro: continueErrorOutput
+
+5. Estruturar Resposta
+   Tipo: n8n-nodes-base.code
+   Função: FUNÇÃO: Consolidar análise do LLM com metadados em resposta estruturada.
+   Parâmetros:
+      - has_code: True
+      - code_lines: 66
+      - code_preview: // ========================================
+// ESTRUTURAR RESPOSTA FINAL
+// ========================...
+   Tratamento de Erro: stopWorkflow
+
+6. Salvar Análise no PostgreSQL
+   Tipo: n8n-nodes-base.postgres
+   Função: FUNÇÃO: Salvar análise gerada na tabela 'knowledge_base' do PostgreSQL.
+   Parâmetros:
+      - operation: executeQuery
+      - has_query: True
+      - query_preview: INSERT INTO knowledge_base (
+  territory_id,
+  dimension,
+  content,
+  summary,
+  confidence_score,
+...
+   Credenciais: ['postgres']
+   Tratamento de Erro: continueErrorOutput
+
+7. Respond to Webhook
+   Tipo: n8n-nodes-base.respondToWebhook
+   Função: 
+   Tratamento de Erro: continueRegularOutput
+
+8. Responder Erro
+   Tipo: n8n-nodes-base.respondToWebhook
+   Função: 
+   Tratamento de Erro: continueRegularOutput
+
+9. Preparar Dados para Salvar
+   Tipo: n8n-nodes-base.code
+   Função: 
+   Parâmetros:
+      - has_code: True
+      - code_lines: 38
+      - code_preview: // --- Início do Código Corrigido ---
+
+// Pega os dados do nó "Estruturar Resposta" (nó anterior)
+co...
+   Tratamento de Erro: continueErrorOutput
+
+10. Preparar Resposta do Webhook
+   Tipo: n8n-nodes-base.code
+   Função: 
+   Parâmetros:
+      - has_code: True
+      - code_lines: 112
+      - code_preview: // ============================================================================
+// NÓ: PREPARAR RESP...
+   Tratamento de Erro: stopWorkflow
+
+================================================================================
+FLUXO DE EXECUÇÃO
+================================================================================
+
+📥 Pontos de Entrada: Webhook - Recebe Tarefa
+📤 Pontos de Saída: Respond to Webhook, Responder Erro
+
+Mapa de Fluxo:
+  Webhook - Recebe Tarefa →
+    [main] → [{'node': 'Consultar Dados PostgreSQL', 'type': 'main', 'index': 0}]
+  Consultar Dados PostgreSQL →
+    [main] → [{'node': 'Preparar Contexto para LLM', 'type': 'main', 'index': 0}], [{'node': 'Responder Erro', 'type': 'main', 'index': 0}]
+  Preparar Contexto para LLM →
+    [main] → [{'node': 'Gerar Análise com OpenAI', 'type': 'main', 'index': 0}]
+  Gerar Análise com OpenAI →
+    [main] → [{'node': 'Estruturar Resposta', 'type': 'main', 'index': 0}], [{'node': 'Responder Erro', 'type': 'main', 'index': 0}]
+  Estruturar Resposta →
+    [main] → [{'node': 'Preparar Dados para Salvar', 'type': 'main', 'index': 0}]
+  Salvar Análise no PostgreSQL →
+    [main] → [{'node': 'Preparar Resposta do Webhook', 'type': 'main', 'index': 0}], [{'node': 'Responder Erro', 'type': 'main', 'index': 0}]
+  Preparar Dados para Salvar →
+    [main] → [{'node': 'Salvar Análise no PostgreSQL', 'type': 'main', 'index': 0}], [{'node': 'Responder Erro', 'type': 'main', 'index': 0}]
+  Preparar Resposta do Webhook →
+    [main] → [{'node': 'Respond to Webhook', 'type': 'main', 'index': 0}]
+
+================================================================================
+INTERAÇÕES COM BANCO DE DADOS
+================================================================================
+
+📖 Operações de Leitura: 1
+   - Consultar Dados PostgreSQL: territories, t, ei
+
+✍️  Operações de Escrita: 1
+   - Salvar Análise no PostgreSQL: knowledge_base
+
+🗄️  Tabelas Acessadas: knowledge_base, t, ei, territories
