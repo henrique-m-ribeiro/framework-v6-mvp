@@ -44,7 +44,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/territories/:id/indicators/economic", async (req, res) => {
     try {
       const indicators = await storage.getEconomicIndicators(req.params.id);
-      res.json(indicators);
+      const normalized = indicators.map(ind => ({
+        ...ind,
+        // Prioriza gdpCurrentPrices, mas faz fallback para gdp
+        gdpValue: ind.gdpCurrentPrices ? parseFloat(ind.gdpCurrentPrices as string) : ind.gdp,
+      }));
+      res.json(normalized);
     } catch (error) {
       res.status(500).json({ error: "Failed to fetch economic indicators" });
     }

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, real, json } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, real, json, jsonb, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -16,11 +16,19 @@ export const economicIndicators = pgTable("economic_indicators", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   territoryId: varchar("territory_id").notNull().references(() => territories.id),
   year: integer("year").notNull(),
+  // Campos legados (mantidos para compatibilidade temporária)
   gdp: real("gdp"),
   gdpPerCapita: real("gdp_per_capita"),
   employmentRate: real("employment_rate"),
   revenue: real("revenue"),
   sectorDistribution: json("sector_distribution"),
+  // Novos campos (Modelo Conceitual v4.0)
+  gdpCurrentPrices: numeric("gdp_current_prices", { precision: 20, scale: 2 }),
+  totalWageMass: numeric("total_wage_mass", { precision: 20, scale: 2 }),
+  activeCompaniesCount: integer("active_companies_count"),
+  municipalTaxRevenue: numeric("municipal_tax_revenue", { precision: 20, scale: 2 }),
+  source: varchar("source", { length: 255 }),
+  metadata: jsonb("metadata"),
 });
 
 export const socialIndicators = pgTable("social_indicators", {
