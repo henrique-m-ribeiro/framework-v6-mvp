@@ -25,12 +25,12 @@ export async function generateChatCompletion(
     const systemMessage = context
       ? {
           role: "system" as const,
-          content: `Você é um assistente especializado em análise territorial do estado do Tocantins, Brasil. Você fornece insights detalhados sobre indicadores econômicos, sociais, territoriais e ambientais. Use o seguinte contexto para responder:\n\n${context}`,
+          content: `Você é um assistente especializado em análise territorial do estado do Tocantins, Brasil. Você fornece insights detalhados sobre indicadores econômicos, sociais, territoriais e ambientais.\n\nIndicadores Econômicos Disponíveis:\n- PIB Total e PIB per Capita\n- Taxa de Emprego\n- Arrecadação Consolidada\n- Massa Salarial Total (remuneração dos trabalhadores)\n- Número de Empresas Ativas\n- Receita Tributária Própria do Município\n\nSempre que possível, relacione os indicadores entre si para fornecer análises mais ricas e contextualizadas.\n\nUse o seguinte contexto para responder:\n\n${context}`,
         }
       : {
           role: "system" as const,
           content:
-            "Você é um assistente especializado em análise territorial do estado do Tocantins, Brasil. Você fornece insights detalhados sobre indicadores econômicos, sociais, territoriais e ambientais.",
+            "Você é um assistente especializado em análise territorial do estado do Tocantins, Brasil. Você fornece insights detalhados sobre indicadores econômicos, sociais, territoriais e ambientais.\n\nIndicadores Econômicos Disponíveis:\n- PIB Total e PIB per Capita\n- Taxa de Emprego\n- Arrecadação Consolidada\n- Massa Salarial Total (remuneração dos trabalhadores)\n- Número de Empresas Ativas\n- Receita Tributária Própria do Município\n\nSempre que possível, relacione os indicadores entre si para fornecer análises mais ricas e contextualizadas.",
         };
 
     const response = await openai.chat.completions.create({
