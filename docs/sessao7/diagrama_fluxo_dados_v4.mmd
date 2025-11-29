@@ -1,0 +1,134 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#1e3a8a','primaryTextColor':'#fff','primaryBorderColor':'#1e40af','lineColor':'#3b82f6','secondaryColor':'#10b981','tertiaryColor':'#f59e0b'}}}%%
+
+graph TB
+    %% ========================================
+    %% CAMADA 0: DADOS ESTRUTURADOS (INGESTÃO)
+    %% ========================================
+    subgraph CAMADA0["🗄️ CAMADA 0: DADOS ESTRUTURADOS (INGESTÃO)"]
+        direction LR
+        API[("APIs Oficiais<br/>IBGE, INPE, DataSUS")]
+        EXTRACTOR["⚙️ Agente de<br/>Extração de Dados"]
+        
+        subgraph INDICATORS["Tabelas de Indicadores"]
+            ECON_IND[("economic_indicators<br/>700 registros")]
+            SOCIAL_IND[("social_indicators<br/>1.114 registros")]
+            TERR_IND[("territorial_indicators<br/>700 registros")]
+            ENV_IND[("environmental_indicators<br/>1.400 registros")]
+            IND_META[("indicator_metadata<br/>35 registros")]
+        end
+        
+        subgraph GEO["Dados Geoespaciais"]
+            TERR[("territories<br/>140 registros")]
+            SPATIAL[("spatial_relations<br/>190 registros")]
+        end
+    end
+    
+    API -->|Extrai dados| EXTRACTOR
+    EXTRACTOR -->|Popula| INDICATORS
+    EXTRACTOR -->|Popula| GEO
+    
+    %% ========================================
+    %% CAMADA 1: MEMÓRIA ESPECIALIZADA
+    %% ========================================
+    subgraph CAMADA1["🧠 CAMADA 1: MEMÓRIA ESPECIALIZADA (ANÁLISE CONTEXTUAL)"]
+        direction TB
+        
+        subgraph AGENTS["Agentes Especializados"]
+            AGENT_ECON["💰 Agente ECON<br/>(n8n workflow)"]
+            AGENT_SOCIAL["👥 Agente SOCIAL<br/>(n8n workflow)"]
+            AGENT_TERRA["🗺️ Agente TERRA<br/>(n8n workflow)"]
+            AGENT_AMBIENT["🌳 Agente AMBIENT<br/>(n8n workflow)"]
+        end
+        
+        LLM["🤖 LLM<br/>(GPT-4o-mini)"]
+        
+        subgraph MEMORY["Memórias Especializadas"]
+            ECON_MEM[("agent_econ_memory<br/>11 registros")]
+            SOCIAL_MEM[("agent_social_memory<br/>0 registros")]
+            TERRA_MEM[("agent_terra_memory<br/>0 registros")]
+            AMBIENT_MEM[("agent_ambient_memory<br/>0 registros")]
+        end
+        
+        SEARCH["🔍 Busca Semântica<br/>(pgvector)"]
+    end
+    
+    INDICATORS -.->|Consulta dados| AGENTS
+    GEO -.->|Consulta dados| AGENTS
+    AGENTS -->|Gera prompt| LLM
+    LLM -->|Retorna análise| AGENTS
+    AGENTS -->|Salva análise| MEMORY
+    MEMORY -.->|Busca contexto| SEARCH
+    SEARCH -.->|Retorna análises similares| AGENTS
+    
+    %% ========================================
+    %% CAMADA 2: APRENDIZADO EVOLUTIVO
+    %% ========================================
+    subgraph CAMADA2["📚 CAMADA 2: APRENDIZADO EVOLUTIVO (EXTRAÇÃO DE PADRÕES)"]
+        direction TB
+        
+        LEARNING_CYCLE["🔄 Ciclo de Aprendizagem<br/>Evolutiva<br/>(n8n workflow periódico)"]
+        
+        subgraph LEARNING["Aprendizados"]
+            ECON_LEARN[("agent_econ_learning<br/>0 registros")]
+            SOCIAL_LEARN[("agent_social_learning<br/>0 registros")]
+            TERRA_LEARN[("agent_terra_learning<br/>0 registros")]
+            AMBIENT_LEARN[("agent_ambient_learning<br/>0 registros")]
+        end
+    end
+    
+    MEMORY -.->|Analisa padrões| LEARNING_CYCLE
+    LEARNING_CYCLE -->|Extrai heurísticas| LEARNING
+    LEARNING -.->|Contexto de alto nível| AGENTS
+    
+    %% ========================================
+    %% CAMADA 3: MEMÓRIA ORGANIZACIONAL
+    %% ========================================
+    subgraph CAMADA3["🏛️ CAMADA 3: MEMÓRIA ORGANIZACIONAL (CONHECIMENTO CONSOLIDADO)"]
+        direction TB
+        
+        CURATION["✅ Curadoria<br/>(Humana/Semi-automatizada)"]
+        KB[("knowledge_base<br/>1 registro")]
+    end
+    
+    MEMORY -.->|Promove análises validadas| CURATION
+    LEARNING -.->|Promove padrões fortes| CURATION
+    CURATION -->|Consolida| KB
+    
+    %% ========================================
+    %% INFRAESTRUTURA DE SUPORTE
+    %% ========================================
+    subgraph INFRA["🔧 INFRAESTRUTURA DE SUPORTE"]
+        direction LR
+        AUDIT[("audit_trail<br/>83 eventos")]
+        FEEDBACK["📊 Feedback do Usuário"]
+    end
+    
+    AGENTS -.->|Registra eventos| AUDIT
+    LEARNING_CYCLE -.->|Registra eventos| AUDIT
+    CURATION -.->|Registra eventos| AUDIT
+    
+    %% ========================================
+    %% INTERFACE DO USUÁRIO
+    %% ========================================
+    USER["👤 Usuário<br/>(Aplicação Web - Replit)"]
+    
+    KB -.->|Consome conhecimento| USER
+    USER -.->|Fornece feedback| FEEDBACK
+    FEEDBACK -.->|Atualiza confidence_score| MEMORY
+    
+    %% ========================================
+    %% ESTILOS
+    %% ========================================
+    classDef camada0 fill:#1e3a8a,stroke:#1e40af,stroke-width:2px,color:#fff
+    classDef camada1 fill:#10b981,stroke:#059669,stroke-width:2px,color:#fff
+    classDef camada2 fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#fff
+    classDef camada3 fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    classDef infra fill:#6b7280,stroke:#4b5563,stroke-width:2px,color:#fff
+    classDef user fill:#ef4444,stroke:#dc2626,stroke-width:2px,color:#fff
+    
+    class CAMADA0 camada0
+    class CAMADA1 camada1
+    class CAMADA2 camada2
+    class CAMADA3 camada3
+    class INFRA infra
+    class USER user
