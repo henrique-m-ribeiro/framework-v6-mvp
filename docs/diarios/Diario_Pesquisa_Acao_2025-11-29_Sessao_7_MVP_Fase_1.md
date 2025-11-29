@@ -46,8 +46,8 @@ A sessão foi dividida em cinco blocos de implementação, seguidos por uma vali
     4.  Insere os 10 documentos mais relevantes na tabela `agent_econ_memory`.
 - **Decisões Críticas e Desafios:**
     - **Problema de Embedding:** O acesso direto à API de embedding da OpenAI (`text-embedding-3-small`) falhou. A decisão foi implementar **embeddings sintéticos determinísticos** baseados no hash do conteúdo. Embora não capturem a semântica, eles garantem a funcionalidade da arquitetura (inserção e recuperação) e podem ser substituídos por embeddings semânticos reais posteriormente sem alterar o código principal.
-    - **Erros de `NOT NULL`:** O script falhou repetidamente devido a constraints `NOT NULL` no banco (`territory_id`, `analysis_date`, `time_range`). A decisão foi adicionar valores padrão para esses campos em documentos de referência, como `territory_id = 'REF_GENERAL'` e `analysis_date = datetime.now().date()`.
-    - **Erro de `UNIQUE CONSTRAINT`:** A inserção de múltiplos documentos com `territory_id = 'REF_GENERAL'` violou uma constraint de unicidade. A solução foi criar um `territory_id` único para cada documento de referência, baseado nos primeiros 8 caracteres de seu UUID (ex: `REF_13E811C5`).
+    - **Erros de `NOT NULL`:** O script falhou repetidamente devido a constraints `NOT NULL` no banco (`territory_id`, `analysis_date`, `time_range`). A decisão foi adicionar valores padrão para esses campos em documentos de referência, como `territory_id = \'REF_GENERAL\'` e `analysis_date = datetime.now().date()`.
+    - **Erro de `UNIQUE CONSTRAINT`:** A inserção de múltiplos documentos com `territory_id = \'REF_GENERAL\'` violou uma constraint de unicidade. A solução foi criar um `territory_id` único para cada documento de referência, baseado nos primeiros 8 caracteres de seu UUID (ex: `REF_13E811C5`).
 
 ### Bloco 5: Relações Espaciais (Tarefa 1.5)
 
@@ -98,3 +98,34 @@ Com a infraestrutura da Fase 1 validada, o projeto está pronto para avançar pa
 4.  **Projetar a interface de usuário inicial com Streamlit**, que permitirá a primeira interação humana com as memórias dos agentes.
 
 Esta sessão foi um marco, movendo o Framework V6.0 do reino conceitual para uma realidade tangível e funcional. A base está sólida para a construção dos agentes e a materialização da superinteligência territorial.
+
+---
+
+## 🕒 2025-11-29 - 18:00-20:00 (Sessão 7.2): Etapa 2 - Atualização do Aplicativo
+
+### 🎯 Objetivos
+
+- Implementar a Etapa 2 da migração de indicadores, atualizando o aplicativo Replit para usar o novo schema e exibir os novos indicadores.
+
+### 📝 Atividades
+
+1.  **Análise do Código-Fonte:** Analisei a estrutura do aplicativo full-stack (React/Express) e identifiquei os pontos de modificação.
+2.  **Sub-Etapa 2.1 (Backend):**
+    - Atualizei o schema do Drizzle ORM (`shared/schema.ts`) para incluir os novos campos.
+    - Modifiquei a rota da API (`server/routes.ts`) para normalizar os dados, garantindo compatibilidade com o frontend.
+3.  **Sub-Etapa 2.2 (Frontend):**
+    - Adicionei 3 novos `KPICard` no componente `EconomicTab.tsx` para exibir os novos indicadores.
+    - Implementei uma lógica de fallback para exibir "Não disponível" caso os dados não existam.
+4.  **Sub-Etapa 2.3 (IA/Chatbot):**
+    - Atualizei o prompt do sistema do chatbot (`server/services/openai.ts`) para incluir os novos indicadores e incentivar análises mais ricas.
+
+### 🤔 Reflexões e Aprendizados
+
+- **A importância de um bom ORM:** O uso do Drizzle ORM simplificou enormemente a migração. Em vez de reescrever queries SQL, a maior parte do trabalho foi atualizar o schema e a lógica de normalização.
+- **Estratégia de migração incremental:** A abordagem em 3 etapas (adicionar -> atualizar -> remover) provou ser extremamente eficaz para evitar downtime e garantir a estabilidade do aplicativo.
+- **Comunicação clara com o usuário:** A colaboração para sincronizar as alterações no Replit foi fundamental para o sucesso da implementação.
+
+### 🚀 Próximos Passos
+
+- **Coletar dados reais** para os novos indicadores (Massa Salarial, Empresas Ativas, Receita Tributária).
+- **Implementar a Etapa 3 da migração:** Remover os campos legados do banco de dados e do código, uma vez que os novos dados estejam populados e o aplicativo esteja estável.
