@@ -1,0 +1,152 @@
+[
+  {
+    "title": "Territorial Development - World Bank",
+    "url": "https://thedocs.worldbank.org/en/doc/792251604346693257-0080022020/original/15TerritorialDevelopment.pdf",
+    "source": "World Bank",
+    "type": "technical_report",
+    "description": "Documento técnico do Banco Mundial sobre desenvolvimento territorial, combinando densidade econômica, acessibilidade e taxa de pobreza para identificar áreas em desenvolvimento.",
+    "relevance_score": 0.95,
+    "topics": ["desenvolvimento territorial", "densidade econômica", "pobreza", "acessibilidade"],
+    "language": "en"
+  },
+  {
+    "title": "Desenvolvimento Territorial no Brasil - IPEA",
+    "url": "https://portalantigo.ipea.gov.br/agencia/images/stories/PDFs/livros/livros/20170213_livro_desenvolvimentoregional_cap1.pdf",
+    "source": "IPEA (Instituto de Pesquisa Econômica Aplicada)",
+    "type": "academic_chapter",
+    "description": "Análise da trajetória econômica e social regional do Brasil, com destaque para o período 2000-2013. Publicação oficial do IPEA.",
+    "relevance_score": 0.98,
+    "topics": ["desenvolvimento regional Brasil", "análise econômica", "trajetória social", "IPEA"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Políticas e Instituições para Desenvolvimento Econômico Territorial no Brasil",
+    "url": "https://bibliotecadigital.economia.gov.br/handle/123456789/499",
+    "source": "Ministério da Economia do Brasil",
+    "type": "government_report",
+    "description": "Relatório oficial sobre políticas de Desenvolvimento Econômico Territorial no Brasil, incluindo trabalho, renda e desenvolvimento local.",
+    "relevance_score": 0.96,
+    "topics": ["políticas públicas", "desenvolvimento territorial", "trabalho e renda", "Brasil"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Desigualdade Socioespacial e Desenvolvimento Territorial no Brasil: Indicadores e Índices",
+    "url": "https://seer.ufu.br/index.php/caminhosdegeografia/article/download/70664/38813",
+    "source": "Revista Caminhos de Geografia - UFU",
+    "type": "academic_article",
+    "description": "Artigo acadêmico sobre desigualdade socioespacial e desenvolvimento territorial no Brasil, com foco em indicadores e índices de análise.",
+    "relevance_score": 0.94,
+    "topics": ["desigualdade socioespacial", "desenvolvimento territorial", "indicadores", "Brasil"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Regional Economic Accounts - BEA",
+    "url": "https://www.bea.gov/data/economic-accounts/regional",
+    "source": "U.S. Bureau of Economic Analysis",
+    "type": "methodology_guide",
+    "description": "Guia metodológico sobre contas econômicas regionais, apresentando distribuição geográfica da atividade econômica e crescimento.",
+    "relevance_score": 0.90,
+    "topics": ["contas regionais", "metodologia econômica", "análise regional", "BEA"],
+    "language": "en"
+  },
+  {
+    "title": "Methodologies - Regional Economic Accounting",
+    "url": "https://www.bea.gov/resources/methodologies",
+    "source": "U.S. Bureau of Economic Analysis",
+    "type": "methodology_guide",
+    "description": "Framework conceitual, fontes de dados e métodos estatísticos usados pela Regional Income Division do BEA para análise econômica regional.",
+    "relevance_score": 0.92,
+    "topics": ["metodologia", "análise econômica regional", "framework conceitual", "BEA"],
+    "language": "en"
+  },
+  {
+    "title": "Methods of Regional Analysis",
+    "url": "https://books.google.com/books?hl=en&lr=&id=GBAUAwAAQBAJ",
+    "source": "Academic Book",
+    "type": "academic_book",
+    "description": "Livro acadêmico sobre métodos de análise regional, incluindo projeções de economia regional e análise populacional.",
+    "relevance_score": 0.91,
+    "topics": ["métodos de análise", "economia regional", "projeções econômicas"],
+    "language": "en"
+  },
+  {
+    "title": "Economic Impact Analysis: Methodology and Applications",
+    "url": "https://books.google.com/books?hl=en&lr=&id=rkfqCAAAQBAJ",
+    "source": "Academic Book",
+    "type": "academic_book",
+    "description": "Livro sobre análise de impacto econômico, metodologias e aplicações em economias regionais.",
+    "relevance_score": 0.89,
+    "topics": ["impacto econômico", "metodologia", "economia regional"],
+    "language": "en"
+  },
+  {
+    "title": "Painel de Indicadores do Desenvolvimento Regional - MDR",
+    "url": "https://www.gov.br/mdr/pt-br/assuntos/desenvolvimento-regional/nucleo-de-inteligencia-regional/nucleo-de-inteligencia-regional-gt2-gtdr/SiteApresentaoNIRGT2240423PaineldeIndicadoresdaPNDR.pdf",
+    "source": "Ministério do Desenvolvimento Regional - Brasil",
+    "type": "government_report",
+    "description": "Painel oficial de indicadores do desenvolvimento regional brasileiro, incluindo coeficientes de correlação e critérios de vizinhança.",
+    "relevance_score": 0.97,
+    "topics": ["indicadores regionais", "desenvolvimento regional", "PNDR", "Brasil"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Indicadores Econômicos - IBGE",
+    "url": "https://www.ibge.gov.br/indicadores",
+    "source": "IBGE (Instituto Brasileiro de Geografia e Estatística)",
+    "type": "official_data",
+    "description": "Painel oficial de indicadores econômicos do Brasil, incluindo IPCA, PIB, emprego e outros indicadores macroeconômicos.",
+    "relevance_score": 0.99,
+    "topics": ["indicadores econômicos", "IPCA", "PIB", "IBGE", "Brasil"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Revista de Desenvolvimento Econômico - SEBRAE",
+    "url": "https://bibliotecas.sebrae.com.br/chronus/ARQUIVOS_CHRONUS/bds/bds.nsf/b5fadae2d67ee77cd3c4c95b74ec54ef/$File/4802.pdf",
+    "source": "SEBRAE",
+    "type": "academic_journal",
+    "description": "Artigo sobre desenvolvimento econômico regional no Brasil, com análise de investimentos e níveis de emprego por região.",
+    "relevance_score": 0.93,
+    "topics": ["desenvolvimento econômico", "investimentos", "emprego", "regiões Brasil"],
+    "language": "pt-BR"
+  },
+  {
+    "title": "Economic Base Analysis and Shift-Share Analysis",
+    "url": "https://pubs.nmsu.edu/_circulars/CR643/index.html",
+    "source": "New Mexico State University",
+    "type": "academic_publication",
+    "description": "Técnica amplamente usada por economistas regionais para examinar mudanças no emprego e análise de base econômica.",
+    "relevance_score": 0.88,
+    "topics": ["análise de base econômica", "shift-share", "emprego regional"],
+    "language": "en"
+  },
+  {
+    "title": "Territorial Economic Impact Index - Argonne National Laboratory",
+    "url": "https://www.anl.gov/dis/territorial-economic-impact-index",
+    "source": "Argonne National Laboratory",
+    "type": "technical_report",
+    "description": "Índice de impacto econômico territorial para identificar áreas mais adversamente afetadas durante disrupções de médio a longo prazo.",
+    "relevance_score": 0.87,
+    "topics": ["impacto econômico", "índice territorial", "disrupções econômicas"],
+    "language": "en"
+  },
+  {
+    "title": "Local & Regional Economic Analysis - University of Wisconsin",
+    "url": "https://economicdevelopment.extension.wisc.edu/articles/local-regional-economic-analysis/",
+    "source": "University of Wisconsin Extension",
+    "type": "academic_guide",
+    "description": "Guia sobre análise econômica local e regional, incluindo ferramentas para medir a capacidade do mercado local de capturar atividade econômica.",
+    "relevance_score": 0.86,
+    "topics": ["análise econômica local", "mercado local", "atividade econômica"],
+    "language": "en"
+  },
+  {
+    "title": "Global Development Patterns: A Clustering Analysis",
+    "url": "https://www.sciencedirect.com/science/article/pii/S2666188825004721",
+    "source": "ScienceDirect",
+    "type": "academic_article",
+    "description": "Estudo sobre heterogeneidade entre países usando abordagem data-driven com múltiplos indicadores ambientais, sociais e econômicos.",
+    "relevance_score": 0.85,
+    "topics": ["padrões de desenvolvimento", "clustering", "indicadores múltiplos"],
+    "language": "en"
+  }
+]
