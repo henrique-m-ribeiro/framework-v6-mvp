@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import KPICard from "../shared/KPICard";
 import AIAnalysisBox from "../shared/AIAnalysisBox";
 import DataTable from "../shared/DataTable";
-import { DollarSign, TrendingUp, Briefcase, Building2 } from "lucide-react";
+import { DollarSign, TrendingUp, Briefcase, Building2, Users, Factory, Landmark } from "lucide-react";
 import type { EconomicIndicator } from "@shared/schema";
 import { formatNumber, formatCurrency, formatPercent } from "@/lib/formatters";
 import { useIndicatorMetadata } from "@/hooks/useIndicatorMetadata";
@@ -46,6 +46,23 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
   const gdpPerCapitaTrend = previous ? calculateTrend(latest.gdpPerCapita, previous.gdpPerCapita) : { value: 0, direction: "neutral" as const };
   const employmentTrend = previous ? calculateTrend(latest.employmentRate, previous.employmentRate) : { value: 0, direction: "neutral" as const };
   const revenueTrend = previous ? calculateTrend(latest.revenue, previous.revenue) : { value: 0, direction: "neutral" as const };
+  
+  // Novos indicadores (Modelo Conceitual v4.0)
+  const totalWageMass = latest.totalWageMass ? parseFloat(latest.totalWageMass as string) : null;
+  const activeCompaniesCount = latest.activeCompaniesCount ?? null;
+  const municipalTaxRevenue = latest.municipalTaxRevenue ? parseFloat(latest.municipalTaxRevenue as string) : null;
+  
+  const wageMassTrend = previous && totalWageMass && previous.totalWageMass
+    ? calculateTrend(totalWageMass, parseFloat(previous.totalWageMass as string))
+    : { value: 0, direction: "neutral" as const };
+  
+  const companiesTrend = previous && activeCompaniesCount && previous.activeCompaniesCount
+    ? calculateTrend(activeCompaniesCount, previous.activeCompaniesCount)
+    : { value: 0, direction: "neutral" as const };
+  
+  const taxRevenueTrend = previous && municipalTaxRevenue && previous.municipalTaxRevenue
+    ? calculateTrend(municipalTaxRevenue, parseFloat(previous.municipalTaxRevenue as string))
+    : { value: 0, direction: "neutral" as const };
   const columns = [
     { key: 'year', label: 'Ano', sortable: true },
     { key: 'gdp', label: 'PIB (R$ bi)', sortable: true },
@@ -64,7 +81,7 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <KPICard
           title="PIB Total"
           value={`R$ ${formatNumber(latest.gdp, 1)} bi`}
@@ -96,6 +113,32 @@ export default function EconomicTab({ territoryId }: EconomicTabProps) {
           trend={revenueTrend}
           icon={Building2}
           status={revenueTrend.direction === "up" ? "success" : undefined}
+        />
+        
+        {/* Novos Indicadores (Modelo Conceitual v4.0) */}
+        <KPICard
+          title="Massa Salarial"
+          value={totalWageMass ? `R$ ${formatNumber(totalWageMass / 1000000, 1)} mi` : "Não disponível"}
+          subtitle="Remuneração total dos trabalhadores"
+          trend={totalWageMass && previous?.totalWageMass ? wageMassTrend : undefined}
+          icon={Users}
+          status={totalWageMass && wageMassTrend.direction === "up" ? "success" : undefined}
+        />
+        <KPICard
+          title="Empresas Ativas"
+          value={activeCompaniesCount !== null ? formatNumber(activeCompaniesCount, 0) : "Não disponível"}
+          subtitle="Número de empresas em operação"
+          trend={activeCompaniesCount !== null && previous?.activeCompaniesCount ? companiesTrend : undefined}
+          icon={Factory}
+          status={activeCompaniesCount !== null && companiesTrend.direction === "up" ? "success" : undefined}
+        />
+        <KPICard
+          title="Receita Tributária"
+          value={municipalTaxRevenue ? `R$ ${formatNumber(municipalTaxRevenue / 1000000, 1)} mi` : "Não disponível"}
+          subtitle="Arrecadação própria do município"
+          trend={municipalTaxRevenue && previous?.municipalTaxRevenue ? taxRevenueTrend : undefined}
+          icon={Landmark}
+          status={municipalTaxRevenue && taxRevenueTrend.direction === "up" ? "success" : undefined}
         />
       </div>
 
