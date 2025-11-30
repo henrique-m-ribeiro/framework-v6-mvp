@@ -1,0 +1,379 @@
+{
+  "name": "WF-CICLO-APRENDIZAGEM-V1: Gatilho de Aprendizagem Evolutiva",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ciclo-aprendizagem",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook: Receber Notificação de Nova Análise",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "ciclo-aprendizagem-trigger",
+      "notes": "GATILHO DO CICLO DE APRENDIZAGEM\n\nEste webhook é acionado automaticamente após cada análise gerada pelo Agente ECON.\n\nPayload esperado:\n{\n  \"agent_id\": \"econ\",\n  \"analysis_id\": \"uuid-da-analise\",\n  \"territory_id\": \"codigo-ibge\",\n  \"timestamp\": \"2025-11-30T12:00:00Z\"\n}\n\nFunção: Iniciar o processo de aprendizagem evolutiva do agente."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// VALIDAÇÃO DE PARÂMETROS DO WEBHOOK\n// ========================================\n// Este nó valida se todos os parâmetros obrigatórios foram recebidos\n// e se estão no formato correto.\n\nconst input = $input.item.json;\n\n// Parâmetros obrigatórios\nconst required = ['agent_id', 'analysis_id', 'territory_id'];\nconst missing = [];\n\nfor (const param of required) {\n  if (!input[param]) {\n    missing.push(param);\n  }\n}\n\nif (missing.length > 0) {\n  throw new Error(`❌ Parâmetros obrigatórios ausentes: ${missing.join(', ')}`);\n}\n\n// Validar agent_id (deve ser minúsculo e sem prefixo)\nconst valid_agents = ['econ', 'social', 'terra', 'ambient'];\nif (!valid_agents.includes(input.agent_id)) {\n  throw new Error(`❌ agent_id inválido: ${input.agent_id}. Válidos: ${valid_agents.join(', ')}`);\n}\n\n// Log de sucesso\nconsole.log('✅ Parâmetros validados com sucesso');\nconsole.log(`   Agent: ${input.agent_id}`);\nconsole.log(`   Analysis ID: ${input.analysis_id}`);\nconsole.log(`   Territory: ${input.territory_id}`);\n\nreturn {\n  json: {\n    ...input,\n    validated_at: new Date().toISOString(),\n    workflow_version: 'v1.0'\n  }\n};"
+      },
+      "id": "validar-parametros",
+      "name": "Validar Parâmetros",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300],
+      "notes": "VALIDAÇÃO DE ENTRADA\n\nVerifica:\n1. Presença de todos os parâmetros obrigatórios\n2. Formato correto do agent_id (minúsculo, sem prefixo)\n3. Validade dos valores recebidos\n\nSe alguma validação falhar, o workflow é interrompido com erro."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ========================================\n-- VERIFICAR SE O AGENTE EXISTE E OBTER EXPERTISE ATUAL\n-- ========================================\n-- Esta query verifica se o agente existe na tabela agent_expertise\n-- e retorna seu nível atual de expertise para logging.\n\nSELECT \n  agent_id,\n  total_analyses,\n  total_learnings,\n  expertise_level,\n  last_learning_at\nFROM agent_expertise\nWHERE agent_id = '{{ $json.agent_id }}';\n",
+        "options": {}
+      },
+      "id": "verificar-agente",
+      "name": "Verificar Agente no BD",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [680, 300],
+      "credentials": {
+        "postgres": {
+          "id": "neon-db-credentials",
+          "name": "Neon PostgreSQL - Framework V6"
+        }
+      },
+      "notes": "VERIFICAÇÃO DO AGENTE\n\nConsulta a tabela agent_expertise para:\n1. Confirmar que o agente existe\n2. Obter o nível atual de expertise\n3. Verificar quando foi o último aprendizado\n\nEsses dados são usados para logging e auditoria."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PREPARAR PAYLOAD PARA O SCRIPT PYTHON\n// ========================================\n// Este nó prepara os dados que serão enviados para o script\n// learning_cycle.py que executa o ciclo de aprendizagem.\n\nconst input = $input.item.json;\nconst agentData = $('Verificar Agente no BD').item.json;\n\n// Preparar payload para o script Python\nconst payload = {\n  agent_id: input.agent_id,\n  analysis_id: input.analysis_id,\n  territory_id: input.territory_id,\n  \n  // Informações do agente (para logging)\n  current_expertise: agentData ? {\n    level: agentData.expertise_level,\n    total_analyses: agentData.total_analyses,\n    total_learnings: agentData.total_learnings,\n    last_learning: agentData.last_learning_at\n  } : null,\n  \n  // Configurações do ciclo\n  config: {\n    similarity_threshold: 0.75,\n    max_similar_analyses: 5,\n    min_analyses_for_learning: 3\n  },\n  \n  // Metadados\n  metadata: {\n    triggered_by: 'n8n-workflow',\n    workflow_version: 'v1.0',\n    triggered_at: new Date().toISOString()\n  }\n};\n\nconsole.log('✅ Payload preparado para o ciclo de aprendizagem');\nconsole.log(JSON.stringify(payload, null, 2));\n\nreturn { json: payload };"
+      },
+      "id": "preparar-payload",
+      "name": "Preparar Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300],
+      "notes": "PREPARAÇÃO DO PAYLOAD\n\nMonta o objeto JSON que será enviado para o script Python.\n\nInclui:\n- Dados da análise (agent_id, analysis_id, territory_id)\n- Expertise atual do agente\n- Configurações do ciclo (thresholds, limites)\n- Metadados de auditoria"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.LEARNING_CYCLE_ENDPOINT || 'http://localhost:8000/api/learning-cycle' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_id",
+              "value": "={{ $json.agent_id }}"
+            },
+            {
+              "name": "analysis_id",
+              "value": "={{ $json.analysis_id }}"
+            },
+            {
+              "name": "territory_id",
+              "value": "={{ $json.territory_id }}"
+            },
+            {
+              "name": "config",
+              "value": "={{ JSON.stringify($json.config) }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ JSON.stringify($json.metadata) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "executar-ciclo-aprendizagem",
+      "name": "Executar Ciclo de Aprendizagem (HTTP)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "learning-cycle-api-key",
+          "name": "Learning Cycle API Key"
+        }
+      },
+      "notes": "EXECUÇÃO DO CICLO DE APRENDIZAGEM\n\nChama o endpoint HTTP que executa o script learning_cycle.py.\n\nO endpoint pode ser:\n1. Um servidor FastAPI local (desenvolvimento)\n2. Um serviço cloud (produção)\n3. Um webhook do Replit\n\nTimeout: 60 segundos (o ciclo pode demorar)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PROCESSAR RESPOSTA DO CICLO DE APRENDIZAGEM\n// ========================================\n// Este nó processa a resposta do script Python e extrai\n// as informações relevantes para logging e auditoria.\n\nconst response = $input.item.json;\nconst statusCode = response.statusCode || 200;\n\n// Verificar se houve erro\nif (statusCode >= 400) {\n  throw new Error(`❌ Erro no ciclo de aprendizagem: ${response.body?.error || 'Erro desconhecido'}`);\n}\n\nconst result = response.body || response;\n\n// Extrair informações do resultado\nconst output = {\n  success: result.success || true,\n  agent_id: result.agent_id,\n  \n  // Resultados do ciclo\n  learning_created: result.learning_created || false,\n  learning_id: result.learning_id || null,\n  analyses_archived: result.analyses_archived || 0,\n  \n  // Expertise atualizada\n  expertise: {\n    level: result.expertise?.level || 'novato',\n    total_analyses: result.expertise?.total_analyses || 0,\n    total_learnings: result.expertise?.total_learnings || 0\n  },\n  \n  // Metadados\n  execution_time_ms: result.execution_time_ms || 0,\n  timestamp: new Date().toISOString()\n};\n\nconsole.log('✅ Ciclo de aprendizagem concluído com sucesso!');\nconsole.log(`   Aprendizado criado: ${output.learning_created}`);\nconsole.log(`   Análises arquivadas: ${output.analyses_archived}`);\nconsole.log(`   Novo nível: ${output.expertise.level}`);\n\nreturn { json: output };"
+      },
+      "id": "processar-resposta",
+      "name": "Processar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300],
+      "notes": "PROCESSAMENTO DA RESPOSTA\n\nExtrai e valida:\n1. Status de sucesso/erro\n2. Dados do aprendizado criado\n3. Número de análises arquivadas\n4. Novo nível de expertise do agente\n\nPrepara os dados para auditoria."
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "audit_trail",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_type": "learning_cycle_completed",
+            "agent_id": "={{ $json.agent_id }}",
+            "user_id": "system",
+            "action": "execute_learning_cycle",
+            "resource_type": "learning_evolution",
+            "resource_id": "={{ $json.learning_id }}",
+            "status": "success",
+            "metadata": "={{ JSON.stringify($json) }}",
+            "created_at": "={{ new Date().toISOString() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "registrar-auditoria",
+      "name": "Registrar na Auditoria",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1560, 300],
+      "credentials": {
+        "postgres": {
+          "id": "neon-db-credentials",
+          "name": "Neon PostgreSQL - Framework V6"
+        }
+      },
+      "notes": "AUDITORIA\n\nRegistra o evento de conclusão do ciclo de aprendizagem\nna tabela audit_trail para rastreabilidade completa.\n\nInformações registradas:\n- Tipo de evento\n- Agente que aprendeu\n- ID do aprendizado criado\n- Metadados completos da execução"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  success: true,\n  message: 'Ciclo de aprendizagem executado com sucesso',\n  data: $json\n}, null, 2) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-webhook",
+      "name": "Responder ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1780, 300],
+      "notes": "RESPOSTA DO WEBHOOK\n\nRetorna uma resposta JSON ao chamador do webhook\nconfirmando que o ciclo foi executado com sucesso.\n\nStatus: 200 OK\nBody: Dados completos da execução"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// TRATAMENTO DE ERRO\n// ========================================\n// Este nó é executado se qualquer erro ocorrer no workflow.\n// Ele registra o erro na auditoria e retorna uma resposta de erro.\n\nconst error = $input.item.json.error || {};\nconst originalInput = $('Webhook: Receber Notificação de Nova Análise').item.json;\n\nconst errorOutput = {\n  success: false,\n  error: {\n    message: error.message || 'Erro desconhecido no ciclo de aprendizagem',\n    stack: error.stack,\n    node: error.node\n  },\n  input: originalInput,\n  timestamp: new Date().toISOString()\n};\n\nconsole.error('❌ Erro no ciclo de aprendizagem:');\nconsole.error(JSON.stringify(errorOutput, null, 2));\n\nreturn { json: errorOutput };"
+      },
+      "id": "tratar-erro",
+      "name": "Tratar Erro",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 500],
+      "notes": "TRATAMENTO DE ERRO\n\nExecutado se qualquer nó anterior falhar.\n\nCaptura:\n- Mensagem de erro\n- Stack trace\n- Nó que falhou\n- Input original\n\nPrepara dados para registro de auditoria de erro."
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "table": "audit_trail",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_type": "learning_cycle_failed",
+            "agent_id": "={{ $('Webhook: Receber Notificação de Nova Análise').item.json.agent_id }}",
+            "user_id": "system",
+            "action": "execute_learning_cycle",
+            "resource_type": "learning_evolution",
+            "status": "error",
+            "error_message": "={{ $json.error.message }}",
+            "metadata": "={{ JSON.stringify($json) }}",
+            "created_at": "={{ new Date().toISOString() }}"
+          }
+        },
+        "options": {}
+      },
+      "id": "registrar-erro-auditoria",
+      "name": "Registrar Erro na Auditoria",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1340, 500],
+      "credentials": {
+        "postgres": {
+          "id": "neon-db-credentials",
+          "name": "Neon PostgreSQL - Framework V6"
+        }
+      },
+      "notes": "AUDITORIA DE ERRO\n\nRegistra falhas do ciclo de aprendizagem na audit_trail.\n\nGarante rastreabilidade mesmo em caso de erro."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json, null, 2) }}",
+        "options": {
+          "responseCode": 500,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "responder-erro-webhook",
+      "name": "Responder Erro ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1560, 500],
+      "notes": "RESPOSTA DE ERRO\n\nRetorna HTTP 500 com detalhes do erro ao chamador."
+    }
+  ],
+  "connections": {
+    "Webhook: Receber Notificação de Nova Análise": {
+      "main": [
+        [
+          {
+            "node": "Validar Parâmetros",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar Parâmetros": {
+      "main": [
+        [
+          {
+            "node": "Verificar Agente no BD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verificar Agente no BD": {
+      "main": [
+        [
+          {
+            "node": "Preparar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Payload": {
+      "main": [
+        [
+          {
+            "node": "Executar Ciclo de Aprendizagem (HTTP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executar Ciclo de Aprendizagem (HTTP)": {
+      "main": [
+        [
+          {
+            "node": "Processar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Tratar Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Registrar na Auditoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar na Auditoria": {
+      "main": [
+        [
+          {
+            "node": "Responder ao Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tratar Erro": {
+      "main": [
+        [
+          {
+            "node": "Registrar Erro na Auditoria",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Erro na Auditoria": {
+      "main": [
+        [
+          {
+            "node": "Responder Erro ao Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "Framework V6",
+      "id": "framework-v6"
+    },
+    {
+      "name": "Aprendizagem Evolutiva",
+      "id": "learning"
+    },
+    {
+      "name": "Produção",
+      "id": "production"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-30T00:00:00.000Z",
+  "versionId": "1"
+}
