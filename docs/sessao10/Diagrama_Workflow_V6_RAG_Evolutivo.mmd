@@ -1,0 +1,79 @@
+%%{init: {'theme':'base', 'themeVariables': { 'primaryColor':'#e3f2fd','primaryTextColor':'#000','primaryBorderColor':'#1976d2','lineColor':'#1976d2','secondaryColor':'#fff3e0','tertiaryColor':'#f3e5f5'}}}%%
+
+flowchart TB
+    Start([🚀 Webhook<br/>Recebe Tarefa]) --> Normalize[📋 Normalizar Entrada<br/><small>Valida campos obrigatórios<br/>Adiciona valores padrão</small>]
+    
+    Normalize --> Memory[🧠 Consultar Memória<br/>e Aprendizados<br/><small>Camadas 1, 2, 4 do RAG</small>]
+    Normalize --> Data[📊 Consultar Dados<br/>PostgreSQL<br/><small>Indicadores econômicos brutos</small>]
+    
+    Memory --> Context[⚙️ Preparar Contexto<br/>para LLM V3<br/><small>Integra memória + dados</small>]
+    Data --> Context
+    
+    Context --> Generate[🤖 Gerar Análise<br/>com OpenAI<br/><small>GPT-4 com contexto evolutivo</small>]
+    
+    Generate --> Structure[📝 Estruturar<br/>Resposta<br/><small>Formata JSON padronizado</small>]
+    
+    Structure --> Prepare[🔧 Preparar Dados<br/>para Salvar V2<br/><small>Extração segura e resiliente</small>]
+    
+    Prepare --> Save[💾 Salvar Análise<br/>no PostgreSQL<br/><small>Camada 1: agent_econ_memory</small>]
+    
+    Save --> Learn[🎓 Registrar Aprendizado<br/><small>Camada 2: learning_evolution</small>]
+    
+    Learn --> Expertise[📈 Atualizar Expertise<br/><small>Camada 4: get_agent_expertise</small>]
+    
+    Expertise --> Audit[📋 Registrar Auditoria<br/><small>audit_trail</small>]
+    
+    Audit --> Response([✅ Respond to<br/>Webhook<br/><small>Retorna análise completa</small>])
+    
+    Generate -.->|Erro| Error[❌ Responder Erro]
+    Error --> ErrorResponse([🚫 Erro ao Webhook])
+    
+    %% Estilos
+    classDef inputNode fill:#e3f2fd,stroke:#1976d2,stroke-width:3px,color:#000
+    classDef memoryNode fill:#fff3e0,stroke:#f57c00,stroke-width:3px,color:#000
+    classDef dataNode fill:#e8f5e9,stroke:#388e3c,stroke-width:3px,color:#000
+    classDef processNode fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#000
+    classDef aiNode fill:#fce4ec,stroke:#c2185b,stroke-width:3px,color:#000
+    classDef saveNode fill:#e0f2f1,stroke:#00796b,stroke-width:3px,color:#000
+    classDef learningNode fill:#fff9c4,stroke:#f57f17,stroke-width:3px,color:#000
+    classDef outputNode fill:#c8e6c9,stroke:#388e3c,stroke-width:3px,color:#000
+    classDef errorNode fill:#ffcdd2,stroke:#c62828,stroke-width:2px,color:#000
+    
+    class Start inputNode
+    class Normalize processNode
+    class Memory memoryNode
+    class Data dataNode
+    class Context processNode
+    class Generate aiNode
+    class Structure processNode
+    class Prepare processNode
+    class Save saveNode
+    class Learn learningNode
+    class Expertise learningNode
+    class Audit saveNode
+    class Response outputNode
+    class Error,ErrorResponse errorNode
+    
+    %% Anotações
+    subgraph RAG["🧠 ARQUITETURA RAG EVOLUTIVA"]
+        Memory
+        Learn
+        Expertise
+    end
+    
+    subgraph Analysis["📊 GERAÇÃO DE ANÁLISE"]
+        Context
+        Generate
+        Structure
+    end
+    
+    subgraph Persistence["💾 PERSISTÊNCIA E EVOLUÇÃO"]
+        Save
+        Learn
+        Expertise
+        Audit
+    end
+    
+    style RAG fill:#fff3e0,stroke:#f57c00,stroke-width:2px,stroke-dasharray: 5 5
+    style Analysis fill:#fce4ec,stroke:#c2185b,stroke-width:2px,stroke-dasharray: 5 5
+    style Persistence fill:#e0f2f1,stroke:#00796b,stroke-width:2px,stroke-dasharray: 5 5

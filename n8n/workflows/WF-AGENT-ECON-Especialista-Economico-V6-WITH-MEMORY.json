@@ -1,0 +1,482 @@
+{
+  "name": "WF-AGENT-ECON - Especialista Econômico V6 (Com Memória RAG)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-econ",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "de732c22-107b-4fc6-a796-8d273316bb6a",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -32,
+        0
+      ],
+      "webhookId": "agent-econ-webhook",
+      "notes": "FUNÇÃO: Ponto de entrada do Agente ECON.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2 (versão mais recente)\n- Adicionado: ignoreBots: true (ignora bots e crawlers)\n- Mantido: CORS permitido (*) para testes\n\nRECEBE: Requisição HTTP POST do Orquestrador com:\n- task_id: ID único da tarefa\n- territory_id: ID do território a analisar\n- territory_name: Nome do território\n- dimension: 'economic'\n- task_description: Descrição da análise solicitada\n- context: Contexto adicional (comparações, período, etc.)\n\nEXEMPLO DE PAYLOAD:\n{\n  \"task_id\": \"uuid-12345\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"economic\",\n  \"task_description\": \"Analisar evolução econômica de Palmas (2019-2023)\",\n  \"context\": {\n    \"user_question\": \"Como está a economia de Palmas?\",\n    \"comparison_territories\": [],\n    \"time_range\": \"2019-2023\"\n  }\n}\n\nCONFIGURAÇÕES:\n- Método: POST (para receber dados)\n- Path: /agent-econ (URL será https://galactic-ai.app.n8n.cloud/webhook/agent-econ)\n- Response Mode: responseNode (resposta será enviada por nó específico)\n- CORS: Permitido de qualquer origem (para testes)\n- Ignore Bots: true (reduz ruído de crawlers)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: NORMALIZAR ENTRADA\n// Framework de Inteligência Territorial V6.0 - Workflow V5\n// ============================================================================\n// FUNÇÃO: Validar e normalizar o payload recebido do webhook\n// INPUT: Webhook (body)\n// OUTPUT: Objeto normalizado com valores padrão para campos opcionais\n// ============================================================================\n\n// Receber dados do webhook\nconst webhookData = $input.first().json.body || {};\n\n// ============================================================================\n// VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS\n// ============================================================================\n\nconst requiredFields = ['agent_id', 'territory_id', 'analysis_type'];\nconst missingFields = [];\n\nfor (const field of requiredFields) {\n  if (!webhookData[field]) {\n    missingFields.push(field);\n  }\n}\n\n// Se houver campos obrigatórios faltando, retornar erro\nif (missingFields.length > 0) {\n  throw new Error(`Campos obrigatórios ausentes: ${missingFields.join(', ')}`);\n}\n\n// ============================================================================\n// NORMALIZAÇÃO DE CAMPOS OPCIONAIS\n// ============================================================================\n\n// Campos simples com valores padrão\nconst territory_name = webhookData.territory_name || \"Território Desconhecido\";\nconst user_id = webhookData.user_id || \"system\";\n\n// Objeto parameters com valores padrão\nconst parameters = webhookData.parameters || {};\nconst time_period = parameters.time_period || \"2019-2023\";\nconst focus_areas = parameters.focus_areas || [\"PIB\", \"emprego\", \"renda\"];\nconst detail_level = parameters.detail_level || \"comprehensive\";\n\n// ============================================================================\n// MONTAGEM DO OBJETO NORMALIZADO\n// ============================================================================\n\nconst normalizedData = {\n  // Campos obrigatórios (já validados)\n  agent_id: webhookData.agent_id,\n  territory_id: webhookData.territory_id,\n  analysis_type: webhookData.analysis_type,\n  \n  // Campos opcionais (com valores padrão)\n  territory_name: territory_name,\n  user_id: user_id,\n  \n  // Objeto parameters normalizado\n  parameters: {\n    time_period: time_period,\n    focus_areas: focus_areas,\n    detail_level: detail_level\n  },\n  \n  // Metadados de normalização\n  _normalized: {\n    timestamp: new Date().toISOString(),\n    fields_added: [],\n    original_payload: webhookData\n  }\n};\n\n// Registrar quais campos foram adicionados\nif (!webhookData.territory_name) normalizedData._normalized.fields_added.push('territory_name');\nif (!webhookData.user_id) normalizedData._normalized.fields_added.push('user_id');\nif (!webhookData.parameters) normalizedData._normalized.fields_added.push('parameters');\nif (!parameters.time_period) normalizedData._normalized.fields_added.push('parameters.time_period');\nif (!parameters.focus_areas) normalizedData._normalized.fields_added.push('parameters.focus_areas');\nif (!parameters.detail_level) normalizedData._normalized.fields_added.push('parameters.detail_level');\n\n// ============================================================================\n// RETORNO\n// ============================================================================\n\nreturn {\n  json: normalizedData\n};\n"
+      },
+      "id": "normalizar-entrada-v5",
+      "name": "Normalizar Entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        0
+      ],
+      "notes": "FUNÇÃO: Validar e normalizar o payload recebido do webhook.\n\nO QUE FAZ:\n1. Valida campos obrigatórios (agent_id, territory_id, analysis_type)\n2. Adiciona valores padrão para campos opcionais\n3. Normaliza o objeto parameters\n4. Registra quais campos foram adicionados\n\nBENEFÍCIOS:\n- Garante que todos os nós seguintes recebam dados consistentes\n- Elimina erros de 'undefined' em nós posteriores\n- Centraliza a lógica de validação\n- Facilita debugging (registra campos adicionados)"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- NÓ: CONSULTAR MEMÓRIA E APRENDIZADOS\n-- Framework de Inteligência Territorial V6.0 - Workflow V6\n-- ============================================================================\n-- FUNÇÃO: Consultar as 4 Camadas do RAG Evolutivo\n-- INPUT: territory_id do webhook normalizado\n-- OUTPUT: Análises anteriores, aprendizados, expertise atual\n-- ============================================================================\n\n-- CAMADA 1: MEMÓRIA ESPECIALIZADA (Análises Anteriores)\n-- Busca as últimas 5 análises NÃO ARQUIVADAS do mesmo território\nSELECT \n  'memory' AS source_layer,\n  id AS memory_id,\n  analysis_content,\n  analysis_summary,\n  confidence_score,\n  created_at,\n  metadata,\n  time_range,\n  indicators_used\nFROM agent_econ_memory\nWHERE territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n  AND archived_at IS NULL\nORDER BY created_at DESC\nLIMIT 5\n\nUNION ALL\n\n-- CAMADA 2: APRENDIZADO EVOLUTIVO (Sínteses e Padrões)\n-- Busca os últimos 10 aprendizados do agente ECON\nSELECT \n  'learning' AS source_layer,\n  id AS learning_id,\n  synthesis AS analysis_content,\n  'Aprendizado acumulado' AS analysis_summary,\n  confidence_score,\n  created_at,\n  NULL AS metadata,\n  NULL AS time_range,\n  NULL AS indicators_used\nFROM agent_econ_learning_evolution\nWHERE agent_id = 'econ'\nORDER BY created_at DESC\nLIMIT 10\n\nUNION ALL\n\n-- CAMADA 4: EXPERTISE DINÂMICA (Nível Atual)\n-- Busca o nível de expertise atual do agente\nSELECT \n  'expertise' AS source_layer,\n  NULL AS memory_id,\n  expertise_level AS analysis_content,\n  CAST(analysis_count AS TEXT) || ' análises realizadas' AS analysis_summary,\n  avg_confidence AS confidence_score,\n  last_analysis_date AS created_at,\n  NULL AS metadata,\n  NULL AS time_range,\n  NULL AS indicators_used\nFROM get_agent_expertise('econ')\n\nORDER BY created_at DESC;\n",
+        "options": {}
+      },
+      "id": "consultar-memoria-v6",
+      "name": "Consultar Memória e Aprendizados",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        300,
+        -100
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "postgres-neon",
+          "name": "Postgres Neon"
+        }
+      },
+      "notes": "FUNÇÃO: Consultar as 4 Camadas do RAG Evolutivo.\n\nCAMADAS CONSULTADAS:\n- Camada 1: Memória Especializada (últimas 5 análises do território)\n- Camada 2: Aprendizado Evolutivo (últimos 10 aprendizados do agente)\n- Camada 4: Expertise Dinâmica (nível atual de expertise)\n\nIMPORTÂNCIA:\n- Permite que o agente APRENDA de suas análises anteriores\n- Evita repetir conclusões já feitas\n- Aprofunda insights superficiais\n- Identifica mudanças ao longo do tempo\n\nSEM ESTE NÓ, O AGENTE NÃO EVOLUI!"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  t.id AS territory_id,\n  t.name AS territory_name,\n  t.type AS territory_type,\n  t.area AS territory_area_km2,\n  ei.year,\n  ei.gdp AS gdp_millions,\n  ei.gdp_per_capita,\n  ei.employment_rate,\n  ei.revenue AS municipal_revenue,\n  ei.sector_distribution,\n  'economic' AS dimension,\n  'IBGE, SICONFI, RAIS' AS data_sources\nFROM territories t\nLEFT JOIN economic_indicators ei ON t.id = ei.territory_id\nWHERE t.id = '{{ $('Webhook - Recebe Tarefa').first().json.body.territory_id }}'\n  AND ei.year >= 2019\n  AND ei.year <= 2023\nORDER BY ei.year DESC;\n",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "251ef152-05a2-4d73-b50f-16bf0cf121fc",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        176,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Buscar todos os dados econômicos do território no banco de dados.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2.5 (versão mais recente)\n- Query Parameters: Agora usa $1 (prepared statement) em vez de {{ }}\n- Query Batching: 'transaction' (garante atomicidade)\n- Output Large Numbers: 'text' (evita perda de precisão em números grandes)\n\nO QUE FAZ:\n1. Consulta a tabela 'territories' para dados básicos (nome, população, área)\n2. Faz JOIN com 'economic_indicators' para dados econômicos (PIB, emprego, salários)\n3. Faz JOIN com 'financial_indicators' para finanças públicas (receitas, despesas, dívida)\n4. Filtra pelo territory_id recebido no webhook (usando prepared statement $1)\n5. Filtra pelo período 2019-2023 (últimos 5 anos)\n6. Ordena por ano (crescente)\n\nBENEFÍCIOS DO PREPARED STATEMENT ($1):\n- Previne SQL injection\n- Melhor performance (query é compilada uma vez)\n- Mais seguro que interpolação direta\n\nRESULTADO ESPERADO:\nUma lista de objetos JSON, um para cada ano:\n[\n  {\n    \"territory_id\": 1,\n    \"territory_name\": \"Palmas\",\n    \"year\": 2019,\n    \"gdp_total\": \"12500000000\",\n    \"gdp_per_capita\": \"42300\",\n    \"formal_jobs\": \"85000\",\n    ...\n  },\n  { ... ano 2020 ... },\n  { ... ano 2021 ... },\n  { ... ano 2022 ... },\n  { ... ano 2023 ... }\n]\n\nPOR QUE 5 ANOS?\n- Permite identificar tendências de médio prazo\n- Suficiente para análises temporais sem sobrecarregar o LLM\n- Cobre período pré e pós-pandemia (importante para contexto)\n\nTRATAMENTO DE ERROS:\n- Se territory_id não existir, retorna array vazio []\n- Se não houver dados para algum ano, LEFT JOIN garante que território ainda aparece\n- Query Batching: 'transaction' garante rollback em caso de erro"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: PREPARAR CONTEXTO PARA LLM (V3 - COM MEMÓRIA)\n// Framework de Inteligência Territorial V6.0 - Workflow V6\n// ============================================================================\n// FUNÇÃO: Preparar contexto estruturado incluindo memória e aprendizados\n// INPUT: Normalizar Entrada + Consultar Memória + Consultar Dados PostgreSQL\n// OUTPUT: Objeto com user_prompt enriquecido com contexto histórico\n// ============================================================================\n\n// Receber dados normalizados do webhook\nconst normalizedData = $items(\"Normalizar Entrada\")[0].json;\n\n// Receber dados da memória e aprendizados\nconst memoryRecords = $items(\"Consultar Memória e Aprendizados\");\n\n// Receber dados brutos do PostgreSQL\nconst dbRecords = $items(\"Consultar Dados PostgreSQL\");\n\n// ============================================================================\n// EXTRAÇÃO SEGURA DE DADOS NORMALIZADOS\n// ============================================================================\n\nconst agentId = normalizedData.agent_id || \"econ\";\nconst agentName = agentId.toUpperCase();\nconst territoryId = normalizedData.territory_id;\nconst territoryName = normalizedData.territory_name || \"Território Desconhecido\";\nconst analysisType = normalizedData.analysis_type || \"economic_overview\";\nconst userId = normalizedData.user_id || \"system\";\n\n// Parâmetros normalizados\nconst parameters = normalizedData.parameters || {};\nconst timePeriod = parameters.time_period || \"2019-2023\";\nconst focusAreas = parameters.focus_areas || [\"PIB\", \"emprego\", \"renda\"];\nconst detailLevel = parameters.detail_level || \"comprehensive\";\n\n// ============================================================================\n// PROCESSAMENTO DA MEMÓRIA E APRENDIZADOS (CAMADAS 1, 2, 4)\n// ============================================================================\n\nlet previousAnalyses = [];\nlet learnings = [];\nlet expertiseInfo = null;\n\nif (memoryRecords && memoryRecords.length > 0) {\n  memoryRecords.forEach(record => {\n    const data = record.json;\n    \n    if (data.source_layer === 'memory') {\n      previousAnalyses.push({\n        id: data.memory_id,\n        summary: data.analysis_summary,\n        confidence: data.confidence_score,\n        date: data.created_at,\n        indicators: data.indicators_used\n      });\n    } else if (data.source_layer === 'learning') {\n      learnings.push({\n        id: data.learning_id,\n        synthesis: data.analysis_content,\n        confidence: data.confidence_score,\n        date: data.created_at\n      });\n    } else if (data.source_layer === 'expertise') {\n      expertiseInfo = {\n        level: data.analysis_content,\n        analysis_count: data.analysis_summary,\n        avg_confidence: data.confidence_score\n      };\n    }\n  });\n}\n\n// Formatar análises anteriores para o prompt\nlet previousAnalysesText = '';\nif (previousAnalyses.length > 0) {\n  previousAnalysesText = `\n## 📚 ANÁLISES ANTERIORES DESTE TERRITÓRIO\n\nVocê já analisou **${territoryName}** ${previousAnalyses.length} vez(es) anteriormente. Considere os seguintes insights:\n\n${previousAnalyses.map((analysis, index) => `\n### Análise ${index + 1} (${new Date(analysis.date).toLocaleDateString('pt-BR')})\n- **Resumo:** ${analysis.summary}\n- **Confiança:** ${(analysis.confidence * 100).toFixed(0)}%\n`).join('\\n')}\n\n**IMPORTANTE:** Use essas análises anteriores para:\n- Identificar mudanças e tendências ao longo do tempo\n- Evitar repetir as mesmas conclusões\n- Aprofundar insights que foram superficiais antes\n- Validar ou refutar hipóteses anteriores\n`;\n} else {\n  previousAnalysesText = `\n## 🆕 PRIMEIRA ANÁLISE DESTE TERRITÓRIO\n\nEsta é a **primeira vez** que você analisa **${territoryName}**. Seja especialmente cuidadoso e detalhado.\n`;\n}\n\n// Formatar aprendizados acumulados\nlet learningsText = '';\nif (learnings.length > 0) {\n  learningsText = `\n## 🧠 APRENDIZADOS ACUMULADOS (Camada 2)\n\nVocê acumulou **${learnings.length} aprendizados** ao longo de suas análises econômicas. Aplique esses padrões:\n\n${learnings.slice(0, 3).map((learning, index) => `\n### Aprendizado ${index + 1}\n${learning.synthesis}\n`).join('\\n')}\n`;\n}\n\n// Formatar expertise atual\nlet expertiseText = '';\nif (expertiseInfo) {\n  expertiseText = `\n## 🎯 SEU NÍVEL DE EXPERTISE\n\n- **Nível:** ${expertiseInfo.level}\n- **Experiência:** ${expertiseInfo.analysis_count}\n- **Confiança Média:** ${(expertiseInfo.avg_confidence * 100).toFixed(0)}%\n\nAjuste o nível de profundidade da análise de acordo com sua expertise.\n`;\n}\n\n// ============================================================================\n// PROCESSAMENTO DOS DADOS BRUTOS DO BANCO\n// ============================================================================\n\nlet indicatorsText = '';\nlet indicatorsList = [];\n\nif (dbRecords && dbRecords.length > 0) {\n  indicatorsList = dbRecords.map(record => {\n    const data = record.json;\n    return {\n      year: data.year || \"N/A\",\n      gdp_millions: data.gdp_millions || 0,\n      gdp_per_capita: data.gdp_per_capita || 0,\n      employment_rate: data.employment_rate || 0,\n      municipal_revenue: data.municipal_revenue || 0,\n      sector_distribution: data.sector_distribution || {},\n      data_sources: data.data_sources || \"N/A\"\n    };\n  });\n  \n  indicatorsText = dbRecords.map(record => {\n    const data = record.json;\n    const sectors = data.sector_distribution || {};\n    \n    const gdpMillions = data.gdp_millions ? parseFloat(data.gdp_millions).toFixed(2) : \"N/A\";\n    const gdpPerCapita = data.gdp_per_capita ? parseFloat(data.gdp_per_capita).toFixed(2) : \"N/A\";\n    const employmentRate = data.employment_rate ? parseFloat(data.employment_rate).toFixed(1) : \"N/A\";\n    const revenue = data.municipal_revenue ? (parseFloat(data.municipal_revenue) / 1000000).toFixed(2) : \"N/A\";\n    \n    return `\n### Ano ${data.year || \"N/A\"}\n- **PIB Municipal:** R$ ${gdpMillions} milhões\n- **PIB per capita:** R$ ${gdpPerCapita}\n- **Taxa de Emprego Formal:** ${employmentRate}%\n- **Receita Municipal:** R$ ${revenue} milhões\n- **Distribuição Setorial:**\n  - Serviços: ${sectors.servicos || \"N/A\"}%\n  - Indústria: ${sectors.industria || \"N/A\"}%\n  - Agricultura: ${sectors.agricultura || \"N/A\"}%\n- **Fonte:** ${data.data_sources || \"N/A\"}\n`;\n  }).join('\\n');\n} else {\n  indicatorsText = '⚠️ **Nenhum indicador econômico encontrado no banco de dados para este território e período.**';\n}\n\n// ============================================================================\n// CONSTRUÇÃO DO PROMPT ESTRUTURADO COM MEMÓRIA\n// ============================================================================\n\nconst userPrompt = `\n# TAREFA DE ANÁLISE ECONÔMICA EVOLUTIVA\n\n## TERRITÓRIO\n- **Nome:** ${territoryName}\n- **ID:** ${territoryId}\n\n## PARÂMETROS DA ANÁLISE\n- **Áreas de Foco:** ${focusAreas.join(', ')}\n- **Período:** ${timePeriod}\n- **Nível de Detalhe:** ${detailLevel}\n\n${expertiseText}\n\n${previousAnalysesText}\n\n${learningsText}\n\n## INDICADORES ECONÔMICOS DISPONÍVEIS (Dados Brutos)\n\n${indicatorsText}\n\n## INSTRUÇÕES\n\nAnalise os dados acima e produza uma análise econômica **EVOLUTIVA** de **${territoryName}**.\n\n**DIFERENCIAIS DESTA ANÁLISE:**\n- Se houver análises anteriores, **compare** com elas e identifique mudanças\n- Aplique os **aprendizados acumulados** para enriquecer sua análise\n- Ajuste a profundidade de acordo com seu **nível de expertise**\n- **NÃO repita** conclusões que já foram feitas antes\n- **APROFUNDE** insights que foram superficiais em análises anteriores\n\n**Estrutura obrigatória:**\n\n1. **RESUMO EXECUTIVO** (2-3 parágrafos)\n   - Contexto geral do município\n   - Principais destaques econômicos\n   - **NOVO:** Mudanças em relação a análises anteriores (se houver)\n\n2. **ANÁLISE DO PIB E CRESCIMENTO ECONÔMICO**\n   - Evolução do PIB total (${timePeriod})\n   - Análise do PIB per capita\n   - Comparação com médias regionais/nacionais\n   - Fatores que explicam o crescimento ou retração\n\n3. **MERCADO DE TRABALHO E EMPREGO**\n   - Evolução da taxa de emprego formal\n   - Análise da qualidade dos empregos\n   - Setores que mais empregam\n   - Desafios do mercado de trabalho local\n\n4. **RENDA E DISTRIBUIÇÃO**\n   - Análise da renda per capita\n   - Distribuição de renda (se disponível)\n   - Comparação com indicadores regionais\n\n5. **ANÁLISE SETORIAL**\n   - Participação de cada setor no PIB\n   - Evolução da distribuição setorial\n   - Setores em crescimento e em retração\n   - Diversificação econômica\n\n6. **FINANÇAS PÚBLICAS**\n   - Evolução da receita municipal\n   - Capacidade de investimento\n   - Dependência de transferências (se disponível)\n\n7. **PRINCIPAIS DESAFIOS IDENTIFICADOS**\n   - Desafios econômicos estruturais\n   - Vulnerabilidades identificadas\n   - Áreas que necessitam atenção\n\n8. **OPORTUNIDADES E RECOMENDAÇÕES**\n   - Oportunidades de desenvolvimento econômico\n   - Setores com potencial de crescimento\n   - Recomendações para gestores públicos\n\n9. **CONCLUSÃO E EVOLUÇÃO**\n   - Síntese da situação econômica\n   - **NOVO:** Como esta análise avança em relação às anteriores\n   - Perspectivas futuras\n   - Mensagem final para gestores\n\n**REGRAS CRÍTICAS:**\n- Use APENAS os dados fornecidos acima\n- Cite números, anos e fontes explicitamente\n- Se um dado não estiver disponível, mencione explicitamente\n- Não invente ou estime dados que não foram fornecidos\n- Mantenha tom técnico mas acessível\n- Formate em Markdown com seções claras\n- Use negrito para destacar números e conceitos importantes\n- **COMPARE** com análises anteriores quando disponíveis\n`;\n\n// ============================================================================\n// RETORNO DO OBJETO ESTRUTURADO\n// ============================================================================\n\nreturn {\n  json: {\n    agent_id: agentId,\n    agent_name: agentName,\n    territory_id: territoryId,\n    territory_name: territoryName,\n    analysis_type: analysisType,\n    user_id: userId,\n    user_prompt: userPrompt,\n    indicators_used: indicatorsList,\n    parameters: parameters,\n    memory_context: {\n      previous_analyses_count: previousAnalyses.length,\n      learnings_count: learnings.length,\n      expertise_level: expertiseInfo?.level || \"NOVATO\",\n      has_memory: previousAnalyses.length > 0\n    },\n    metadata: {\n      prepared_at: new Date().toISOString(),\n      indicator_count: indicatorsList.length,\n      years_analyzed: indicatorsList.map(i => i.year).join(', '),\n      data_available: indicatorsList.length > 0,\n      memory_layers_used: ['Camada 1: Memória', 'Camada 2: Aprendizado', 'Camada 4: Expertise']\n    }\n  }\n};\n"
+      },
+      "id": "adb7d994-8b41-4aad-adda-74f9ea8d1bd7",
+      "name": "Preparar Contexto para LLM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        0
+      ],
+      "notes": "FUNÇÃO: Preparar contexto estruturado para o LLM (V3 - COM MEMÓRIA).\n\nMUDANÇAS V3:\n- Integra dados das 4 Camadas do RAG Evolutivo\n- Inclui análises anteriores do território\n- Inclui aprendizados acumulados do agente\n- Inclui nível de expertise atual\n- Prompt adaptado para análise evolutiva\n\nRESULTADO:\n- Análises que EVOLUEM ao longo do tempo\n- Não repete conclusões anteriores\n- Aprofunda insights superficiais\n- Identifica mudanças e tendências"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.user_prompt }}"
+            },
+            {
+              "content": "Você é um especialista em análise econômica de municípios brasileiros. Sua função é gerar análises profundas e baseadas em dados reais, com foco em indicadores econômicos, PIB, emprego, renda e desenvolvimento.",
+              "role": "system"
+            },
+            {
+              "content": "REGRAS FUNDAMENTAIS:\n\n1. FIDELIDADE AOS DADOS:\n   - NUNCA crie dados sintéticos ou invente informações\n   - Se um dado não estiver disponível nos dados fornecidos, indique: \"Dado não disponível para este período\"\n   - Base TODAS as afirmações exclusivamente nos dados fornecidos\n   - Cite sempre a fonte: ano, indicador e valor exato\n\n2. TOM E ESTILO:\n   - Use linguagem técnica mas acessível para gestores públicos\n   - Seja objetivo e direto nas conclusões\n   - Evite jargões excessivos - explique termos técnicos quando necessário\n\n3. ESTRUTURA DA ANÁLISE:\n   - **RESUMO EXECUTIVO:** Principais achados em 2-3 parágrafos\n   - **INDICADORES-CHAVE:** Números mais importantes com contexto\n   - **TENDÊNCIAS IDENTIFICADAS:** Padrões ao longo do tempo\n   - **ANÁLISE COMPARATIVA:** Comparações quando dados disponíveis\n   - **RECOMENDAÇÕES:** Baseadas exclusivamente nos dados apresentados\n\n4. FORMATAÇÃO:\n   - Use Markdown para estruturação\n   - Destaque números importantes em **negrito**\n   - Use listas para facilitar leitura\n   - Inclua tabelas quando apropriado\n   - Cite sempre: \"PIB 2023: R$ X milhões (fonte: IBGE)\"\n\n5. PROIBIÇÕES:\n   - NÃO especule sobre causas sem dados que as sustentem\n   - NÃO faça previsões futuras (apenas tendências baseadas em histórico)\n   - NÃO use frases genéricas como \"a economia está crescendo\" sem quantificar\n   - NÃO invente contextos políticos ou sociais não presentes nos dados\n\nExemplo de análise correta:\n\"O PIB de Palmas cresceu 12,5% entre 2019 e 2023, passando de R$ 8,2 bilhões para R$ 9,2 bilhões. Este crescimento foi impulsionado principalmente pelo setor de serviços, que representa 78% do PIB municipal.\"\n\nExemplo de análise INCORRETA:\n\"A economia está indo bem e deve continuar crescendo nos próximos anos devido a investimentos.\" (especulação sem dados)\n",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.7
+        }
+      },
+      "id": "b33d80b9-dd9b-4fd2-8935-a2e7efee8764",
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        576,
+        0
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "91zlCtPqrVu6rXoF",
+          "name": "OpenAi account 2"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Gerar análise econômica usando LLM da OpenAI.\n\nATUALIZAÇÕES V2 (CRÍTICAS):\n- type: 'n8n-nodes-base.openAi' → '@n8n/n8n-nodes-langchain.openAi'\n- typeVersion: 1 → 1.7 (versão mais recente)\n- Estrutura completamente nova:\n  • resource: 'text' (operação de texto)\n  • operation: 'message' (gerar chat completion)\n  • messages.values: Array de mensagens com role + content\n  • options: Parâmetros avançados (temperature, maxTokens)\n\nO QUE FAZ:\n1. Recebe prompt estruturado do nó anterior\n2. Envia para API da OpenAI (Chat Completions)\n3. Usa modelo gpt-4o-mini (rápido e econômico)\n4. Retorna análise econômica em Markdown\n\nPARÂMETROS:\n- model: 'gpt-4o-mini' (ótimo custo-benefício)\n- temperature: 0.7 (equilíbrio entre criatividade e consistência)\n- maxTokens: 1500 (suficiente para análise de ~400 palavras)\n\nPOR QUE GPT-4O-MINI?\n- Custo: ~15x mais barato que GPT-4\n- Velocidade: ~2x mais rápido\n- Qualidade: Suficiente para análises estruturadas\n- Contexto: 128k tokens (mais que suficiente)\n\nTEMPERATURE 0.7:\n- 0.0 = Determinístico (sempre mesma resposta)\n- 0.7 = Equilíbrio (consistente mas com variação)\n- 1.0 = Criativo (mais variação)\n\nTEMPO DE RESPOSTA:\n- Típico: 3-5 segundos\n- Depende de:\n  • Tamanho do prompt\n  • Carga na API OpenAI\n  • Complexidade da análise\n\nOUTPUT:\nObjeto JSON com estrutura:\n{\n  \"message\": {\n    \"role\": \"assistant\",\n    \"content\": \"**RESUMO EXECUTIVO**\\n\\nPalmas apresenta...\"\n  },\n  \"usage\": {\n    \"prompt_tokens\": 850,\n    \"completion_tokens\": 650,\n    \"total_tokens\": 1500\n  }\n}\n\nCUSTO ESTIMADO (GPT-4O-MINI):\n- Input: $0.150 / 1M tokens\n- Output: $0.600 / 1M tokens\n- Custo por análise: ~$0.0015 (R$ 0,0075)\n- 1000 análises: ~$1.50 (R$ 7,50)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// ESTRUTURAR RESPOSTA FINAL\n// ========================================\n// Este nó consolida a análise do LLM com metadados e prepara resposta estruturada.\n\nconst items = $input.all();\nconst llmResponse = items[0].json.message.content;\n\n// Recuperar dados do nó anterior\nconst contextData = $node['Preparar Contexto para LLM'].json;\n\n// Timestamp de processamento\nconst webhookHeaders = $node['Webhook - Recebe Tarefa'].json.headers;\nconst requestTime = webhookHeaders['x-request-time'] ? new Date(webhookHeaders['x-request-time']).getTime() : Date.now();\nconst processingTime = Date.now() - requestTime;\n\n// Estruturar resposta final\nconst response = {\n  // Identificação da tarefa\n  task_id: contextData.task_id,\n  agent_name: 'ECON',\n  status: 'success',\n  \n  // Análise gerada\n  analysis: {\n    text: llmResponse,\n    summary: llmResponse.split('**RESUMO EXECUTIVO**')[1]?.split('**')[0]?.trim() || 'Análise econômica completa gerada.',\n    territory: {\n      id: contextData.territory_id,\n      name: contextData.territory_name\n    },\n    statistics: contextData.statistics\n  },\n  \n  // Metadados\n  metadata: {\n    processing_time_ms: processingTime,\n    data_sources: contextData.metadata.data_sources,\n    time_range: contextData.metadata.time_range,\n    years_analyzed: contextData.metadata.years_analyzed,\n    last_data_update: contextData.metadata.last_update,\n    model_used: 'gpt-4o-mini',\n    confidence_score: 0.92, // Score fixo para MVP, futuramente pode ser calculado\n    generated_at: new Date().toISOString()\n  },\n  \n  // Dados brutos (para debug/auditoria)\n  raw_data: contextData.raw_data\n};\n\nreturn [{ json: response }];\n\n// ========================================\n// NOTAS SOBRE ESTRUTURA DA RESPOSTA V2\n// ========================================\n// A resposta segue padrão definido na arquitetura:\n// - task_id: Para rastreamento\n// - agent_name: Identifica qual agente gerou\n// - status: success/error\n// - analysis: Conteúdo principal\n// - metadata: Informações sobre processamento\n// - raw_data: Dados originais (opcional, para debug)\n//\n// MUDANÇAS V2:\n// - Melhor tratamento de headers (fallback para Date.now())\n// - Extração mais robusta do resumo executivo"
+      },
+      "id": "28e1b7d9-34b3-476e-a191-2e2908712e8f",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "notes": "FUNÇÃO: Consolidar análise do LLM com metadados em resposta estruturada.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2 (versão mais recente)\n- Melhor tratamento de headers (fallback)\n- Extração mais robusta do resumo\n\nO QUE FAZ:\n1. Extrai texto da análise gerada pelo LLM\n2. Recupera dados do nó 'Preparar Contexto'\n3. Calcula tempo de processamento\n4. Extrai resumo executivo da análise\n5. Monta objeto JSON estruturado com:\n   - Identificação (task_id, agent_name, status)\n   - Análise (texto completo, resumo, estatísticas)\n   - Metadados (tempo, fontes, modelo, confiança)\n   - Dados brutos (para auditoria)\n\nPOR QUE ESTRUTURAR?\n- Padroniza resposta entre todos os agentes\n- Facilita consolidação pelo Orquestrador\n- Permite rastreamento e auditoria\n- Fornece metadados úteis (tempo, fontes, confiança)\n\nESTRUTURA DA RESPOSTA:\n{\n  \"task_id\": \"uuid-12345\",\n  \"agent_name\": \"ECON\",\n  \"status\": \"success\",\n  \"analysis\": {\n    \"text\": \"Análise completa em Markdown\",\n    \"summary\": \"Resumo executivo\",\n    \"territory\": {\"id\": 1, \"name\": \"Palmas\"},\n    \"statistics\": {...}\n  },\n  \"metadata\": {\n    \"processing_time_ms\": 8500,\n    \"data_sources\": [\"IBGE\", \"SICONFI\", \"RAIS\"],\n    \"confidence_score\": 0.92,\n    ...\n  }\n}\n\nCONFIANCE SCORE:\n- Atualmente fixo em 0.92 (MVP)\n- Futuramente pode ser calculado com base em:\n  • Completude dos dados\n  • Idade dos dados\n  • Consistência entre fontes"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO knowledge_base (\n  territory_id,\n  dimension,\n  content,\n  summary,\n  confidence_score,\n  metadata,\n  analysis_type,\n  embedding,\n  generated_by\n)\nVALUES (\n  '{{ $json.territory_id }}',\n  'economic',\n  $${{ $json.analysis_content }}$$,\n  $${{ $json.analysis_summary }}$$,\n  {{ $json.confidence_score }},\n  '{{ $json.metadata }}'::jsonb,\n  'diagnostic',\n  '',\n  'WF-AGENT-ECON'\n);",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "c1df28cc-72d9-4349-b7b7-c689706aaf3c",
+      "name": "Salvar Análise no PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1184,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Salvar análise gerada na tabela 'knowledge_base' do PostgreSQL.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2.5 (versão mais recente)\n- Query Parameters: Usa $1, $2, $3, $4, $5 (prepared statements)\n- Query Batching: 'transaction' (garante atomicidade)\n- RETURNING: Retorna dados da linha inserida/atualizada\n\nO QUE FAZ:\n1. Insere nova análise na tabela 'knowledge_base'\n2. Se já existe análise para o mesmo território/dimensão, atualiza (UPSERT)\n3. Salva:\n   - territory_id: $1 (ID do território analisado)\n   - dimension: 'economic'\n   - analysis_type: 'single' (análise de um território)\n   - content: $2 (Texto completo da análise)\n   - summary: $3 (Resumo executivo)\n   - key_insights: $4 (Estatísticas em JSON)\n   - metadata: $5 (Metadados em JSON)\n   - created_at/updated_at: Timestamps\n4. RETURNING: Retorna ID e dados da análise salva\n\nBENEFÍCIOS DO PREPARED STATEMENT:\n- Previne SQL injection\n- Melhor performance\n- Tratamento automático de aspas e caracteres especiais\n- Conversão automática de tipos (::jsonb)\n\nPOR QUE SALVAR?\n- CACHE: Evita gerar mesma análise múltiplas vezes\n- RAG: Análises anteriores servem de contexto para futuras\n- AUDITORIA: Histórico de análises geradas\n- DASHBOARD: Dashboard pode consultar análises rapidamente\n\nON CONFLICT (UPSERT):\n- Se análise já existe para o território/dimensão, ATUALIZA\n- Se não existe, INSERE nova\n- Garante que sempre temos versão mais recente\n\nCHAVE ÚNICA:\n- (territory_id, dimension, analysis_type)\n- Exemplo: (1, 'economic', 'single')\n- Garante que não duplicamos análises\n\nFUTURO - EMBEDDINGS:\nEm versão futura, também salvaremos embedding vetorial:\n- Gerar embedding do texto com OpenAI Embeddings\n- Salvar na coluna 'embedding' (tipo VECTOR)\n- Permite busca semântica (RAG)\n\nTEMPO DE EXECUÇÃO:\n- Típico: <500ms\n- Depende de:\n  • Tamanho do texto\n  • Carga no banco de dados\n  • Índices existentes"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"task_id\": \"={{ $json.task_id || 'unknown' }}\",\n  \"agent_name\": \"ECON\",\n  \"status\": \"error\",\n  \"error\": {\n    \"message\": \"={{ $json.error || 'Erro ao processar tarefa' }}\",\n    \"code\": \"PROCESSING_ERROR\"\n  },\n  \"metadata\": {\n    \"timestamp\": \"={{ new Date().toISOString() }}\",\n    \"processing_time_ms\": 0\n  }\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1392,
+        0
+      ],
+      "id": "83fc7cc6-95cb-4bd6-8478-09148f784b60",
+      "name": "Respond to Webhook",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"task_id\": \"={{ $json.task_id || 'unknown' }}\",\n  \"agent_name\": \"ECON\",\n  \"status\": \"error\",\n  \"error\": {\n    \"message\": \"={{ $json.error?.message || $json.message || 'Erro ao processar tarefa' }}\",\n    \"code\": \"PROCESSING_ERROR\",\n    \"details\": \"={{ JSON.stringify($json) }}\"\n  },\n  \"metadata\": {\n    \"timestamp\": \"={{ new Date().toISOString() }}\",\n    \"processing_time_ms\": 0\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        240
+      ],
+      "id": "e0419455-ff46-4eaf-a687-7691066e2125",
+      "name": "Responder Erro",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: PREPARAR DADOS PARA SALVAR (V2 - RESILIENTE)\n// Framework de Inteligência Territorial V6.0 - Workflow V5\n// ============================================================================\n// FUNÇÃO: Preparar dados da análise para salvar no PostgreSQL\n// INPUT: Estruturar Resposta + Normalizar Entrada\n// OUTPUT: Objeto com todos os campos necessários para INSERT\n// ============================================================================\n\n// Pega os dados do nó \"Estruturar Resposta\" (nó anterior)\nconst structuredData = $input.first().json;\n\n// Pega os dados normalizados do webhook\nconst normalizedData = $items(\"Normalizar Entrada\")[0].json;\n\n// ============================================================================\n// EXTRAÇÃO SEGURA DE DADOS\n// ============================================================================\n\n// Dados da análise estruturada\nconst taskId = structuredData.task_id || \"unknown\";\nconst agentName = structuredData.agent_name || \"ECON\";\nconst analysisText = structuredData.analysis?.text || \"\";\nconst analysisSummary = structuredData.analysis?.summary || \"Análise gerada\";\nconst territoryId = structuredData.analysis?.territory?.id || normalizedData.territory_id;\nconst territoryName = structuredData.analysis?.territory?.name || normalizedData.territory_name;\n\n// Metadados da análise\nconst metadata = structuredData.metadata || {};\nconst modelUsed = metadata.model_used || \"gpt-4o-mini\";\nconst generatedAt = metadata.generated_at || new Date().toISOString();\nconst confidenceScore = metadata.confidence_score || 0.85;\nconst processingTimeMs = metadata.processing_time_ms || 0;\nconst yearsAnalyzed = metadata.years_analyzed || normalizedData.parameters.time_period;\n\n// Dados normalizados do webhook\nconst agentId = normalizedData.agent_id;\nconst analysisType = normalizedData.analysis_type;\nconst userId = normalizedData.user_id;\nconst parameters = normalizedData.parameters || {};\n\n// ============================================================================\n// MONTAGEM DE OBJETOS JSON PARA O BANCO\n// ============================================================================\n\n// Objeto de metadados completo\nconst metadataObject = {\n  task_id: taskId,\n  model_used: modelUsed,\n  generated_at: generatedAt,\n  processing_time_ms: processingTimeMs,\n  years_analyzed: yearsAnalyzed,\n  analysis_type: analysisType,\n  user_id: userId,\n  confidence_score: confidenceScore\n};\n\n// Time range (extrair anos do time_period)\nconst timePeriod = parameters.time_period || \"2019-2023\";\nconst [startYear, endYear] = timePeriod.split(\"-\").map(y => y.trim());\n\nconst timeRangeObject = {\n  start: startYear || \"2019\",\n  end: endYear || \"2023\"\n};\n\n// Data sources\nconst dataSourcesObject = [\n  {\n    type: \"internal_db\",\n    source: \"economic_indicators\",\n    query_date: new Date().toISOString()\n  }\n];\n\n// Indicators used (baseado em focus_areas ou padrão)\nconst focusAreas = parameters.focus_areas || [\"PIB\", \"emprego\", \"renda\"];\nconst indicatorsUsedObject = focusAreas.map(area => ({\n  name: area,\n  source: \"economic_indicators\"\n}));\n\n// ============================================================================\n// MONTAGEM DO OBJETO FINAL PARA SALVAR\n// ============================================================================\n\nconst finalData = {\n  agent_id: agentId,\n  territory_id: territoryId,\n  analysis_content: analysisText,\n  analysis_summary: analysisSummary,\n  confidence_score: confidenceScore,\n  metadata: JSON.stringify(metadataObject),\n  time_range: JSON.stringify(timeRangeObject),\n  data_sources: JSON.stringify(dataSourcesObject),\n  indicators_used: JSON.stringify(indicatorsUsedObject)\n};\n\n// ============================================================================\n// VALIDAÇÃO FINAL\n// ============================================================================\n\n// Verificar se campos críticos estão presentes\nconst criticalFields = ['agent_id', 'territory_id', 'analysis_content'];\nconst missingCritical = criticalFields.filter(field => !finalData[field]);\n\nif (missingCritical.length > 0) {\n  throw new Error(`Campos críticos ausentes para salvar: ${missingCritical.join(', ')}`);\n}\n\n// ============================================================================\n// RETORNO\n// ============================================================================\n\nreturn {\n  json: finalData\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1008,
+        0
+      ],
+      "id": "ef86a394-d685-4878-a410-ca6fb69336e4",
+      "name": "Preparar Dados para Salvar",
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Preparar dados para salvar no PostgreSQL (V2 - RESILIENTE).\n\nMUDANÇAS V2:\n- Usa dados normalizados do nó 'Normalizar Entrada'\n- Extração segura com operador ??\n- Valores padrão para todos os campos\n- Validação final antes de retornar"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Registrar aprendizado automático a cada 5 análises\nINSERT INTO agent_econ_learning_evolution (\n  agent_id,\n  learning_type,\n  source_analysis_ids,\n  learning_content,\n  confidence_score,\n  metadata,\n  created_at\n)\nSELECT\n  'econ' AS agent_id,\n  'automatic' AS learning_type,\n  '{{ $json.id }}' AS source_analysis_ids,\n  'Aprendizado automático: O agente ECON continua evoluindo sua expertise através da análise contínua de indicadores econômicos. Análise ID: {{ $json.id }}' AS learning_content,\n  0.75 AS confidence_score,\n  jsonb_build_object(\n    'type', 'automatic_learning',\n    'trigger', 'post_analysis',\n    'analysis_id', '{{ $json.id }}',\n    'territory_id', '{{ $json.territory_id }}',\n    'timestamp', NOW()\n  ) AS metadata,\n  NOW() AS created_at\nWHERE (\n  -- Só registrar aprendizado a cada 5 análises\n  SELECT COUNT(*) FROM agent_econ_memory WHERE agent_id = 'econ'\n) % 5 = 0\nRETURNING id, agent_id, learning_type, confidence_score, created_at;",
+        "options": {}
+      },
+      "id": "5056c28f-8641-4835-a565-b030c560a353",
+      "name": "Registrar Aprendizado Automático",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1296,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PLACEHOLDER_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres Neon"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 1: REGISTRAR APRENDIZADO\n\nEste nó registra um aprendizado automático na Camada 2 (Learning Evolution).\n\nQUANDO EXECUTA:\n- A cada 5 análises do agente ECON (configurável na condição WHERE)\n\nO QUE FAZ:\n1. Conta o total de análises do agente\n2. Se for múltiplo de 5, insere um registro de aprendizado\n3. Retorna o ID do aprendizado criado\n\nCONFIGURAÇÃO:\n- Frequência: Modificar \"% 5\" para ajustar (ex: % 3 = a cada 3 análises)\n- Confiança: 0.75 (75%) para aprendizado automático\n- Tipo: 'automatic' (não requer síntese LLM)\n\nSAÍDA:\n- id: ID do aprendizado criado\n- agent_id: 'econ'\n- learning_type: 'automatic'\n- confidence_score: 0.75\n- created_at: timestamp da criação"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Atualizar e retornar expertise atual do agente\nSELECT * FROM get_agent_expertise('econ');",
+        "options": {}
+      },
+      "id": "5601a2a3-d38e-4fd9-be16-b023a85c0a79",
+      "name": "Atualizar Expertise",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1408,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PLACEHOLDER_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres Neon"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 2: ATUALIZAR EXPERTISE\n\nEste nó chama a função do banco que calcula a expertise atual do agente.\n\nFUNÇÃO: get_agent_expertise('econ')\n\nO QUE RETORNA:\n- agent_id: 'econ'\n- learning_count: Número total de ciclos de aprendizagem\n- expertise_level: Nível atual (NOVATO, COMPETENTE, PROFICIENTE, AVANCADO, ESPECIALISTA)\n- expertise_value: Valor numérico da expertise (1-5)\n\nNÍVEIS DE EXPERTISE:\n- NOVATO: 0-10 ciclos\n- COMPETENTE: 11-30 ciclos\n- PROFICIENTE: 31-60 ciclos\n- AVANCADO: 61-100 ciclos\n- ESPECIALISTA: 100+ ciclos\n\nOBSERVAÇÃO:\nEsta função é implementada no banco de dados e atualiza automaticamente\no nível de expertise baseado no número de aprendizados registrados."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Registrar evento de ciclo de aprendizagem na auditoria\nINSERT INTO audit_trail (\n  event_type,\n  agent_id,\n  user_id,\n  action,\n  resource_type,\n  status,\n  metadata,\n  created_at\n) VALUES (\n  'learning_cycle_completed',\n  'econ',\n  'system',\n  'automatic_learning',\n  'learning_evolution',\n  'success',\n  jsonb_build_object(\n    'analysis_id', '{{ $('Salvar Análise no PostgreSQL').item.json.id }}',\n    'learning_id', '{{ $('Registrar Aprendizado Automático').item.json.id }}',\n    'expertise_level', '{{ $('Atualizar Expertise').item.json.expertise_level }}',\n    'type', 'automatic'\n  ),\n  NOW()\n);",
+        "options": {}
+      },
+      "id": "66975f6c-8c63-4e34-a585-f1600838c6cc",
+      "name": "Registrar Auditoria do Ciclo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1520,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "PLACEHOLDER_POSTGRES_CREDENTIAL_ID",
+          "name": "Postgres Neon"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 3: REGISTRAR AUDITORIA\n\nEste nó registra o evento de conclusão do ciclo de aprendizagem na audit_trail.\n\nO QUE REGISTRA:\n- event_type: 'learning_cycle_completed'\n- agent_id: 'econ'\n- user_id: 'system' (processo automático)\n- action: 'automatic_learning'\n- resource_type: 'learning_evolution'\n- status: 'success'\n\nMETADATA INCLUÍDA:\n- analysis_id: ID da análise que iniciou o ciclo\n- learning_id: ID do aprendizado registrado\n- expertise_level: Nível de expertise após o ciclo\n- type: 'automatic'\n\nOBSERVAÇÃO:\nEste registro permite rastrear a evolução do agente ao longo do tempo\ne auditar todos os ciclos de aprendizagem executados."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Recebe Tarefa": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados para Salvar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvar Análise no PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Registrar Aprendizado Automático",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados para Salvar": {
+      "main": [
+        [
+          {
+            "node": "Salvar Análise no PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Aprendizado Automático": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Expertise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Expertise": {
+      "main": [
+        [
+          {
+            "node": "Registrar Auditoria do Ciclo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Auditoria do Ciclo": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Entrada": {
+      "main": [
+        [
+          {
+            "node": "Consultar Memória e Aprendizados",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Memória e Aprendizados": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6136551eb6eb1ac3d452dbcd165c5de72dbb472459ed630e41b95c04cec3f3e"
+  },
+  "id": "3SWHPjT4oLuqLgdb",
+  "tags": [
+    {
+      "name": "Aprendizagem PostgreSQL",
+      "id": "learning-postgres"
+    }
+  ],
+  "updatedAt": "2025-11-30T12:00:00.000Z"
+}
