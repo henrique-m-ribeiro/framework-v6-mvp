@@ -14,9 +14,9 @@
 
 ### **Quer usar o MVP?**
 
-1. **Quick Start:** [QUICK_START.md](02-mvp/scripts/data_collection/QUICK_START.md)
-2. **Guia Replit:** [COMO_EXECUTAR_NO_REPLIT.md](COMO_EXECUTAR_NO_REPLIT.md)
-3. **Execute:** `bash RUN_ALL_DIMENSIONS.sh`
+1. **Acesse o dashboard:** [https://inteligencia-territorial--hrhenrique7.replit.app](https://inteligencia-territorial--hrhenrique7.replit.app)
+2. **Quick Start (desenvolvedor):** [QUICK_START.md](02-mvp/scripts/data_collection/QUICK_START.md)
+3. **Guia Replit:** [COMO_EXECUTAR_NO_REPLIT.md](COMO_EXECUTAR_NO_REPLIT.md)
 
 ### **Quer entender a arquitetura?**
 
@@ -134,6 +134,7 @@
 
 | Documento | Descrição |
 |-----------|-----------|
+| [ARQUITETURA_ATUAL.md](07-database/ARQUITETURA_ATUAL.md) | **NOVO:** Arquitetura atual do banco de dados (4 camadas) |
 | [BASE_DE_CONHECIMENTO.md](07-database/BASE_DE_CONHECIMENTO.md) | Base de conhecimento (RAG) |
 | [ESTRUTURA_KNOWLEDGE_BASE_IDEAL.md](07-database/ESTRUTURA_KNOWLEDGE_BASE_IDEAL.md) | Estrutura ideal da KB |
 

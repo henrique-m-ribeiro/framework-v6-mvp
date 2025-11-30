@@ -144,7 +144,7 @@ Agentes que **evoluem sua expertise** como especialistas humanos:
 
 ### Para Usuários Beta (MVP)
 
-1. **Acesse o dashboard:** [Em breve]
+1. **Acesse o dashboard:** [https://inteligencia-territorial--hrhenrique7.replit.app](https://inteligencia-territorial--hrhenrique7.replit.app)
 2. **Selecione seu município:** Tocantins
 3. **Escolha a dimensão:** Econômica, Social, Territorial ou Ambiental
 4. **Receba análise:** Em 30 segundos
@@ -242,10 +242,19 @@ Ciclos de planejamento → ação → observação → reflexão, documentados e
 
 ### Stack Atual (MVP)
 
-- **Backend:** PostgreSQL 15+, PostGIS, pgvector, Python 3.9+
+- **Frontend:** React, TypeScript (hospedado no Replit)
+- **Backend:** Express, TypeScript (hospedado no Replit)
+- **Banco de Dados:** PostgreSQL 15+ (Neon), PostGIS, pgvector
 - **Orquestração:** n8n Cloud, Webhooks
 - **IA:** OpenAI GPT-4o-mini, text-embedding-3-small
-- **Infraestrutura:** Replit (MVP)
+- **Infraestrutura:** Replit (aplicativo) + Neon (banco de dados)
+
+### Infraestrutura Atual
+
+- **Aplicativo Web:** [https://inteligencia-territorial--hrhenrique7.replit.app](https://inteligencia-territorial--hrhenrique7.replit.app)
+- **Banco de Dados:** Neon (PostgreSQL serverless)
+- **Workflows n8n:** Agente ECON V2 (em desenvolvimento)
+- **Integração:** GitHub ↔ Replit (branch `main`)
 
 ### Stack Futuro (Produto Completo)
 
