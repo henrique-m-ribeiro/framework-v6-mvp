@@ -216,3 +216,29 @@ A coleta de dados reais é uma questão de **quando**, não de **se**. O sistema
 ---
 
 **Última atualização:** 29 de novembro de 2025, 19:30 GMT-3
+
+
+---
+
+## Atualização - 30 de Novembro de 2025
+
+**Contexto:** Nova tentativa de coleta de dados na sessão seguinte.
+
+### Resumo da Situação
+
+A coleta de dados reais para os novos indicadores continua **bloqueada** devido a problemas técnicos persistentes com as APIs externas (IBGE SIDRA e SICONFI).
+
+| Indicador | Fonte de Dados | Status da API | Resultado |
+|:---|:---|:---:|:---|
+| **Massa Salarial** | IBGE SIDRA (proxy) | ❌ **Indisponível** | Timeout após handshake SSL |
+| **Empresas Ativas** | IBGE SIDRA | ❌ **Indisponível** | Timeout após handshake SSL |
+| **Receita Tributária** | SICONFI | ❌ **Indisponível** | Retornando 404 (Not Found) |
+
+### Análise Adicional
+
+- **API IBGE SIDRA:** O problema de timeout no handshake SSL persiste, indicando uma falha de infraestrutura do lado do IBGE que já dura mais de 24 horas.
+- **API SICONFI:** Após análise detalhada da documentação, foram feitos novos testes com parâmetros corrigidos e diferentes endpoints (RREO e DCA). Todas as tentativas resultaram em 404, sugerindo que o serviço pode estar fora do ar ou que os dados para os municípios do Tocantins não estão disponíveis via API para os anos consultados.
+
+### Conclusão da Tentativa
+
+Dado o cenário de indisponibilidade das APIs primárias, a coleta de dados em tempo real não é viável no momento. A estratégia de focar em outras frentes do projeto enquanto se monitora as APIs é a mais prudente.
