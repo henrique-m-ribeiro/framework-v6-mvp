@@ -24,27 +24,35 @@ Este time trabalha 24/7, consulta bases de dados em tempo real, aprende com aná
 
 ## 🏗️ ARQUITETURA GERAL
 
+### Arquitetura de Duas Camadas de IA
+
+O Núcleo de Especialistas é a **Camada 2** do Framework V6.0 - o motor de geração de conhecimento profundo. Ele não interage diretamente com o usuário final, mas sim com o **Agente Concierge** (Camada 1) que vive no dashboard do Replit.
+
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                    DASHBOARD WEB (Replit)                        │
-│                  Interface do Usuário Final                      │
+│              CAMADA 1: DASHBOARD WEB (Replit)                    │
+│                                                                  │
+│  🤖 AGENTE CONCIERGE ("Interface Inteligente")                  │
+│     • Conversa com o usuário em linguagem natural               │
+│     • Responde perguntas rápidas (dados existentes)              │
+│     • Aciona Camada 2 para análises profundas                    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             │ HTTP POST (Webhook)
-                            │ Requisição de Análise
+                            │ Solicitação de Análise Profunda
+                            │ {territory_id, question}
                             ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│                  NÚCLEO DE ESPECIALISTAS (n8n)                   │
+│         CAMADA 2: NÚCLEO DE ESPECIALISTAS (n8n Cloud)           │
 │                                                                  │
 │  ┌────────────────────────────────────────────────────────────┐ │
-│  │           ORQUESTRADOR (Meta-LLM)                          │ │
-│  │              "O Coordenador"                               │ │
+│  │           ORQUESTRADOR ("Coordenador do Time")            │ │
 │  │                                                            │ │
-│  │  • Recebe requisição do dashboard                          │ │
-│  │  • Analisa intenção e identifica dimensões relevantes      │ │
-│  │  • Distribui tarefas para especialistas                    │ │
-│  │  • Consolida respostas em análise integrada                │ │
-│  │  • Salva na base de conhecimento                           │ │
+│  │  • Recebe solicitações do Agente Concierge                 │ │
+│  │  • Normaliza e enriquece dados de entrada                  │ │
+│  │  • Identifica dimensões relevantes                         │ │
+│  │  • Roteia para especialistas apropriados                   │ │
+│  │  • Consolida e retorna análises ao Concierge               │ │
 │  └──────────────┬─────────────────────────────────────────────┘ │
 │                 │                                                │
 │                 │ Distribui Tarefas                              │
@@ -59,55 +67,105 @@ Este time trabalha 24/7, consulta bases de dados em tempo real, aprende com aná
 │     │          └──────────┴──────────┴──────────┘              │
 │     │                     │                                     │
 │     │ Coleta Dados        │ Geram Análises                      │
-│     │ de APIs             │ Especializadas                      │
+│     │ de APIs             │ Especializadas (RAG 4 Camadas)      │
 │     ↓                     ↓                                     │
 └─────┼─────────────────────┼─────────────────────────────────────┘
       │                     │
       │                     │ Salvam Resultados
       ↓                     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│              BASE DE CONHECIMENTO (PostgreSQL - Replit)          │
+│              BASE DE CONHECIMENTO (PostgreSQL - Neon)            │
 │                                                                  │
 │  • Dados estruturados (indicators, territories)                  │
 │  • Análises geradas (knowledge_base)                             │
 │  • Embeddings vetoriais (para RAG)                               │
-│  • Histórico de interações (user_interactions)                   │
+│  • Memória evolutiva dos agentes                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+**Fluxo de Comunicação:**
+
+1. **Usuário → Concierge:** *"Como está a economia de Palmas?"*
+2. **Concierge analisa:** Não há análise recente → Precisa acionar Camada 2
+3. **Concierge → Orquestrador:** `{territory_id: "1721000", question: "Como está a economia de Palmas?"}`
+4. **Orquestrador normaliza:** Adiciona `territory_name: "Palmas"`, `analysis_type: "comprehensive"`, `agent_id: "econ"`
+5. **Orquestrador → Agente ECON:** Envia payload completo
+6. **Agente ECON:** Executa ciclo de 4 camadas RAG e gera análise
+7. **Agente ECON → Orquestrador:** Retorna análise completa
+8. **Orquestrador → Concierge:** Retorna análise
+9. **Concierge → Usuário:** Apresenta análise de forma amigável
 
 ---
 
 ## 👥 OS 6 ESPECIALISTAS
 
-### 1. ORQUESTRADOR (Meta-LLM) - O Coordenador
+### 1. ORQUESTRADOR - O Coordenador do Time
 
 **Perfil:** Generalista sênior com visão sistêmica
 
+**Cliente:** Agente Concierge (Camada 1 - Replit). O Orquestrador **NÃO interage diretamente com o usuário final**.
+
 **Responsabilidades:**
-- Interpretar requisições em linguagem natural do dashboard
-- Identificar quais dimensões são relevantes para cada análise
-- Distribuir tarefas para os especialistas apropriados
-- Consolidar respostas em análise coesa e integrada
-- Gerenciar fluxo de trabalho e prioridades
+- **Receber solicitações do Agente Concierge:** Quando o Concierge identifica que uma análise profunda é necessária, ele aciona o Orquestrador via webhook
+- **Validar e normalizar dados:** Verifica se os dados obrigatórios foram fornecidos (ex: `territory_id`)
+- **Enriquecer informações:** Busca dados faltantes no banco (ex: `territory_name` a partir do `territory_id`)
+- **Rotear inteligentemente:** Identifica qual(is) especialista(s) deve(m) ser acionado(s) baseado na pergunta
+- **Coordenar especialistas:** Chama o(s) agente(s) apropriado(s) com payload completo e validado
+- **Consolidar e retornar:** Recebe a análise do especialista e a retorna ao Concierge (no MVP, sem consolidação adicional; no futuro, poderá sintetizar análises de múltiplos agentes)
 
 **Tecnologias:**
-- GPT-4o (raciocínio complexo e orquestração)
-- n8n Webhook (receber requisições)
-- n8n HTTP Request (chamar outros workflows)
-- n8n PostgreSQL (salvar análises)
+- GPT-4o-mini ou GPT-4o (classificação e roteamento inteligente)
+- n8n Webhook (receber solicitações do Concierge)
+- n8n HTTP Request (chamar workflows dos especialistas)
+- n8n PostgreSQL (buscar dados de territórios para enriquecimento)
 
-**Exemplo de Requisição:**
+**Exemplo de Fluxo (MVP):**
+
+```json
+// 1. Concierge aciona o Orquestrador
+POST https://n8n.cloud/webhook/orchestrator
+{
+  "territory_id": "1721000",
+  "question": "Qual o impacto do crescimento populacional na economia de Palmas?"
+}
+
+// 2. Orquestrador valida e enriquece
+// - Valida: territory_id presente ✓
+// - Busca no banco: territory_id = 1721000 → territory_name = "Palmas"
+// - Define padrão: analysis_type = "comprehensive"
+
+// 3. Orquestrador roteia
+// - Analisa pergunta: identifica palavras-chave "economia"
+// - Decisão: acionar Agente ECON
+
+// 4. Orquestrador chama o especialista
+POST https://n8n.cloud/webhook/agent-econ
+{
+  "agent_id": "econ",
+  "territory_id": "1721000",
+  "territory_name": "Palmas",
+  "analysis_type": "comprehensive"
+}
+
+// 5. Agente ECON retorna análise completa
+// 6. Orquestrador retorna ao Concierge
 ```
-Usuário: "Como Palmas se compara com Araguaína em infraestrutura e economia?"
+
+**Exemplo de Fluxo (Produto Completo - Futuro):**
+
+```
+Concierge: "Como Palmas se compara com Araguaína em infraestrutura e economia?"
 
 Orquestrador analisa:
 1. Dimensões relevantes: TERRA (infraestrutura) + ECON (economia)
-2. Territórios: Palmas (ID: 1) e Araguaína (ID: 2)
-3. Tipo de análise: Comparativa
+2. Territórios: Palmas e Araguaína
+3. Tipo de análise: Comparativa multidimensional
 
 Distribui tarefas:
-- Agente TERRA: Analisar infraestrutura de Palmas vs Araguaína
-- Agente ECON: Analisar economia de Palmas vs Araguaína
+- Agente TERRA: Analisar infraestrutura de Palmas
+- Agente TERRA: Analisar infraestrutura de Araguaína
+- Agente ECON: Analisar economia de Palmas
+- Agente ECON: Analisar economia de Araguaína
 
 Consolida respostas:
 "Palmas possui infraestrutura superior em saneamento (87% vs 65%) e 

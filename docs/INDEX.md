@@ -20,9 +20,10 @@
 
 ### **Quer entender a arquitetura?**
 
-1. **19 Agentes:** [19_AGENTS_COMPLETE.md](01-architecture-full/19_AGENTS_COMPLETE.md)
-2. **Memória Distribuída:** [DISTRIBUTED_MEMORY.md](01-architecture-full/DISTRIBUTED_MEMORY.md)
-3. **Workflows n8n:** [ARQUITETURA_NUCLEO_ESPECIALISTAS.md](02-mvp/n8n/ARQUITETURA_NUCLEO_ESPECIALISTAS.md)
+1. **Arquitetura de Duas Camadas:** [ARQUITETURA_DUAS_CAMADAS.md](01-architecture-full/ARQUITETURA_DUAS_CAMADAS.md) ⭐ **NOVO**
+2. **19 Agentes:** [19_AGENTS_COMPLETE.md](01-architecture-full/19_AGENTS_COMPLETE.md)
+3. **Memória Distribuída:** [DISTRIBUTED_MEMORY.md](01-architecture-full/DISTRIBUTED_MEMORY.md)
+4. **Workflows n8n:** [ARQUITETURA_NUCLEO_ESPECIALISTAS.md](n8n/ARQUITETURA_NUCLEO_ESPECIALISTAS.md)
 
 ---
 
@@ -43,6 +44,7 @@
 
 | Documento | Descrição | Conteúdo |
 |-----------|-----------|----------|
+| [ARQUITETURA_DUAS_CAMADAS.md](01-architecture-full/ARQUITETURA_DUAS_CAMADAS.md) ⭐ | **NOVO:** Arquitetura de duas camadas de IA | Concierge + Núcleo de Especialistas |
 | [19_AGENTS_COMPLETE.md](01-architecture-full/19_AGENTS_COMPLETE.md) | Todos os 19 agentes detalhados | Camadas 1-3, Meta-Orq, Data Collector |
 | [NEURAL_LAYERS.md](01-architecture-full/NEURAL_LAYERS.md) | 3 camadas de orquestração | Análise, Interface, Inteligência |
 | [META_ORCHESTRATOR.md](01-architecture-full/META_ORCHESTRATOR.md) | Meta-Orquestrador central | Coordenação e roteamento |

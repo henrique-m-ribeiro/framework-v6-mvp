@@ -43,11 +43,20 @@ O MVP é a **versão mínima funcional** do Framework V6.0, focada em **validar 
 
 **Componentes:**
 
-✅ **4 Agentes Dimensionais**
+✅ **Arquitetura de Duas Camadas de IA**
+- **Camada 1:** Agente de Interação (Concierge) no dashboard Replit
+- **Camada 2:** Núcleo de Especialistas (Orquestrador + 4 agentes) no n8n Cloud
+
+✅ **4 Agentes Dimensionais (Camada 2)**
 - ECON (Econômico)
 - SOCIAL (Social)
 - TERRA (Territorial)
-- ENVIRO (Ambiental)
+- AMBIENT (Ambiental)
+
+⚠️ **Agente Orquestrador (Camada 2)** 
+- Em implementação (Sessão #12)
+- Coordena o time de especialistas
+- Recebe solicitações do Concierge e roteia para os agentes
 
 ✅ **RAG Central**
 - Knowledge base compartilhada

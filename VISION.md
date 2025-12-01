@@ -54,11 +54,17 @@ Democratizar o acesso à inteligência territorial avançada, fornecendo aos ges
 
 **Uma plataforma SaaS que combina:**
 
+✅ **Arquitetura de Duas Camadas de IA** (Diferencial Competitivo)
+- **Camada 1 - Interface Inteligente:** Agente Concierge no dashboard que conversa em linguagem natural, responde perguntas rápidas (<1s) e aciona a Camada 2 quando necessário
+- **Camada 2 - Núcleo de Especialistas:** 19+ agentes especializados no n8n Cloud que geram análises profundas sob demanda
+- **Vantagem:** 80% das interações são instantâneas, 20% geram análises profundas em 30-60s
+- **Resultado:** Experiência de usuário superior + custo otimizado
+
 ✅ **19 Agentes Especializados de IA**
 - 10 agentes dimensionais (Econômico, Social, Territorial, Ambiental, Institucional, Cultural, Inovação, Saúde, Educação, Agropecuária)
 - 3 agentes de interface (Comunicação, Interação Humana, Automação)
 - 3 agentes de inteligência (Auditoria, Pesquisa, Análise de Sentimento)
-- 1 Meta-Orquestrador (coordenação central)
+- 1 Orquestrador (coordena o time de especialistas)
 - 1 Data Collector (gestão de conhecimento)
 - 1 Bibliotecário RAG (gestão de memória)
 

@@ -67,41 +67,56 @@ O **Framework de Inteligência Territorial V6.0** (também conhecido como "Frame
 
 ## 🏗️ ARQUITETURA
 
-### Visão Geral
+### Arquitetura de Duas Camadas de IA
+
+O Framework V6.0 implementa uma **arquitetura inovadora de duas camadas de inteligência artificial**, que combina velocidade e acessibilidade na interface com profundidade e especialização na geração de conhecimento.
 
 ```
-┌────────────────────────────────────────────────────────────┐
-│                  FRAMEWORK V6.0 - ARQUITETURA               │
-├────────────────────────────────────────────────────────────┤
-│                                                             │
-│  🧠 META-ORQUESTRADOR (Coordenação Central)                │
-│                                                             │
-│  ──────────────────────────────────────────────────────── │
-│                                                             │
-│  📊 CAMADA 3: INTELIGÊNCIA (3 agentes)                     │
-│     AUDIT • RESEARCH • SENTIMENT                           │
-│                                                             │
-│  ──────────────────────────────────────────────────────── │
-│                                                             │
-│  💬 CAMADA 2: INTERFACE (3 agentes)                        │
-│     COMM • INTERACT • AUTO                                 │
-│                                                             │
-│  ──────────────────────────────────────────────────────── │
-│                                                             │
-│  🌍 CAMADA 1: ANÁLISE TERRITORIAL (10 agentes)             │
-│     ECON • SOCIAL • TERRA • ENVIRO • INSTIT                │
-│     CULTURAL • INNOV • HEALTH • EDUCAT • AGRO              │
-│                                                             │
-│  ──────────────────────────────────────────────────────── │
-│                                                             │
-│  📚 SUPORTE: Data Collector + RAG                          │
-│                                                             │
-└────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│          CAMADA 1: INTERFACE COM O USUÁRIO (Replit)         │
+│                                                              │
+│  🤖 AGENTE DE INTERAÇÃO ("Concierge Inteligente")           │
+│     • Conversa em linguagem natural                          │
+│     • Responde perguntas rápidas (dados existentes)          │
+│     • Explica indicadores e guia navegação                   │
+│     • Aciona Camada 2 para análises profundas                │
+│                                                              │
+└──────────────────────┬───────────────────────────────────────┘
+                       │ Aciona quando necessário
+                       ↓
+┌─────────────────────────────────────────────────────────────┐
+│       CAMADA 2: NÚCLEO DE ESPECIALISTAS (n8n Cloud)         │
+│                                                              │
+│  🧠 AGENTE ORQUESTRADOR ("Coordenador do Time")             │
+│     • Recebe solicitações do Concierge                       │
+│     • Normaliza e enriquece dados                            │
+│     • Roteia para especialistas corretos                     │
+│     • Consolida e retorna análises                           │
+│                                                              │
+│  ─────────────────────────────────────────────────────────  │
+│                                                              │
+│  👥 AGENTES ESPECIALISTAS                                    │
+│                                                              │
+│  MVP (4 agentes):                                            │
+│     ECON • SOCIAL • TERRA • AMBIENT                          │
+│                                                              │
+│  Produto Completo (19+ agentes):                             │
+│     • 10 Dimensionais (ECON, SOCIAL, TERRA, etc.)            │
+│     • 3 Interface (COMM, INTERACT, AUTO)                     │
+│     • 3 Inteligência (AUDIT, RESEARCH, SENTIMENT)            │
+│     • Data Collector + RAG                                   │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Total:** 19 agentes + Meta-Orquestrador + Data Collector + RAG
+**Vantagens desta arquitetura:**
+- ⚡ **80% das perguntas** respondidas instantaneamente (<1s)
+- 💰 **Custo otimizado:** Motor de análise profunda só é acionado quando necessário
+- 🎯 **UX superior:** Usuário nunca percebe a complexidade do sistema
+- 📈 **Escalável:** Podemos adicionar 19+ agentes sem afetar a interface
+- 🔧 **Manutenível:** Cada camada evolui independentemente
 
-📖 **Leia mais:** [19 Agentes Completos](docs/01-architecture-full/19_AGENTS_COMPLETE.md)
+📖 **Leia mais:** [Arquitetura de Duas Camadas](docs/01-architecture-full/ARQUITETURA_DUAS_CAMADAS.md) | [19 Agentes Completos](docs/01-architecture-full/19_AGENTS_COMPLETE.md)
 
 ---
 
@@ -145,9 +160,11 @@ Agentes que **evoluem sua expertise** como especialistas humanos:
 ### Para Usuários Beta (MVP)
 
 1. **Acesse o dashboard:** [https://inteligencia-territorial--hrhenrique7.replit.app](https://inteligencia-territorial--hrhenrique7.replit.app)
-2. **Selecione seu município:** Tocantins
-3. **Escolha a dimensão:** Econômica, Social, Territorial ou Ambiental
-4. **Receba análise:** Em 30 segundos
+2. **Converse com o Agente Concierge:** Faça perguntas em linguagem natural sobre seu município
+   - *"Qual o PIB de Palmas?"* → Resposta instantânea
+   - *"Como está a economia de Palmas?"* → Análise profunda em 30s
+3. **Explore os dados:** Navegue por indicadores, gráficos e análises já geradas
+4. **Solicite análises profundas:** O Concierge aciona automaticamente o time de especialistas quando necessário
 
 ### Para Desenvolvedores
 

@@ -142,45 +142,63 @@ Imagine uma **empresa de consultoria especializada em gestão pública** com:
 "Como está a economia de Palmas? Quais os principais desafios?"
 ```
 
-**Passo 2: Chatbot (INTERACT) recebe e entende**
+**Passo 2: Agente Concierge (Camada 1 - Replit) analisa**
 - Identifica intenção: análise econômica
 - Identifica território: Palmas (código IBGE 1721000)
-- Identifica tipo: diagnóstico
+- Verifica se há análise recente na base de conhecimento
+- **Decisão:** Não há análise recente → Acionar Camada 2 (Núcleo de Especialistas)
 
-**Passo 3: Meta-Orquestrador roteia para Agente ECON**
-- Verifica se há análise recente no RAG Central
-- Se não, aciona Agente ECON
+**Passo 3: Concierge aciona o Orquestrador (Camada 2 - n8n)**
+```json
+POST https://n8n.cloud/webhook/orchestrator
+{
+  "territory_id": "1721000",
+  "question": "Como está a economia de Palmas? Quais os principais desafios?"
+}
+```
 
-**Passo 4: Agente ECON carrega contexto**
-- **Dados atuais:** PIB, emprego, setores econômicos (PostgreSQL)
-- **Memória episódica:** "Analisei Palmas em março, identifiquei concentração no setor público"
-- **Memória semântica:** "Capitais do Tocantins tendem a ter PIB 2x maior que média estadual"
-- **Contexto de outros agentes:** Análises social e ambiental recentes
+**Passo 4: Orquestrador normaliza e roteia**
+- Valida dados de entrada
+- Enriquece: busca `territory_name = "Palmas"` no banco
+- Identifica dimensão relevante: **ECON** (econômica)
+- Aciona Agente ECON com payload completo
 
-**Passo 5: Agente ECON gera análise com OpenAI**
+**Passo 5: Agente ECON carrega contexto (RAG 4 Camadas)**
+- **Camada 1 - Dados Estruturados:** PIB, emprego, setores econômicos (PostgreSQL)
+- **Camada 2 - Memória Especializada:** Documentos de referência sobre economia regional
+- **Camada 3 - Aprendizado Evolutivo:** "Capitais do Tocantins tendem a ter PIB 2x maior que média estadual"
+- **Camada 4 - Memória Organizacional:** Análises anteriores de Palmas (de qualquer agente)
+
+**Passo 6: Agente ECON gera análise com OpenAI**
 ```
 Prompt enriquecido com:
-- Dados atuais
-- Memórias relevantes
-- Contexto histórico
-- Análises de outros agentes
+- Dados atuais (Camada 1)
+- Conhecimento especializado (Camada 2)
+- Padrões aprendidos (Camada 3)
+- Contexto histórico (Camada 4)
 
-→ GPT-4o-mini gera análise profunda
+→ GPT-4o-mini gera análise profunda de 2000 palavras
 ```
 
-**Passo 6: Data Collector extrai memórias**
-- Identifica insights e padrões
-- Classifica memórias (episódica, semântica, reflexão)
-- Salva em RAG Individual do Agente ECON
+**Passo 7: Agente ECON salva e aprende**
+- Salva análise completa na `knowledge_base`
+- Extrai padrões e aprendizados
+- Atualiza sua memória evolutiva (Camada 3)
+- Retorna análise ao Orquestrador
 
-**Passo 7: Resultado entregue ao usuário**
+**Passo 8: Orquestrador retorna ao Concierge**
+- Orquestrador envia análise completa de volta ao Concierge
+
+**Passo 9: Concierge apresenta ao usuário**
 - Análise formatada e contextualizada
 - Recomendações prioritárias
 - Comparações com outros municípios
 - Visualizações e gráficos
+- Opções para perguntas de follow-up
 
-**Tempo total:** 15-30 segundos  
-**Custo:** R$ 0,01 - R$ 0,03
+**Tempo total:** 30-60 segundos (Passos 3-8)  
+**Custo:** R$ 0,01 - R$ 0,03  
+**Próximas perguntas sobre a mesma análise:** <1 segundo (Concierge responde diretamente)
 
 ---
 
