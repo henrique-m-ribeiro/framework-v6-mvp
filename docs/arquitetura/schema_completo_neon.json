@@ -1,0 +1,3626 @@
+{
+  "agent_ambient_learning": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "title",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "territories_analyzed",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "applicable_to",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "examples",
+        "jsonb",
+        null,
+        "YES",
+        "'[]'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_ambient_learning_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_ambient_learning",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_ambient_learning_pkey",
+        "CREATE UNIQUE INDEX agent_ambient_learning_pkey ON public.agent_ambient_learning USING btree (id)"
+      ],
+      [
+        "idx_ambient_learning_embedding",
+        "CREATE INDEX idx_ambient_learning_embedding ON public.agent_ambient_learning USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='50')"
+      ],
+      [
+        "idx_ambient_learning_type",
+        "CREATE INDEX idx_ambient_learning_type ON public.agent_ambient_learning USING btree (learning_type)"
+      ],
+      [
+        "idx_ambient_learning_active",
+        "CREATE INDEX idx_ambient_learning_active ON public.agent_ambient_learning USING btree (is_active) WHERE (is_active = true)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_ambient_learning_evolution": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "NO",
+        "'ambient'::character varying"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "source_analysis_ids",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "learning_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "NO",
+        "now()"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "NO",
+        "true"
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "NO",
+        "0"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_ambient_learning_evolution_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_ambient_learning_evolution",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_ambient_learning_evolution_pkey",
+        "CREATE UNIQUE INDEX agent_ambient_learning_evolution_pkey ON public.agent_ambient_learning_evolution USING btree (id)"
+      ],
+      [
+        "agent_ambient_learning_evolution_agent_id_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_agent_id_idx ON public.agent_ambient_learning_evolution USING btree (agent_id)"
+      ],
+      [
+        "agent_ambient_learning_evolution_learning_type_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_learning_type_idx ON public.agent_ambient_learning_evolution USING btree (learning_type)"
+      ],
+      [
+        "agent_ambient_learning_evolution_confidence_score_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_confidence_score_idx ON public.agent_ambient_learning_evolution USING btree (confidence_score DESC)"
+      ],
+      [
+        "agent_ambient_learning_evolution_created_at_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_created_at_idx ON public.agent_ambient_learning_evolution USING btree (created_at DESC)"
+      ],
+      [
+        "agent_ambient_learning_evolution_is_active_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_is_active_idx ON public.agent_ambient_learning_evolution USING btree (is_active) WHERE (is_active = true)"
+      ],
+      [
+        "agent_ambient_learning_evolution_embedding_vector_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_embedding_vector_idx ON public.agent_ambient_learning_evolution USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "agent_ambient_learning_evolution_metadata_idx",
+        "CREATE INDEX agent_ambient_learning_evolution_metadata_idx ON public.agent_ambient_learning_evolution USING gin (metadata)"
+      ]
+    ],
+    "record_count": 1
+  },
+  "agent_ambient_memory": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "analysis_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "analysis_summary",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "NO",
+        "'{}'::jsonb"
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "user_feedback",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "iterations",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "analysis_date",
+        "date",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "time_range",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "data_sources",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicators_used",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "version",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "is_latest",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ],
+      [
+        "superseded_by",
+        "uuid",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "updated_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "generated_by",
+        "character varying",
+        100,
+        "YES",
+        "'WF-AGENT-AMBIENT'::character varying"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        255,
+        "NO",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_ambient_memory_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_ambient_memory",
+        "id"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_ambient_memory",
+        "territory_id"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_ambient_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_ambient_memory",
+        "version"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_ambient_memory",
+        "territory_id"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_ambient_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_ambient_memory",
+        "version"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "version",
+        "agent_ambient_memory",
+        "territory_id"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "version",
+        "agent_ambient_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_ambient_analysis",
+        "UNIQUE",
+        "version",
+        "agent_ambient_memory",
+        "version"
+      ],
+      [
+        "agent_ambient_memory_superseded_by_fkey",
+        "FOREIGN KEY",
+        "superseded_by",
+        "agent_ambient_memory",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_ambient_memory_pkey",
+        "CREATE UNIQUE INDEX agent_ambient_memory_pkey ON public.agent_ambient_memory USING btree (id)"
+      ],
+      [
+        "unique_ambient_analysis",
+        "CREATE UNIQUE INDEX unique_ambient_analysis ON public.agent_ambient_memory USING btree (territory_id, analysis_date, version)"
+      ],
+      [
+        "idx_ambient_memory_embedding",
+        "CREATE INDEX idx_ambient_memory_embedding ON public.agent_ambient_memory USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "idx_ambient_memory_territory",
+        "CREATE INDEX idx_ambient_memory_territory ON public.agent_ambient_memory USING btree (territory_id)"
+      ],
+      [
+        "idx_ambient_memory_date",
+        "CREATE INDEX idx_ambient_memory_date ON public.agent_ambient_memory USING btree (analysis_date DESC)"
+      ],
+      [
+        "idx_ambient_memory_metadata",
+        "CREATE INDEX idx_ambient_memory_metadata ON public.agent_ambient_memory USING gin (metadata)"
+      ],
+      [
+        "idx_ambient_memory_latest",
+        "CREATE INDEX idx_ambient_memory_latest ON public.agent_ambient_memory USING btree (is_latest) WHERE (is_latest = true)"
+      ],
+      [
+        "idx_agent_ambient_memory_agent_id",
+        "CREATE INDEX idx_agent_ambient_memory_agent_id ON public.agent_ambient_memory USING btree (agent_id)"
+      ],
+      [
+        "idx_agent_ambient_memory_agent_territory",
+        "CREATE INDEX idx_agent_ambient_memory_agent_territory ON public.agent_ambient_memory USING btree (agent_id, territory_id)"
+      ],
+      [
+        "idx_agent_ambient_memory_agent_date",
+        "CREATE INDEX idx_agent_ambient_memory_agent_date ON public.agent_ambient_memory USING btree (agent_id, analysis_date DESC)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_econ_learning": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "title",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "territories_analyzed",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "applicable_to",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "examples",
+        "jsonb",
+        null,
+        "YES",
+        "'[]'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_econ_learning_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_econ_learning",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_econ_learning_pkey",
+        "CREATE UNIQUE INDEX agent_econ_learning_pkey ON public.agent_econ_learning USING btree (id)"
+      ],
+      [
+        "idx_econ_learning_embedding",
+        "CREATE INDEX idx_econ_learning_embedding ON public.agent_econ_learning USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='50')"
+      ],
+      [
+        "idx_econ_learning_type",
+        "CREATE INDEX idx_econ_learning_type ON public.agent_econ_learning USING btree (learning_type)"
+      ],
+      [
+        "idx_econ_learning_active",
+        "CREATE INDEX idx_econ_learning_active ON public.agent_econ_learning USING btree (is_active) WHERE (is_active = true)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_econ_learning_evolution": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "NO",
+        "'econ'::character varying"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "source_analysis_ids",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "learning_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "NO",
+        "now()"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "NO",
+        "true"
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "NO",
+        "0"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_econ_learning_evolution_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_econ_learning_evolution",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_econ_learning_evolution_pkey",
+        "CREATE UNIQUE INDEX agent_econ_learning_evolution_pkey ON public.agent_econ_learning_evolution USING btree (id)"
+      ],
+      [
+        "idx_econ_learning_evolution_agent",
+        "CREATE INDEX idx_econ_learning_evolution_agent ON public.agent_econ_learning_evolution USING btree (agent_id)"
+      ],
+      [
+        "idx_econ_learning_evolution_type",
+        "CREATE INDEX idx_econ_learning_evolution_type ON public.agent_econ_learning_evolution USING btree (learning_type)"
+      ],
+      [
+        "idx_econ_learning_evolution_confidence",
+        "CREATE INDEX idx_econ_learning_evolution_confidence ON public.agent_econ_learning_evolution USING btree (confidence_score DESC)"
+      ],
+      [
+        "idx_econ_learning_evolution_created",
+        "CREATE INDEX idx_econ_learning_evolution_created ON public.agent_econ_learning_evolution USING btree (created_at DESC)"
+      ],
+      [
+        "idx_econ_learning_evolution_active",
+        "CREATE INDEX idx_econ_learning_evolution_active ON public.agent_econ_learning_evolution USING btree (is_active) WHERE (is_active = true)"
+      ],
+      [
+        "idx_econ_learning_evolution_embedding",
+        "CREATE INDEX idx_econ_learning_evolution_embedding ON public.agent_econ_learning_evolution USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "idx_econ_learning_evolution_metadata",
+        "CREATE INDEX idx_econ_learning_evolution_metadata ON public.agent_econ_learning_evolution USING gin (metadata)"
+      ]
+    ],
+    "record_count": 4
+  },
+  "agent_econ_memory": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "analysis_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "analysis_summary",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "NO",
+        "'{}'::jsonb"
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "user_feedback",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "iterations",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "analysis_date",
+        "date",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "time_range",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "data_sources",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicators_used",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "version",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "is_latest",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ],
+      [
+        "superseded_by",
+        "uuid",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "updated_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "generated_by",
+        "character varying",
+        100,
+        "YES",
+        "'WF-AGENT-ECON'::character varying"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        255,
+        "NO",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_econ_memory_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_econ_memory",
+        "id"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_econ_memory",
+        "territory_id"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_econ_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_econ_memory",
+        "version"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_econ_memory",
+        "territory_id"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_econ_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_econ_memory",
+        "version"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "version",
+        "agent_econ_memory",
+        "territory_id"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "version",
+        "agent_econ_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_econ_analysis",
+        "UNIQUE",
+        "version",
+        "agent_econ_memory",
+        "version"
+      ],
+      [
+        "agent_econ_memory_superseded_by_fkey",
+        "FOREIGN KEY",
+        "superseded_by",
+        "agent_econ_memory",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_econ_memory_pkey",
+        "CREATE UNIQUE INDEX agent_econ_memory_pkey ON public.agent_econ_memory USING btree (id)"
+      ],
+      [
+        "unique_econ_analysis",
+        "CREATE UNIQUE INDEX unique_econ_analysis ON public.agent_econ_memory USING btree (territory_id, analysis_date, version)"
+      ],
+      [
+        "idx_econ_memory_embedding",
+        "CREATE INDEX idx_econ_memory_embedding ON public.agent_econ_memory USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "idx_econ_memory_territory",
+        "CREATE INDEX idx_econ_memory_territory ON public.agent_econ_memory USING btree (territory_id)"
+      ],
+      [
+        "idx_econ_memory_date",
+        "CREATE INDEX idx_econ_memory_date ON public.agent_econ_memory USING btree (analysis_date DESC)"
+      ],
+      [
+        "idx_econ_memory_metadata",
+        "CREATE INDEX idx_econ_memory_metadata ON public.agent_econ_memory USING gin (metadata)"
+      ],
+      [
+        "idx_econ_memory_latest",
+        "CREATE INDEX idx_econ_memory_latest ON public.agent_econ_memory USING btree (is_latest) WHERE (is_latest = true)"
+      ],
+      [
+        "idx_agent_econ_memory_agent_id",
+        "CREATE INDEX idx_agent_econ_memory_agent_id ON public.agent_econ_memory USING btree (agent_id)"
+      ],
+      [
+        "idx_agent_econ_memory_agent_territory",
+        "CREATE INDEX idx_agent_econ_memory_agent_territory ON public.agent_econ_memory USING btree (agent_id, territory_id)"
+      ],
+      [
+        "idx_agent_econ_memory_agent_date",
+        "CREATE INDEX idx_agent_econ_memory_agent_date ON public.agent_econ_memory USING btree (agent_id, analysis_date DESC)"
+      ]
+    ],
+    "record_count": 12
+  },
+  "agent_social_learning": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "title",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "territories_analyzed",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "applicable_to",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "examples",
+        "jsonb",
+        null,
+        "YES",
+        "'[]'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_social_learning_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_social_learning",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_social_learning_pkey",
+        "CREATE UNIQUE INDEX agent_social_learning_pkey ON public.agent_social_learning USING btree (id)"
+      ],
+      [
+        "idx_social_learning_embedding",
+        "CREATE INDEX idx_social_learning_embedding ON public.agent_social_learning USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='50')"
+      ],
+      [
+        "idx_social_learning_type",
+        "CREATE INDEX idx_social_learning_type ON public.agent_social_learning USING btree (learning_type)"
+      ],
+      [
+        "idx_social_learning_active",
+        "CREATE INDEX idx_social_learning_active ON public.agent_social_learning USING btree (is_active) WHERE (is_active = true)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_social_learning_evolution": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "NO",
+        "'social'::character varying"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "source_analysis_ids",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "learning_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "NO",
+        "now()"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "NO",
+        "true"
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "NO",
+        "0"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_social_learning_evolution_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_social_learning_evolution",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_social_learning_evolution_pkey",
+        "CREATE UNIQUE INDEX agent_social_learning_evolution_pkey ON public.agent_social_learning_evolution USING btree (id)"
+      ],
+      [
+        "agent_social_learning_evolution_agent_id_idx",
+        "CREATE INDEX agent_social_learning_evolution_agent_id_idx ON public.agent_social_learning_evolution USING btree (agent_id)"
+      ],
+      [
+        "agent_social_learning_evolution_learning_type_idx",
+        "CREATE INDEX agent_social_learning_evolution_learning_type_idx ON public.agent_social_learning_evolution USING btree (learning_type)"
+      ],
+      [
+        "agent_social_learning_evolution_confidence_score_idx",
+        "CREATE INDEX agent_social_learning_evolution_confidence_score_idx ON public.agent_social_learning_evolution USING btree (confidence_score DESC)"
+      ],
+      [
+        "agent_social_learning_evolution_created_at_idx",
+        "CREATE INDEX agent_social_learning_evolution_created_at_idx ON public.agent_social_learning_evolution USING btree (created_at DESC)"
+      ],
+      [
+        "agent_social_learning_evolution_is_active_idx",
+        "CREATE INDEX agent_social_learning_evolution_is_active_idx ON public.agent_social_learning_evolution USING btree (is_active) WHERE (is_active = true)"
+      ],
+      [
+        "agent_social_learning_evolution_embedding_vector_idx",
+        "CREATE INDEX agent_social_learning_evolution_embedding_vector_idx ON public.agent_social_learning_evolution USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "agent_social_learning_evolution_metadata_idx",
+        "CREATE INDEX agent_social_learning_evolution_metadata_idx ON public.agent_social_learning_evolution USING gin (metadata)"
+      ]
+    ],
+    "record_count": 1
+  },
+  "agent_social_memory": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "analysis_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "analysis_summary",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "NO",
+        "'{}'::jsonb"
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "user_feedback",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "iterations",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "analysis_date",
+        "date",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "time_range",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "data_sources",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicators_used",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "version",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "is_latest",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ],
+      [
+        "superseded_by",
+        "uuid",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "updated_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "generated_by",
+        "character varying",
+        100,
+        "YES",
+        "'WF-AGENT-SOCIAL'::character varying"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        255,
+        "NO",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_social_memory_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_social_memory",
+        "id"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_social_memory",
+        "territory_id"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_social_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_social_memory",
+        "version"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_social_memory",
+        "territory_id"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_social_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_social_memory",
+        "version"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "version",
+        "agent_social_memory",
+        "territory_id"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "version",
+        "agent_social_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_social_analysis",
+        "UNIQUE",
+        "version",
+        "agent_social_memory",
+        "version"
+      ],
+      [
+        "agent_social_memory_superseded_by_fkey",
+        "FOREIGN KEY",
+        "superseded_by",
+        "agent_social_memory",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_social_memory_pkey",
+        "CREATE UNIQUE INDEX agent_social_memory_pkey ON public.agent_social_memory USING btree (id)"
+      ],
+      [
+        "unique_social_analysis",
+        "CREATE UNIQUE INDEX unique_social_analysis ON public.agent_social_memory USING btree (territory_id, analysis_date, version)"
+      ],
+      [
+        "idx_social_memory_embedding",
+        "CREATE INDEX idx_social_memory_embedding ON public.agent_social_memory USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "idx_social_memory_territory",
+        "CREATE INDEX idx_social_memory_territory ON public.agent_social_memory USING btree (territory_id)"
+      ],
+      [
+        "idx_social_memory_date",
+        "CREATE INDEX idx_social_memory_date ON public.agent_social_memory USING btree (analysis_date DESC)"
+      ],
+      [
+        "idx_social_memory_metadata",
+        "CREATE INDEX idx_social_memory_metadata ON public.agent_social_memory USING gin (metadata)"
+      ],
+      [
+        "idx_social_memory_latest",
+        "CREATE INDEX idx_social_memory_latest ON public.agent_social_memory USING btree (is_latest) WHERE (is_latest = true)"
+      ],
+      [
+        "idx_agent_social_memory_agent_id",
+        "CREATE INDEX idx_agent_social_memory_agent_id ON public.agent_social_memory USING btree (agent_id)"
+      ],
+      [
+        "idx_agent_social_memory_agent_territory",
+        "CREATE INDEX idx_agent_social_memory_agent_territory ON public.agent_social_memory USING btree (agent_id, territory_id)"
+      ],
+      [
+        "idx_agent_social_memory_agent_date",
+        "CREATE INDEX idx_agent_social_memory_agent_date ON public.agent_social_memory USING btree (agent_id, analysis_date DESC)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_terra_learning": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "title",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "territories_analyzed",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "applicable_to",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "examples",
+        "jsonb",
+        null,
+        "YES",
+        "'[]'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "YES",
+        "0"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_terra_learning_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_terra_learning",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_terra_learning_pkey",
+        "CREATE UNIQUE INDEX agent_terra_learning_pkey ON public.agent_terra_learning USING btree (id)"
+      ],
+      [
+        "idx_terra_learning_embedding",
+        "CREATE INDEX idx_terra_learning_embedding ON public.agent_terra_learning USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='50')"
+      ],
+      [
+        "idx_terra_learning_type",
+        "CREATE INDEX idx_terra_learning_type ON public.agent_terra_learning USING btree (learning_type)"
+      ],
+      [
+        "idx_terra_learning_active",
+        "CREATE INDEX idx_terra_learning_active ON public.agent_terra_learning USING btree (is_active) WHERE (is_active = true)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "agent_terra_learning_evolution": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "NO",
+        "'terra'::character varying"
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "source_analysis_ids",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "learning_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "NO",
+        "now()"
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "NO",
+        "true"
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "NO",
+        "0"
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_terra_learning_evolution_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_terra_learning_evolution",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_terra_learning_evolution_pkey",
+        "CREATE UNIQUE INDEX agent_terra_learning_evolution_pkey ON public.agent_terra_learning_evolution USING btree (id)"
+      ],
+      [
+        "agent_terra_learning_evolution_agent_id_idx",
+        "CREATE INDEX agent_terra_learning_evolution_agent_id_idx ON public.agent_terra_learning_evolution USING btree (agent_id)"
+      ],
+      [
+        "agent_terra_learning_evolution_learning_type_idx",
+        "CREATE INDEX agent_terra_learning_evolution_learning_type_idx ON public.agent_terra_learning_evolution USING btree (learning_type)"
+      ],
+      [
+        "agent_terra_learning_evolution_confidence_score_idx",
+        "CREATE INDEX agent_terra_learning_evolution_confidence_score_idx ON public.agent_terra_learning_evolution USING btree (confidence_score DESC)"
+      ],
+      [
+        "agent_terra_learning_evolution_created_at_idx",
+        "CREATE INDEX agent_terra_learning_evolution_created_at_idx ON public.agent_terra_learning_evolution USING btree (created_at DESC)"
+      ],
+      [
+        "agent_terra_learning_evolution_is_active_idx",
+        "CREATE INDEX agent_terra_learning_evolution_is_active_idx ON public.agent_terra_learning_evolution USING btree (is_active) WHERE (is_active = true)"
+      ],
+      [
+        "agent_terra_learning_evolution_embedding_vector_idx",
+        "CREATE INDEX agent_terra_learning_evolution_embedding_vector_idx ON public.agent_terra_learning_evolution USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "agent_terra_learning_evolution_metadata_idx",
+        "CREATE INDEX agent_terra_learning_evolution_metadata_idx ON public.agent_terra_learning_evolution USING gin (metadata)"
+      ]
+    ],
+    "record_count": 1
+  },
+  "agent_terra_memory": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "analysis_content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "analysis_summary",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "NO",
+        "'{}'::jsonb"
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "user_feedback",
+        "jsonb",
+        null,
+        "YES",
+        "'{}'::jsonb"
+      ],
+      [
+        "iterations",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "analysis_date",
+        "date",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "time_range",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "data_sources",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicators_used",
+        "jsonb",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "version",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "is_latest",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ],
+      [
+        "superseded_by",
+        "uuid",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "updated_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "generated_by",
+        "character varying",
+        100,
+        "YES",
+        "'WF-AGENT-TERRA'::character varying"
+      ],
+      [
+        "agent_id",
+        "character varying",
+        255,
+        "NO",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "agent_terra_memory_pkey",
+        "PRIMARY KEY",
+        "id",
+        "agent_terra_memory",
+        "id"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_terra_memory",
+        "territory_id"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_terra_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "territory_id",
+        "agent_terra_memory",
+        "version"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_terra_memory",
+        "territory_id"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_terra_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "analysis_date",
+        "agent_terra_memory",
+        "version"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "version",
+        "agent_terra_memory",
+        "territory_id"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "version",
+        "agent_terra_memory",
+        "analysis_date"
+      ],
+      [
+        "unique_terra_analysis",
+        "UNIQUE",
+        "version",
+        "agent_terra_memory",
+        "version"
+      ],
+      [
+        "agent_terra_memory_superseded_by_fkey",
+        "FOREIGN KEY",
+        "superseded_by",
+        "agent_terra_memory",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "agent_terra_memory_pkey",
+        "CREATE UNIQUE INDEX agent_terra_memory_pkey ON public.agent_terra_memory USING btree (id)"
+      ],
+      [
+        "unique_terra_analysis",
+        "CREATE UNIQUE INDEX unique_terra_analysis ON public.agent_terra_memory USING btree (territory_id, analysis_date, version)"
+      ],
+      [
+        "idx_terra_memory_embedding",
+        "CREATE INDEX idx_terra_memory_embedding ON public.agent_terra_memory USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ],
+      [
+        "idx_terra_memory_territory",
+        "CREATE INDEX idx_terra_memory_territory ON public.agent_terra_memory USING btree (territory_id)"
+      ],
+      [
+        "idx_terra_memory_date",
+        "CREATE INDEX idx_terra_memory_date ON public.agent_terra_memory USING btree (analysis_date DESC)"
+      ],
+      [
+        "idx_terra_memory_metadata",
+        "CREATE INDEX idx_terra_memory_metadata ON public.agent_terra_memory USING gin (metadata)"
+      ],
+      [
+        "idx_terra_memory_latest",
+        "CREATE INDEX idx_terra_memory_latest ON public.agent_terra_memory USING btree (is_latest) WHERE (is_latest = true)"
+      ],
+      [
+        "idx_agent_terra_memory_agent_id",
+        "CREATE INDEX idx_agent_terra_memory_agent_id ON public.agent_terra_memory USING btree (agent_id)"
+      ],
+      [
+        "idx_agent_terra_memory_agent_territory",
+        "CREATE INDEX idx_agent_terra_memory_agent_territory ON public.agent_terra_memory USING btree (agent_id, territory_id)"
+      ],
+      [
+        "idx_agent_terra_memory_agent_date",
+        "CREATE INDEX idx_agent_terra_memory_agent_date ON public.agent_terra_memory USING btree (agent_id, analysis_date DESC)"
+      ]
+    ],
+    "record_count": 0
+  },
+  "all_learning_evolution": {
+    "columns": [
+      [
+        "agent",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "id",
+        "uuid",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "YES",
+        null
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "YES",
+        null
+      ],
+      [
+        "source_analysis_ids",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "learning_content",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "is_active",
+        "boolean",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "times_applied",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "last_applied",
+        "timestamp without time zone",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [],
+    "indexes": [],
+    "record_count": 7
+  },
+  "audit_trail": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "event_id",
+        "character varying",
+        100,
+        "NO",
+        null
+      ],
+      [
+        "event_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "event_category",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "agent_id",
+        "character varying",
+        50,
+        "YES",
+        null
+      ],
+      [
+        "territory_id",
+        "character varying",
+        20,
+        "YES",
+        null
+      ],
+      [
+        "user_id",
+        "character varying",
+        100,
+        "YES",
+        null
+      ],
+      [
+        "action",
+        "character varying",
+        100,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "input_data",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "output_data",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "parent_event_id",
+        "character varying",
+        100,
+        "YES",
+        null
+      ],
+      [
+        "root_event_id",
+        "character varying",
+        100,
+        "YES",
+        null
+      ],
+      [
+        "duration_ms",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "tokens_used",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "cost_usd",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "status",
+        "character varying",
+        20,
+        "NO",
+        "'success'::character varying"
+      ],
+      [
+        "error_message",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp with time zone",
+        null,
+        "YES",
+        "CURRENT_TIMESTAMP"
+      ]
+    ],
+    "constraints": [
+      [
+        "audit_trail_pkey",
+        "PRIMARY KEY",
+        "id",
+        "audit_trail",
+        "id"
+      ],
+      [
+        "audit_trail_event_id_key",
+        "UNIQUE",
+        "event_id",
+        "audit_trail",
+        "event_id"
+      ],
+      [
+        "fk_parent_event",
+        "FOREIGN KEY",
+        "parent_event_id",
+        "audit_trail",
+        "event_id"
+      ]
+    ],
+    "indexes": [
+      [
+        "audit_trail_pkey",
+        "CREATE UNIQUE INDEX audit_trail_pkey ON public.audit_trail USING btree (id)"
+      ],
+      [
+        "audit_trail_event_id_key",
+        "CREATE UNIQUE INDEX audit_trail_event_id_key ON public.audit_trail USING btree (event_id)"
+      ],
+      [
+        "idx_audit_trail_event_type",
+        "CREATE INDEX idx_audit_trail_event_type ON public.audit_trail USING btree (event_type)"
+      ],
+      [
+        "idx_audit_trail_event_category",
+        "CREATE INDEX idx_audit_trail_event_category ON public.audit_trail USING btree (event_category)"
+      ],
+      [
+        "idx_audit_trail_agent_id",
+        "CREATE INDEX idx_audit_trail_agent_id ON public.audit_trail USING btree (agent_id)"
+      ],
+      [
+        "idx_audit_trail_territory_id",
+        "CREATE INDEX idx_audit_trail_territory_id ON public.audit_trail USING btree (territory_id)"
+      ],
+      [
+        "idx_audit_trail_user_id",
+        "CREATE INDEX idx_audit_trail_user_id ON public.audit_trail USING btree (user_id)"
+      ],
+      [
+        "idx_audit_trail_status",
+        "CREATE INDEX idx_audit_trail_status ON public.audit_trail USING btree (status)"
+      ],
+      [
+        "idx_audit_trail_created_at",
+        "CREATE INDEX idx_audit_trail_created_at ON public.audit_trail USING btree (created_at DESC)"
+      ],
+      [
+        "idx_audit_trail_parent_event_id",
+        "CREATE INDEX idx_audit_trail_parent_event_id ON public.audit_trail USING btree (parent_event_id)"
+      ],
+      [
+        "idx_audit_trail_root_event_id",
+        "CREATE INDEX idx_audit_trail_root_event_id ON public.audit_trail USING btree (root_event_id)"
+      ],
+      [
+        "idx_audit_trail_metadata_gin",
+        "CREATE INDEX idx_audit_trail_metadata_gin ON public.audit_trail USING gin (metadata)"
+      ],
+      [
+        "idx_audit_trail_input_data_gin",
+        "CREATE INDEX idx_audit_trail_input_data_gin ON public.audit_trail USING gin (input_data)"
+      ],
+      [
+        "idx_audit_trail_output_data_gin",
+        "CREATE INDEX idx_audit_trail_output_data_gin ON public.audit_trail USING gin (output_data)"
+      ]
+    ],
+    "record_count": 93
+  },
+  "economic_indicators": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "year",
+        "integer",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "gdp",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "gdp_per_capita",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "employment_rate",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "revenue",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "sector_distribution",
+        "json",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "gdp_current_prices",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "total_wage_mass",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "active_companies_count",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "municipal_tax_revenue",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "source",
+        "character varying",
+        255,
+        "YES",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "economic_indicators_pkey",
+        "PRIMARY KEY",
+        "id",
+        "economic_indicators",
+        "id"
+      ],
+      [
+        "economic_indicators_territory_id_territories_id_fk",
+        "FOREIGN KEY",
+        "territory_id",
+        "territories",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "economic_indicators_pkey",
+        "CREATE UNIQUE INDEX economic_indicators_pkey ON public.economic_indicators USING btree (id)"
+      ]
+    ],
+    "record_count": 700
+  },
+  "environmental_indicators": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "year",
+        "integer",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "vegetation_coverage",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "deforested_area",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "water_quality",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "co2_emissions",
+        "real",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "environmental_indicators_pkey",
+        "PRIMARY KEY",
+        "id",
+        "environmental_indicators",
+        "id"
+      ],
+      [
+        "environmental_indicators_territory_id_territories_id_fk",
+        "FOREIGN KEY",
+        "territory_id",
+        "territories",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "environmental_indicators_pkey",
+        "CREATE UNIQUE INDEX environmental_indicators_pkey ON public.environmental_indicators USING btree (id)"
+      ]
+    ],
+    "record_count": 1400
+  },
+  "geography_columns": {
+    "columns": [
+      [
+        "f_table_catalog",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "f_table_schema",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "f_table_name",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "f_geography_column",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "coord_dimension",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "srid",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "type",
+        "text",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [],
+    "indexes": [],
+    "record_count": 1
+  },
+  "geometry_columns": {
+    "columns": [
+      [
+        "f_table_catalog",
+        "character varying",
+        256,
+        "YES",
+        null
+      ],
+      [
+        "f_table_schema",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "f_table_name",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "f_geometry_column",
+        "name",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "coord_dimension",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "srid",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "type",
+        "character varying",
+        30,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [],
+    "indexes": [],
+    "record_count": 0
+  },
+  "indicator_metadata": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "dimension",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicator_key",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "indicator_name",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "description",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "unit",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "interpretation_guide",
+        "text",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "indicator_metadata_pkey",
+        "PRIMARY KEY",
+        "id",
+        "indicator_metadata",
+        "id"
+      ],
+      [
+        "indicator_metadata_indicator_key_key",
+        "UNIQUE",
+        "indicator_key",
+        "indicator_metadata",
+        "indicator_key"
+      ]
+    ],
+    "indexes": [
+      [
+        "indicator_metadata_pkey",
+        "CREATE UNIQUE INDEX indicator_metadata_pkey ON public.indicator_metadata USING btree (id)"
+      ],
+      [
+        "indicator_metadata_indicator_key_key",
+        "CREATE UNIQUE INDEX indicator_metadata_indicator_key_key ON public.indicator_metadata USING btree (indicator_key)"
+      ]
+    ],
+    "record_count": 35
+  },
+  "knowledge_base": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "dimension",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "content",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "embedding",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "embedding_vector",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "analysis_type",
+        "character varying",
+        50,
+        "YES",
+        "'diagnostic'::character varying"
+      ],
+      [
+        "summary",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "version",
+        "integer",
+        null,
+        "YES",
+        "1"
+      ],
+      [
+        "is_latest",
+        "boolean",
+        null,
+        "YES",
+        "true"
+      ],
+      [
+        "confidence_score",
+        "numeric",
+        null,
+        "YES",
+        "0.80"
+      ],
+      [
+        "sources",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "created_at",
+        "timestamp with time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "updated_at",
+        "timestamp with time zone",
+        null,
+        "YES",
+        "now()"
+      ],
+      [
+        "generated_by",
+        "character varying",
+        100,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "knowledge_base_pkey",
+        "PRIMARY KEY",
+        "id",
+        "knowledge_base",
+        "id"
+      ],
+      [
+        "knowledge_base_territory_id_territories_id_fk",
+        "FOREIGN KEY",
+        "territory_id",
+        "territories",
+        "id"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "territory_id",
+        "knowledge_base",
+        "territory_id"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "territory_id",
+        "knowledge_base",
+        "dimension"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "territory_id",
+        "knowledge_base",
+        "analysis_type"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "territory_id",
+        "knowledge_base",
+        "version"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "dimension",
+        "knowledge_base",
+        "territory_id"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "dimension",
+        "knowledge_base",
+        "dimension"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "dimension",
+        "knowledge_base",
+        "analysis_type"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "dimension",
+        "knowledge_base",
+        "version"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "analysis_type",
+        "knowledge_base",
+        "territory_id"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "analysis_type",
+        "knowledge_base",
+        "dimension"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "analysis_type",
+        "knowledge_base",
+        "analysis_type"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "analysis_type",
+        "knowledge_base",
+        "version"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "version",
+        "knowledge_base",
+        "territory_id"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "version",
+        "knowledge_base",
+        "dimension"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "version",
+        "knowledge_base",
+        "analysis_type"
+      ],
+      [
+        "unique_kb_analysis",
+        "UNIQUE",
+        "version",
+        "knowledge_base",
+        "version"
+      ]
+    ],
+    "indexes": [
+      [
+        "knowledge_base_pkey",
+        "CREATE UNIQUE INDEX knowledge_base_pkey ON public.knowledge_base USING btree (id)"
+      ],
+      [
+        "idx_kb_territory_dimension",
+        "CREATE INDEX idx_kb_territory_dimension ON public.knowledge_base USING btree (territory_id, dimension)"
+      ],
+      [
+        "unique_kb_analysis",
+        "CREATE UNIQUE INDEX unique_kb_analysis ON public.knowledge_base USING btree (territory_id, dimension, analysis_type, version)"
+      ],
+      [
+        "idx_kb_latest",
+        "CREATE INDEX idx_kb_latest ON public.knowledge_base USING btree (is_latest) WHERE (is_latest = true)"
+      ],
+      [
+        "idx_kb_metadata",
+        "CREATE INDEX idx_kb_metadata ON public.knowledge_base USING gin (metadata jsonb_path_ops)"
+      ],
+      [
+        "idx_kb_embedding_vector",
+        "CREATE INDEX idx_kb_embedding_vector ON public.knowledge_base USING ivfflat (embedding_vector vector_cosine_ops) WITH (lists='100')"
+      ]
+    ],
+    "record_count": 4
+  },
+  "social_indicators": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "year",
+        "integer",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "idhm",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "population",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "literacy_rate",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "income_per_capita",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "education_metrics",
+        "json",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "health_metrics",
+        "json",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "social_indicators_pkey",
+        "PRIMARY KEY",
+        "id",
+        "social_indicators",
+        "id"
+      ],
+      [
+        "social_indicators_territory_id_territories_id_fk",
+        "FOREIGN KEY",
+        "territory_id",
+        "territories",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "social_indicators_pkey",
+        "CREATE UNIQUE INDEX social_indicators_pkey ON public.social_indicators USING btree (id)"
+      ]
+    ],
+    "record_count": 1114
+  },
+  "spatial_ref_sys": {
+    "columns": [
+      [
+        "srid",
+        "integer",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "auth_name",
+        "character varying",
+        256,
+        "YES",
+        null
+      ],
+      [
+        "auth_srid",
+        "integer",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "srtext",
+        "character varying",
+        2048,
+        "YES",
+        null
+      ],
+      [
+        "proj4text",
+        "character varying",
+        2048,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "spatial_ref_sys_pkey",
+        "PRIMARY KEY",
+        "srid",
+        null,
+        null
+      ]
+    ],
+    "indexes": [
+      [
+        "spatial_ref_sys_pkey",
+        "CREATE UNIQUE INDEX spatial_ref_sys_pkey ON public.spatial_ref_sys USING btree (srid)"
+      ]
+    ],
+    "record_count": 8500
+  },
+  "spatial_relations": {
+    "columns": [
+      [
+        "id",
+        "uuid",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id_a",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "territory_id_b",
+        "character varying",
+        20,
+        "NO",
+        null
+      ],
+      [
+        "relation_type",
+        "character varying",
+        50,
+        "NO",
+        null
+      ],
+      [
+        "distance_km",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "shared_border_length_km",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "metadata",
+        "jsonb",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "computed_at",
+        "timestamp with time zone",
+        null,
+        "YES",
+        "CURRENT_TIMESTAMP"
+      ],
+      [
+        "updated_at",
+        "timestamp with time zone",
+        null,
+        "YES",
+        "CURRENT_TIMESTAMP"
+      ]
+    ],
+    "constraints": [
+      [
+        "spatial_relations_pkey",
+        "PRIMARY KEY",
+        "id",
+        "spatial_relations",
+        "id"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_a",
+        "spatial_relations",
+        "territory_id_a"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_a",
+        "spatial_relations",
+        "territory_id_b"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_a",
+        "spatial_relations",
+        "relation_type"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_b",
+        "spatial_relations",
+        "territory_id_a"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_b",
+        "spatial_relations",
+        "territory_id_b"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "territory_id_b",
+        "spatial_relations",
+        "relation_type"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "relation_type",
+        "spatial_relations",
+        "territory_id_a"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "relation_type",
+        "spatial_relations",
+        "territory_id_b"
+      ],
+      [
+        "unique_spatial_relation",
+        "UNIQUE",
+        "relation_type",
+        "spatial_relations",
+        "relation_type"
+      ]
+    ],
+    "indexes": [
+      [
+        "spatial_relations_pkey",
+        "CREATE UNIQUE INDEX spatial_relations_pkey ON public.spatial_relations USING btree (id)"
+      ],
+      [
+        "unique_spatial_relation",
+        "CREATE UNIQUE INDEX unique_spatial_relation ON public.spatial_relations USING btree (territory_id_a, territory_id_b, relation_type)"
+      ],
+      [
+        "idx_spatial_relations_territory_a",
+        "CREATE INDEX idx_spatial_relations_territory_a ON public.spatial_relations USING btree (territory_id_a)"
+      ],
+      [
+        "idx_spatial_relations_territory_b",
+        "CREATE INDEX idx_spatial_relations_territory_b ON public.spatial_relations USING btree (territory_id_b)"
+      ],
+      [
+        "idx_spatial_relations_type",
+        "CREATE INDEX idx_spatial_relations_type ON public.spatial_relations USING btree (relation_type)"
+      ],
+      [
+        "idx_spatial_relations_distance",
+        "CREATE INDEX idx_spatial_relations_distance ON public.spatial_relations USING btree (distance_km)"
+      ],
+      [
+        "idx_spatial_relations_metadata_gin",
+        "CREATE INDEX idx_spatial_relations_metadata_gin ON public.spatial_relations USING gin (metadata)"
+      ],
+      [
+        "idx_spatial_relations_neighbor_lookup",
+        "CREATE INDEX idx_spatial_relations_neighbor_lookup ON public.spatial_relations USING btree (territory_id_a, relation_type) WHERE ((relation_type)::text = 'neighbor'::text)"
+      ]
+    ],
+    "record_count": 190
+  },
+  "territorial_indicators": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "territory_id",
+        "character varying",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "year",
+        "integer",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "urbanized_area",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "density",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "sanitation_coverage",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "land_use",
+        "json",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "territorial_indicators_pkey",
+        "PRIMARY KEY",
+        "id",
+        "territorial_indicators",
+        "id"
+      ],
+      [
+        "territorial_indicators_territory_id_territories_id_fk",
+        "FOREIGN KEY",
+        "territory_id",
+        "territories",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "territorial_indicators_pkey",
+        "CREATE UNIQUE INDEX territorial_indicators_pkey ON public.territorial_indicators USING btree (id)"
+      ]
+    ],
+    "record_count": 700
+  },
+  "territories": {
+    "columns": [
+      [
+        "id",
+        "character varying",
+        null,
+        "NO",
+        "gen_random_uuid()"
+      ],
+      [
+        "name",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "type",
+        "text",
+        null,
+        "NO",
+        null
+      ],
+      [
+        "parent_id",
+        "character varying",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "area",
+        "real",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "metadata",
+        "json",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "coordinates",
+        "USER-DEFINED",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [
+      [
+        "territories_pkey",
+        "PRIMARY KEY",
+        "id",
+        "territories",
+        "id"
+      ]
+    ],
+    "indexes": [
+      [
+        "territories_pkey",
+        "CREATE UNIQUE INDEX territories_pkey ON public.territories USING btree (id)"
+      ],
+      [
+        "idx_territories_coordinates",
+        "CREATE INDEX idx_territories_coordinates ON public.territories USING gist (coordinates)"
+      ]
+    ],
+    "record_count": 140
+  },
+  "v_agent_learning_stats": {
+    "columns": [
+      [
+        "agent",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "learning_type",
+        "character varying",
+        50,
+        "YES",
+        null
+      ],
+      [
+        "total_learnings",
+        "bigint",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "avg_confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "total_applications",
+        "bigint",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [],
+    "indexes": [],
+    "record_count": 0
+  },
+  "v_agent_memory_stats": {
+    "columns": [
+      [
+        "agent",
+        "text",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "total_analyses",
+        "bigint",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "territories_analyzed",
+        "bigint",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "avg_confidence",
+        "numeric",
+        null,
+        "YES",
+        null
+      ],
+      [
+        "last_analysis_date",
+        "date",
+        null,
+        "YES",
+        null
+      ]
+    ],
+    "constraints": [],
+    "indexes": [],
+    "record_count": 4
+  }
+}

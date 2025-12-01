@@ -62,7 +62,7 @@
 | [Modelo Conceitual RAG Evolutivo v3.0](sessao6/modelo_conceitual_RAG_evolutivo_v3.md) | **NOVO:** Arquitetura RAG Evolutiva de 3 Camadas |
 | [Plano de Implementação MVP](sessao6/plano_implementacao_mvp.md) | **NOVO:** Roadmap de 6 semanas para implementação |
 | [ARQUITETURA_RAG_INTEGRADO_FRAMEWORK_V6.md](02-mvp/architecture/ARQUITETURA_RAG_INTEGRADO_FRAMEWORK_V6.md) | Arquitetura RAG completa |
-| [DOCUMENTACAO_SCHEMA_40_TABELAS.md](02-mvp/architecture/DOCUMENTACAO_SCHEMA_40_TABELAS.md) | Schema de 40 tabelas |
+| [SCHEMA_COMPLETO_27_TABELAS.md](arquitetura/SCHEMA_COMPLETO_27_TABELAS.md) | Schema de 40 tabelas |
 | [SINTESE_4_DIMENSOES_ESTRUTURA_RAG_FINAL.md](02-mvp/architecture/SINTESE_4_DIMENSOES_ESTRUTURA_RAG_FINAL.md) | Síntese das 4 dimensões |
 
 #### **Guias de Implementação**
