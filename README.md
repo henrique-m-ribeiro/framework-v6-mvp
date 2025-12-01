@@ -61,7 +61,7 @@ O **Framework de Inteligência Territorial V6.0** (também conhecido como "Frame
 - 💼 Plataforma SaaS escalável
 - 🚀 Expansão internacional
 
-📖 **Leia mais:** [MVP vs. Produto Completo](docs/00-overview/MVP_VS_FULL.md)
+📖 **Leia mais:** [MVP vs. Produto Completo](docs/00-overview/MVP_VS_FULL.md) | [Roadmap de Tipos de Análise](docs/roadmap/DESENVOLVIMENTO_FUTURO_TIPOS_ANALISE.md)
 
 ---
 

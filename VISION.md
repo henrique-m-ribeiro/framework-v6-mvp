@@ -255,6 +255,9 @@ Democratizar o acesso à inteligência territorial avançada, fornecendo aos ges
 - Tempo médio de análise < 30 segundos
 - Custo por análise < R$ 0,05
 
+**Desenvolvimentos Futuros Planejados:**
+- 📋 [Tipos de Análise Diferenciados](docs/roadmap/DESENVOLVIMENTO_FUTURO_TIPOS_ANALISE.md) - Quick, Focused, Comparative
+
 ---
 
 ### Fase 2: Expansão Regional - Norte/Centro-Oeste (Meses 7-12)

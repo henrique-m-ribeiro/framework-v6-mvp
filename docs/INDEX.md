@@ -140,6 +140,14 @@
 
 ---
 
+### **08. Roadmap e Desenvolvimento Futuro**
+
+| Documento | Descrição | Status |
+|-----------|-----------|--------|
+| [DESENVOLVIMENTO_FUTURO_TIPOS_ANALISE.md](roadmap/DESENVOLVIMENTO_FUTURO_TIPOS_ANALISE.md) | **NOVO:** Tipos de análise diferenciados (Quick, Focused, Comparative) | 📋 Planejamento |
+
+---
+
 ## 🗂️ ESTRUTURA DO REPOSITÓRIO
 
 ```
