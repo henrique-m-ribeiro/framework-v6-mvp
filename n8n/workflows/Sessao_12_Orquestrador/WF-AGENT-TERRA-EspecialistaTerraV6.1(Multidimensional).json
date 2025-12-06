@@ -1,0 +1,434 @@
+{
+  "name": "WF-AGENT-TERRA - Especialista Terra V6.1 (Multidimensional)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-terra",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "0750b8a6-7a26-4393-b671-1fff820003c7",
+      "name": "Webhook - Recebe Tarefa",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1344,
+        160
+      ],
+      "webhookId": "agent-econ-webhook",
+      "notes": "FUNÇÃO: Ponto de entrada do Agente ECON.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2 (versão mais recente)\n- Adicionado: ignoreBots: true (ignora bots e crawlers)\n- Mantido: CORS permitido (*) para testes\n\nRECEBE: Requisição HTTP POST do Orquestrador com:\n- task_id: ID único da tarefa\n- territory_id: ID do território a analisar\n- territory_name: Nome do território\n- dimension: 'economic'\n- task_description: Descrição da análise solicitada\n- context: Contexto adicional (comparações, período, etc.)\n\nEXEMPLO DE PAYLOAD:\n{\n  \"task_id\": \"uuid-12345\",\n  \"territory_id\": 1,\n  \"territory_name\": \"Palmas\",\n  \"dimension\": \"economic\",\n  \"task_description\": \"Analisar evolução econômica de Palmas (2019-2023)\",\n  \"context\": {\n    \"user_question\": \"Como está a economia de Palmas?\",\n    \"comparison_territories\": [],\n    \"time_range\": \"2019-2023\"\n  }\n}\n\nCONFIGURAÇÕES:\n- Método: POST (para receber dados)\n- Path: /agent-econ (URL será https://galactic-ai.app.n8n.cloud/webhook/agent-econ)\n- Response Mode: responseNode (resposta será enviada por nó específico)\n- CORS: Permitido de qualquer origem (para testes)\n- Ignore Bots: true (reduz ruído de crawlers)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: NORMALIZAR ENTRADA\n// Framework de Inteligência Territorial V6.0 - Workflow V5\n// ============================================================================\n// FUNÇÃO: Validar e normalizar o payload recebido do webhook\n// INPUT: Webhook (body)\n// OUTPUT: Objeto normalizado com valores padrão para campos opcionais\n// ============================================================================\n\n// Receber dados do webhook\nconst webhookData = $input.first().json.body || {};\n\n// ============================================================================\n// VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS\n// ============================================================================\n\nconst requiredFields = ['agent_id', 'territory_id', 'analysis_type'];\nconst missingFields = [];\n\nfor (const field of requiredFields) {\n  if (!webhookData[field]) {\n    missingFields.push(field);\n  }\n}\n\n// Se houver campos obrigatórios faltando, retornar erro\nif (missingFields.length > 0) {\n  throw new Error(`Campos obrigatórios ausentes: ${missingFields.join(', ')}`);\n}\n\n// ============================================================================\n// NORMALIZAÇÃO DE CAMPOS OPCIONAIS\n// ============================================================================\n\n// Campos simples com valores padrão\nconst territory_name = webhookData.territory_name || \"Território Desconhecido\";\nconst user_id = webhookData.user_id || \"system\";\n\n// Objeto parameters com valores padrão\nconst parameters = webhookData.parameters || {};\nconst time_period = parameters.time_period || \"2019-2023\";\nconst focus_areas = parameters.focus_areas || [\"PIB\", \"emprego\", \"renda\"];\nconst detail_level = parameters.detail_level || \"comprehensive\";\n\n// ============================================================================\n// MONTAGEM DO OBJETO NORMALIZADO\n// ============================================================================\n\nconst normalizedData = {\n  // Campos obrigatórios (já validados)\n  agent_id: webhookData.agent_id,\n  territory_id: webhookData.territory_id,\n  analysis_type: webhookData.analysis_type,\n  \n  // Campos opcionais (com valores padrão)\n  territory_name: territory_name,\n  user_id: user_id,\n  \n  // Objeto parameters normalizado\n  parameters: {\n    time_period: time_period,\n    focus_areas: focus_areas,\n    detail_level: detail_level\n  },\n  \n  // Metadados de normalização\n  _normalized: {\n    timestamp: new Date().toISOString(),\n    fields_added: [],\n    original_payload: webhookData\n  }\n};\n\n// Registrar quais campos foram adicionados\nif (!webhookData.territory_name) normalizedData._normalized.fields_added.push('territory_name');\nif (!webhookData.user_id) normalizedData._normalized.fields_added.push('user_id');\nif (!webhookData.parameters) normalizedData._normalized.fields_added.push('parameters');\nif (!parameters.time_period) normalizedData._normalized.fields_added.push('parameters.time_period');\nif (!parameters.focus_areas) normalizedData._normalized.fields_added.push('parameters.focus_areas');\nif (!parameters.detail_level) normalizedData._normalized.fields_added.push('parameters.detail_level');\n\n// ============================================================================\n// RETORNO\n// ============================================================================\n\nreturn {\n  json: normalizedData\n};\n"
+      },
+      "id": "22bf9c8d-7569-4da8-8912-a6625d27600f",
+      "name": "Normalizar Entrada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        160
+      ],
+      "notes": "FUNÇÃO: Validar e normalizar o payload recebido do webhook.\n\nO QUE FAZ:\n1. Valida campos obrigatórios (agent_id, territory_id, analysis_type)\n2. Adiciona valores padrão para campos opcionais\n3. Normaliza o objeto parameters\n4. Registra quais campos foram adicionados\n\nBENEFÍCIOS:\n- Garante que todos os nós seguintes recebam dados consistentes\n- Elimina erros de 'undefined' em nós posteriores\n- Centraliza a lógica de validação\n- Facilita debugging (registra campos adicionados)"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ============================================================================\n-- NÓ: CONSULTAR MEMÓRIA E APRENDIZADOS (V3 - FINAL CORRIGIDO)\n-- Framework de Inteligência Territorial V6.0 - Workflow V6.1\n-- ============================================================================\n-- FUNÇÃO: Consultar as 4 Camadas do RAG Evolutivo\n-- INPUT: territory_id do webhook normalizado\n-- OUTPUT: Análises anteriores, aprendizados, expertise atual\n-- CORREÇÃO V3: Usa apenas colunas REAIS de get_agent_expertise()\n-- ============================================================================\n\nWITH \n-- CAMADA 1: MEMÓRIA ESPECIALIZADA (Análises Anteriores)\n-- Busca as últimas 5 análises NÃO ARQUIVADAS do mesmo território\nmemory_layer AS (\n  SELECT \n    'memory' AS source_layer,\n    id::TEXT AS record_id,\n    analysis_content,\n    analysis_summary,\n    confidence_score,\n    created_at,\n    metadata::TEXT AS metadata_text,\n    time_range::TEXT AS time_range_text,\n    indicators_used::TEXT AS indicators_used_text\n  FROM agent_terra_memory\n  WHERE territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n    AND is_latest = true\n  ORDER BY created_at DESC\n  LIMIT 5\n),\n\n-- CAMADA 2: APRENDIZADO EVOLUTIVO (Sínteses e Padrões)\n-- Busca os últimos 10 aprendizados do agente ECON\nlearning_layer AS (\n  SELECT \n    'learning' AS source_layer,\n    id::TEXT AS record_id,\n    learning_content AS analysis_content,\n    'Aprendizado acumulado' AS analysis_summary,\n    confidence_score,\n    created_at,\n    NULL AS metadata_text,\n    NULL AS time_range_text,\n    NULL AS indicators_used_text\n  FROM agent_terra_learning_evolution\n  WHERE agent_id = 'terra'\n  ORDER BY created_at DESC\n  LIMIT 10\n),\n\n-- CAMADA 4: EXPERTISE DINÂMICA (Nível Atual)\n-- Busca o nível de expertise atual do agente\n-- CORREÇÃO: Usa apenas colunas REAIS (agent_id, learning_count, expertise_level, expertise_value)\nexpertise_layer AS (\n  SELECT \n    'expertise' AS source_layer,\n    'expertise_current' AS record_id,\n    expertise_level || ' (Nível ' || CAST(expertise_value AS TEXT) || ')' AS analysis_content,\n    CAST(learning_count AS TEXT) || ' aprendizados acumulados' AS analysis_summary,\n    CAST(expertise_value AS NUMERIC) / 5.0 AS confidence_score,\n    CURRENT_TIMESTAMP AS created_at,\n    NULL AS metadata_text,\n    NULL AS time_range_text,\n    NULL AS indicators_used_text\n  FROM get_agent_expertise('terra')\n)\n\n-- UNIÃO DAS 3 CAMADAS\nSELECT * FROM memory_layer\nUNION ALL\nSELECT * FROM learning_layer\nUNION ALL\nSELECT * FROM expertise_layer\n\n-- Ordenação final por data (mais recentes primeiro)\nORDER BY created_at DESC;\n\n-- ============================================================================\n-- NOTAS TÉCNICAS\n-- ============================================================================\n-- \n-- 1. CORREÇÕES APLICADAS (V3):\n--    - synthesis → learning_content (agent_terra_learning_evolution)\n--    - archived_at → is_latest (agent_terra_memory)\n--    - analysis_count → learning_count (get_agent_expertise)\n--    - avg_confidence → expertise_value/5.0 (normalizado 0-1)\n--    - last_analysis_date → CURRENT_TIMESTAMP\n--\n-- 2. COLUNAS REAIS DE get_agent_expertise():\n--    - agent_id (VARCHAR)\n--    - learning_count (INTEGER) - contagem de aprendizados\n--    - expertise_level (VARCHAR) - NOVATO, COMPETENTE, PROFICIENTE, AVANCADO, ESPECIALISTA\n--    - expertise_value (INTEGER) - 1, 2, 3, 4, 5\n--\n-- 3. CONVERSÃO DE TIPOS:\n--    - Todos os campos são convertidos para TEXT para garantir compatibilidade\n--    - JSONB → TEXT usando ::TEXT\n--    - INTEGER → TEXT usando CAST() ou ::TEXT\n--    - expertise_value normalizado para 0-1 (dividido por 5.0)\n--\n-- 4. RESULTADO ESPERADO:\n--    - Até 16 registros (5 memórias + 10 aprendizados + 1 expertise)\n--    - Ordenados por data (mais recentes primeiro)\n--    - Identificados pela coluna source_layer\n--\n-- 5. USO NO NÓ \"PREPARAR CONTEXTO PARA LLM\":\n--    - Filtrar por source_layer para separar as camadas\n--    - memory → Análises anteriores do mesmo território\n--    - learning → Aprendizados acumulados do agente\n--    - expertise → Nível atual de expertise (NOVATO, COMPETENTE, etc.)\n-- ============================================================================",
+        "options": {}
+      },
+      "id": "24255f1d-1705-47a2-af7f-260688d369c1",
+      "name": "Consultar Memória e Aprendizados",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [
+        -1024,
+        48
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "FUNÇÃO: Consultar as 4 Camadas do RAG Evolutivo.\n\nCAMADAS CONSULTADAS:\n- Camada 1: Memória Especializada (últimas 5 análises do território)\n- Camada 2: Aprendizado Evolutivo (últimos 10 aprendizados do agente)\n- Camada 4: Expertise Dinâmica (nível atual de expertise)\n\nIMPORTÂNCIA:\n- Permite que o agente APRENDA de suas análises anteriores\n- Evita repetir conclusões já feitas\n- Aprofunda insights superficiais\n- Identifica mudanças ao longo do tempo\n\nSEM ESTE NÓ, O AGENTE NÃO EVOLUI!"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ========================================\n-- CONSULTAR DADOS MULTIDIMENSIONAIS - AGENTE TERRA V1\n-- ========================================\n-- Framework de Inteligência Territorial V6.0\n-- Agente: TERRA (Planejamento Territorial)\n-- Versão: 1.0\n-- Data: 30/11/2025\n-- Sessão: #11\n--\n-- OBJETIVO:\n-- Buscar indicadores territoriais (urbanização, densidade, saneamento, uso do solo)\n-- para análise profunda e contextualizada do território.\n--\n-- CARACTERÍSTICAS:\n-- ✅ Parâmetro n8n: {{ $('Normalizar Entrada').first().json.territory_id }}\n-- ✅ Filtro de ano fixo: 2019-2023\n-- ✅ LEFT JOIN: Garante retorno do território mesmo sem indicadores\n-- ✅ Validado contra schema real do banco Neon\n-- ========================================\n\nWITH \n-- 1. DADOS TERRITORIAIS (FOCO PRINCIPAL)\nterritory_data AS (\n  SELECT \n    t.id AS territory_id,\n    t.name AS territory_name,\n    t.type AS territory_type,\n    t.area AS territory_area_km2,\n    t.metadata AS territory_metadata\n  FROM territories t\n  WHERE t.id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n),\n\n-- 2. INDICADORES TERRITORIAIS (FOCO PRINCIPAL)\nterritorial_indicators_data AS (\n  SELECT \n    ti.territory_id,\n    ti.year,\n    ti.urbanized_area,\n    ti.density,\n    ti.sanitation_coverage,\n    ti.land_use\n  FROM territorial_indicators ti\n  WHERE ti.territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n    AND ti.year >= 2019\n    AND ti.year <= 2023\n  ORDER BY ti.year DESC\n),\n\n-- 3. DADOS SOCIAIS (CONTEXTO - População)\nsocial_data AS (\n  SELECT \n    si.territory_id,\n    si.year AS social_year,\n    si.population,\n    si.idhm,\n    si.literacy_rate,\n    si.income_per_capita\n  FROM social_indicators si\n  WHERE si.territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n    AND si.year >= 2019\n    AND si.year <= 2023\n),\n\n-- 4. DADOS ECONÔMICOS (CONTEXTO)\neconomic_data AS (\n  SELECT \n    ei.territory_id,\n    ei.year AS economic_year,\n    ei.gdp,\n    ei.gdp_per_capita,\n    ei.employment_rate,\n    ei.municipal_tax_revenue,\n    ei.sector_distribution\n  FROM economic_indicators ei\n  WHERE ei.territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n    AND ei.year >= 2019\n    AND ei.year <= 2023\n),\n\n-- 5. DADOS AMBIENTAIS (CONTEXTO)\nenvironmental_data AS (\n  SELECT \n    ei.territory_id,\n    ei.year AS environmental_year,\n    ei.vegetation_coverage,\n    ei.deforested_area,\n    ei.water_quality\n  FROM environmental_indicators ei\n  WHERE ei.territory_id = '{{ $('Normalizar Entrada').first().json.territory_id }}'\n    AND ei.year >= 2019\n    AND ei.year <= 2023\n),\n\n-- 6. CALCULAR VARIAÇÕES ANO A ANO\nterritorial_with_variations AS (\n  SELECT \n    *,\n    -- Variação da área urbanizada\n    urbanized_area - LAG(urbanized_area) OVER (ORDER BY year DESC) AS variacao_area_urbanizada,\n    \n    -- Variação da densidade\n    density - LAG(density) OVER (ORDER BY year DESC) AS variacao_densidade,\n    \n    -- Variação da cobertura de saneamento\n    sanitation_coverage - LAG(sanitation_coverage) OVER (ORDER BY year DESC) AS variacao_saneamento\n  FROM territorial_indicators_data\n)\n\n-- 7. UNIÃO DE TODAS AS DIMENSÕES (FOCO EM TERRITORIAL)\nSELECT \n  -- Identificação do território\n  td.territory_id,\n  td.territory_name,\n  td.territory_type,\n  td.territory_area_km2,\n  \n  -- Ano de referência\n  COALESCE(ti.year, sd.social_year, ed.economic_year, envd.environmental_year) AS year,\n  \n  -- DIMENSÃO TERRITORIAL (PRINCIPAL)\n  ti.urbanized_area,\n  ti.variacao_area_urbanizada,\n  ti.density,\n  ti.variacao_densidade,\n  ti.sanitation_coverage,\n  ti.variacao_saneamento,\n  ti.land_use,\n  \n  -- Cálculos derivados\n  CASE \n    WHEN td.territory_area_km2 > 0 THEN \n      ROUND((ti.urbanized_area / td.territory_area_km2 * 100)::numeric, 2)\n    ELSE NULL\n  END AS percentual_area_urbanizada,\n  \n  -- DIMENSÃO SOCIAL (CONTEXTO - População)\n  sd.population,\n  sd.idhm,\n  sd.literacy_rate,\n  sd.income_per_capita,\n  \n  -- DIMENSÃO ECONÔMICA (CONTEXTO)\n  ed.gdp,\n  ed.gdp_per_capita,\n  ed.employment_rate,\n  ed.municipal_tax_revenue,\n  ed.sector_distribution,\n  \n  -- DIMENSÃO AMBIENTAL (CONTEXTO)\n  envd.vegetation_coverage,\n  envd.deforested_area,\n  envd.water_quality,\n  \n  -- Metadados\n  'multidimensional' AS data_type,\n  'IBGE, INPE, ANA, Prefeituras' AS data_sources\n\nFROM territory_data td\nLEFT JOIN territorial_with_variations ti ON td.territory_id = ti.territory_id\nLEFT JOIN social_data sd ON td.territory_id = sd.territory_id \n  AND ti.year = sd.social_year\nLEFT JOIN economic_data ed ON td.territory_id = ed.territory_id \n  AND ti.year = ed.economic_year\nLEFT JOIN environmental_data envd ON td.territory_id = envd.territory_id\n  AND ti.year = envd.environmental_year\n\nWHERE COALESCE(ti.year, sd.social_year, ed.economic_year, envd.environmental_year) IS NOT NULL\n\nORDER BY year DESC;\n\n-- ========================================\n-- SCHEMA REAL VALIDADO (30/11/2025)\n-- ========================================\n--\n-- TERRITORIAL_INDICATORS:\n--   - id, territory_id, year, urbanized_area, density, sanitation_coverage, land_use (JSON)\n--\n-- TERRITORIES:\n--   - id, name, type, parent_id, area, metadata, coordinates\n--\n-- SOCIAL_INDICATORS:\n--   - id, territory_id, year, idhm, population, literacy_rate, income_per_capita,\n--     education_metrics (JSON), health_metrics (JSON)\n--\n-- ECONOMIC_INDICATORS:\n--   - id, territory_id, year, gdp, gdp_per_capita, employment_rate, revenue,\n--     sector_distribution (JSON), gdp_current_prices, total_wage_mass,\n--     active_companies_count, municipal_tax_revenue, source, metadata\n--\n-- ENVIRONMENTAL_INDICATORS:\n--   - id, territory_id, year, vegetation_coverage, deforested_area,\n--     water_quality, co2_emissions\n--\n-- DADOS DISPONÍVEIS PARA PALMAS (1721000):\n--   - territorial_indicators: 700 registros (múltiplos territórios)\n--   - territories: 140 territórios\n--   - social_indicators: 1114 registros\n--   - economic_indicators: 700 registros\n--   - environmental_indicators: 700 registros\n",
+        "options": {
+          "queryBatching": "transaction"
+        }
+      },
+      "id": "4460cadc-d97d-44fa-8e68-7b2b098a836f",
+      "name": "Consultar Dados PostgreSQL",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1024,
+        288
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "Consulta MULTIDIMENSIONAL expandida que traz:\n- Dados econômicos (PIB, emprego, finanças)\n- Dados sociais (educação, pobreza, saneamento)\n- Dados territoriais (infraestrutura, conectividade)\n- Dados ambientais (uso do solo, clima, desmatamento)\n\nEsta abordagem permite análise econômica contextualizada e profunda."
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// PREPARAR CONTEXTO PARA LLM (V4 - MULTIDIMENSIONAL)\n// Versão: 4.0\n// Data: 30/11/2025\n// Descrição: Integra dados multidimensionais (sociais, sociais,\n//            territoriais, ambientais) + memória RAG para análise profunda\n// ========================================\n\n// Pega os dados normalizados do webhook\nconst normalizedData = $items(\"Normalizar Entrada\")[0].json;\n\n// Pega a memória e aprendizados (Camadas 1, 2, 4 do RAG)\nconst memoryData = $items(\"Consultar Memória e Aprendizados\")[0].json;\n\n// Pega os dados multidimensionais\nconst rawData = $items(\"Consultar Dados PostgreSQL\")[0].json;\n\n// ========================================\n// FUNÇÕES AUXILIARES\n// ========================================\n\nfunction formatCurrency(value) {\n  if (!value) return \"N/A\";\n  return new Intl.NumberFormat('pt-BR', { \n    style: 'currency', \n    currency: 'BRL',\n    minimumFractionDigits: 0,\n    maximumFractionDigits: 0\n  }).format(value * 1000000); // Converte milhões para reais\n}\n\nfunction formatNumber(value, decimals = 0) {\n  if (value === null || value === undefined) return \"N/A\";\n  return new Intl.NumberFormat('pt-BR', {\n    minimumFractionDigits: decimals,\n    maximumFractionDigits: decimals\n  }).format(value);\n}\n\nfunction formatPercent(value, decimals = 1) {\n  if (value === null || value === undefined) return \"N/A\";\n  return `${formatNumber(value, decimals)}%`;\n}\n\n// ========================================\n// PROCESSAR MEMÓRIA RAG\n// ========================================\n\nlet memorySection = \"\";\nlet learningsSection = \"\";\nlet expertiseSection = \"\";\n\nif (memoryData && Array.isArray(memoryData)) {\n  // Separar análises anteriores, aprendizados e expertise\n  const previousAnalyses = memoryData.filter(row => row.analysis_content);\n  const learnings = memoryData.filter(row => row.synthesis);\n  const expertise = memoryData.filter(row => row.expertise_level);\n  \n  // Seção de análises anteriores\n  if (previousAnalyses.length > 0) {\n    memorySection = `\\n## 📚 ANÁLISES ANTERIORES DESTE TERRITÓRIO\\n\\n`;\n    memorySection += `Você já analisou **${normalizedData.territory_name}** ${previousAnalyses.length} vez(es) anteriormente:\\n\\n`;\n    \n    previousAnalyses.forEach((analysis, index) => {\n      const date = new Date(analysis.created_at).toLocaleDateString('pt-BR');\n      memorySection += `### Análise ${index + 1} (${date})\\n`;\n      memorySection += `- **Resumo:** ${analysis.analysis_summary}\\n`;\n      memorySection += `- **Confiança:** ${formatPercent(analysis.confidence_score * 100, 0)}\\n\\n`;\n    });\n    \n    memorySection += `**IMPORTANTE:** Use essas análises anteriores para:\\n`;\n    memorySection += `- Identificar **mudanças e tendências** ao longo do tempo\\n`;\n    memorySection += `- Evitar **repetir as mesmas conclusões**\\n`;\n    memorySection += `- **Aprofundar insights** que foram superficiais antes\\n`;\n    memorySection += `- **Validar ou refutar** hipóteses anteriores\\n\\n`;\n  }\n  \n  // Seção de aprendizados\n  if (learnings.length > 0) {\n    learningsSection = `\\n## 🧠 APRENDIZADOS ACUMULADOS\\n\\n`;\n    learningsSection += `Você acumulou ${learnings.length} aprendizados ao longo de suas análises socials:\\n\\n`;\n    \n    learnings.slice(0, 5).forEach((learning, index) => {\n      learningsSection += `### Aprendizado ${index + 1}\\n`;\n      learningsSection += `${learning.synthesis}\\n\\n`;\n    });\n  }\n  \n  // Seção de expertise\n  if (expertise.length > 0) {\n    const exp = expertise[0];\n    expertiseSection = `\\n## 🎯 SEU NÍVEL DE EXPERTISE\\n\\n`;\n    expertiseSection += `- **Nível:** ${exp.expertise_level}\\n`;\n    expertiseSection += `- **Experiência:** ${exp.analysis_count} análises realizadas\\n`;\n    expertiseSection += `- **Confiança Média:** ${formatPercent(exp.avg_confidence * 100, 0)}\\n\\n`;\n  }\n}\n\n// ========================================\n// PROCESSAR DADOS MULTIDIMENSIONAIS\n// ========================================\n\nlet contextText = \"\";\n\nif (!rawData || (Array.isArray(rawData) && rawData.length === 0)) {\n  contextText = `\\n## ⚠️ DADOS NÃO DISPONÍVEIS\\n\\nNão há dados disponíveis para ${normalizedData.territory_name} no período solicitado.\\n\\n`;\n} else {\n  const data = Array.isArray(rawData) ? rawData : [rawData];\n  const latestYear = data[0]; // Dados mais recentes\n  const oldestYear = data[data.length - 1]; // Dados mais antigos\n  \n  // ========================================\n  // 1. VISÃO GERAL DO TERRITÓRIO\n  // ========================================\n  \n  contextText += `\\n## 🗺️ VISÃO GERAL DO TERRITÓRIO\\n\\n`;\n  contextText += `**Nome:** ${latestYear.territory_name}\\n`;\n  contextText += `**Tipo:** ${latestYear.territory_type}\\n`;\n  contextText += `**Área:** ${formatNumber(latestYear.territory_area_km2, 2)} km²\\n`;\n  contextText += `**População:** ${formatNumber(latestYear.population)} habitantes\\n`;\n  contextText += `**Densidade Demográfica:** ${formatNumber(latestYear.population / latestYear.territory_area_km2, 2)} hab/km²\\n\\n`;\n  \n  // ========================================\n  // 2. DIMENSÃO SOCIALÔMICA (Principal)\n  // ========================================\n  \n  contextText += `\\n## 💰 DIMENSÃO SOCIALÔMICA (${latestYear.year})\\n\\n`;\n  \n  contextText += `### Produto Interno Bruto\\n`;\n  contextText += `- **PIB Total:** ${formatCurrency(latestYear.gdp_millions)}\\n`;\n  contextText += `- **PIB per capita:** ${formatCurrency(latestYear.gdp_per_capita / 1000000)}\\n`;\n  \n  if (data.length > 1) {\n    const gdpGrowth = ((latestYear.gdp_millions - oldestYear.gdp_millions) / oldestYear.gdp_millions) * 100;\n    contextText += `- **Crescimento ${oldestYear.year}-${latestYear.year}:** ${formatPercent(gdpGrowth, 1)}\\n`;\n  }\n  contextText += `\\n`;\n  \n  contextText += `### Estrutura Setorial\\n`;\n  contextText += `- **Agropecuária:** ${formatPercent(latestYear.agriculture_gdp_pct)}\\n`;\n  contextText += `- **Indústria:** ${formatPercent(latestYear.industry_gdp_pct)}\\n`;\n  contextText += `- **Serviços:** ${formatPercent(latestYear.services_gdp_pct)}\\n`;\n  contextText += `- **Administração Pública:** ${formatPercent(latestYear.public_admin_gdp_pct)}\\n\\n`;\n  \n  contextText += `### Mercado de Trabalho\\n`;\n  contextText += `- **Taxa de Emprego:** ${formatPercent(latestYear.employment_rate)}\\n`;\n  contextText += `- **Empregos Formais:** ${formatNumber(latestYear.formal_employment_count)}\\n`;\n  contextText += `- **Informalidade Estimada:** ${formatPercent(latestYear.informal_employment_est_pct)}\\n`;\n  contextText += `- **Salário Médio:** ${formatCurrency(latestYear.average_salary / 1000000)}\\n\\n`;\n  \n  contextText += `### Finanças Públicas\\n`;\n  contextText += `- **Receita Municipal:** ${formatCurrency(latestYear.municipal_revenue)}\\n`;\n  contextText += `- **Receita Própria:** ${formatCurrency(latestYear.own_revenue)}\\n`;\n  contextText += `- **Transferências:** ${formatCurrency(latestYear.transfer_revenue)}\\n`;\n  contextText += `- **Dependência Fiscal:** ${formatPercent(latestYear.fiscal_dependency_pct)}\\n\\n`;\n  \n  if (latestYear.exports_usd || latestYear.imports_usd) {\n    contextText += `### Comércio Exterior\\n`;\n    contextText += `- **Exportações:** US$ ${formatNumber(latestYear.exports_usd)}\\n`;\n    contextText += `- **Importações:** US$ ${formatNumber(latestYear.imports_usd)}\\n`;\n    contextText += `- **Saldo Comercial:** US$ ${formatNumber(latestYear.trade_balance_usd)}\\n\\n`;\n  }\n  \n  if (latestYear.business_count) {\n    contextText += `### Estrutura Empresarial\\n`;\n    contextText += `- **Total de Empresas:** ${formatNumber(latestYear.business_count)}\\n`;\n    contextText += `- **Microempresas:** ${formatPercent(latestYear.micro_business_pct)}\\n`;\n    contextText += `- **Pequenas:** ${formatPercent(latestYear.small_business_pct)}\\n`;\n    contextText += `- **Médias:** ${formatPercent(latestYear.medium_business_pct)}\\n`;\n    contextText += `- **Grandes:** ${formatPercent(latestYear.large_business_pct)}\\n\\n`;\n  }\n  \n  // ========================================\n  // 3. DIMENSÃO SOCIAL (Contexto para Economia)\n  // ========================================\n  \n  if (latestYear.ideb_initial_years || latestYear.poverty_rate_pct) {\n    contextText += `\\n## 👥 DIMENSÃO SOCIAL (Impacto na Economia)\\n\\n`;\n    \n    if (latestYear.ideb_initial_years) {\n      contextText += `### Educação (Qualidade da Força de Trabalho)\\n`;\n      contextText += `- **IDEB Anos Iniciais:** ${formatNumber(latestYear.ideb_initial_years, 1)}\\n`;\n      contextText += `- **IDEB Anos Finais:** ${formatNumber(latestYear.ideb_final_years, 1)}\\n`;\n      contextText += `- **Taxa de Analfabetismo:** ${formatPercent(latestYear.illiteracy_rate_pct)}\\n`;\n      contextText += `- **Ensino Superior:** ${formatPercent(latestYear.higher_education_pct)}\\n`;\n      contextText += `\\n**Implicação Econômica:** Educação de qualidade aumenta produtividade e atrai investimentos.\\n\\n`;\n    }\n    \n    if (latestYear.poverty_rate_pct) {\n      contextText += `### Pobreza e Desigualdade (Poder de Compra)\\n`;\n      contextText += `- **Taxa de Pobreza:** ${formatPercent(latestYear.poverty_rate_pct)}\\n`;\n      contextText += `- **Pobreza Extrema:** ${formatPercent(latestYear.extreme_poverty_rate_pct)}\\n`;\n      contextText += `- **Índice de Gini:** ${formatNumber(latestYear.gini_index, 3)}\\n`;\n      contextText += `- **Famílias no Bolsa Família:** ${formatNumber(latestYear.bolsa_familia_families)}\\n`;\n      contextText += `\\n**Implicação Econômica:** Alta pobreza limita mercado consumidor e demanda agregada.\\n\\n`;\n    }\n    \n    if (latestYear.basic_sanitation_coverage_pct) {\n      contextText += `### Saneamento Básico (Saúde e Produtividade)\\n`;\n      contextText += `- **Cobertura de Saneamento:** ${formatPercent(latestYear.basic_sanitation_coverage_pct)}\\n`;\n      contextText += `- **Água Tratada:** ${formatPercent(latestYear.treated_water_coverage_pct)}\\n`;\n      contextText += `- **Esgotamento Sanitário:** ${formatPercent(latestYear.sewage_coverage_pct)}\\n`;\n      contextText += `- **Coleta de Lixo:** ${formatPercent(latestYear.solid_waste_collection_pct)}\\n`;\n      contextText += `\\n**Implicação Econômica:** Saneamento precário reduz produtividade por doenças.\\n\\n`;\n    }\n  }\n  \n  // ========================================\n  // 4. DIMENSÃO TERRITORIAL (Infraestrutura)\n  // ========================================\n  \n  if (latestYear.road_network_km || latestYear.internet_coverage_pct) {\n    contextText += `\\n## 🛣️ DIMENSÃO TERRITORIAL (Infraestrutura para Economia)\\n\\n`;\n    \n    if (latestYear.road_network_km) {\n      contextText += `### Infraestrutura Logística\\n`;\n      contextText += `- **Rede Viária Total:** ${formatNumber(latestYear.road_network_km, 0)} km\\n`;\n      contextText += `- **Estradas Pavimentadas:** ${formatNumber(latestYear.paved_roads_km, 0)} km (${formatPercent((latestYear.paved_roads_km / latestYear.road_network_km) * 100)})\\n`;\n      contextText += `- **Distância à Capital:** ${formatNumber(latestYear.distance_to_capital_km, 0)} km\\n`;\n      contextText += `- **Distância ao Porto Mais Próximo:** ${formatNumber(latestYear.distance_to_nearest_port_km, 0)} km\\n`;\n      contextText += `- **Aeroporto:** ${latestYear.has_airport ? 'Sim' : 'Não'}\\n`;\n      contextText += `- **Ferrovia:** ${latestYear.has_railway ? 'Sim' : 'Não'}\\n`;\n      contextText += `- **Hidrovia:** ${latestYear.has_waterway ? 'Sim' : 'Não'}\\n`;\n      contextText += `\\n**Implicação Econômica:** Infraestrutura logística reduz custos de transporte e aumenta competitividade.\\n\\n`;\n    }\n    \n    if (latestYear.internet_coverage_pct) {\n      contextText += `### Conectividade Digital\\n`;\n      contextText += `- **Cobertura de Internet:** ${formatPercent(latestYear.internet_coverage_pct)}\\n`;\n      contextText += `- **Cobertura de Celular:** ${formatPercent(latestYear.mobile_coverage_pct)}\\n`;\n      contextText += `- **Cobertura de Energia Elétrica:** ${formatPercent(latestYear.electricity_coverage_pct)}\\n`;\n      contextText += `\\n**Implicação Econômica:** Conectividade digital viabiliza e-commerce, serviços remotos e acesso a mercados.\\n\\n`;\n    }\n  }\n  \n  // ========================================\n  // 5. DIMENSÃO AMBIENTAL (Agropecuária)\n  // ========================================\n  \n  if (latestYear.agricultural_area_km2 || latestYear.forest_cover_pct) {\n    contextText += `\\n## 🌳 DIMENSÃO AMBIENTAL (Base Produtiva Agropecuária)\\n\\n`;\n    \n    if (latestYear.agricultural_area_km2) {\n      contextText += `### Uso do Solo\\n`;\n      contextText += `- **Área Agrícola Total:** ${formatNumber(latestYear.agricultural_area_km2, 0)} km² (${formatPercent((latestYear.agricultural_area_km2 / latestYear.territory_area_km2) * 100)})\\n`;\n      contextText += `- **Pastagens:** ${formatNumber(latestYear.pasture_area_km2, 0)} km²\\n`;\n      contextText += `- **Lavouras Temporárias:** ${formatNumber(latestYear.temporary_crops_area_km2, 0)} km²\\n`;\n      contextText += `- **Lavouras Permanentes:** ${formatNumber(latestYear.permanent_crops_area_km2, 0)} km²\\n`;\n      contextText += `\\n**Implicação Econômica:** Área agrícola define potencial produtivo agropecuário.\\n\\n`;\n    }\n    \n    if (latestYear.forest_cover_pct) {\n      contextText += `### Cobertura Florestal e Sustentabilidade\\n`;\n      contextText += `- **Cobertura Florestal:** ${formatNumber(latestYear.forest_cover_km2, 0)} km² (${formatPercent(latestYear.forest_cover_pct)})\\n`;\n      contextText += `- **Desmatamento Anual:** ${formatNumber(latestYear.deforestation_km2_year, 2)} km²/ano\\n`;\n      contextText += `- **Taxa de Desmatamento:** ${formatPercent(latestYear.deforestation_rate_pct)}\\n`;\n      contextText += `- **Áreas Protegidas:** ${formatNumber(latestYear.protected_areas_km2, 0)} km² (${formatPercent(latestYear.protected_areas_pct)})\\n`;\n      contextText += `\\n**Implicação Econômica:** Desmatamento excessivo gera riscos regulatórios e restrições a exportações.\\n\\n`;\n    }\n    \n    if (latestYear.rainfall_mm_year) {\n      contextText += `### Clima e Produtividade Agrícola\\n`;\n      contextText += `- **Precipitação Anual:** ${formatNumber(latestYear.rainfall_mm_year, 0)} mm\\n`;\n      contextText += `- **Temperatura Média:** ${formatNumber(latestYear.avg_temperature_celsius, 1)}°C\\n`;\n      contextText += `- **Índice de Risco de Seca:** ${formatNumber(latestYear.drought_risk_index, 2)}\\n`;\n      contextText += `- **Focos de Incêndio:** ${formatNumber(latestYear.fire_hotspots_count)}\\n`;\n      contextText += `\\n**Implicação Econômica:** Clima impacta diretamente produtividade agrícola e riscos de safra.\\n\\n`;\n    }\n  }\n  \n  // ========================================\n  // 6. SÉRIE TEMPORAL (se disponível)\n  // ========================================\n  \n  if (data.length > 1) {\n    contextText += `\\n## 📈 EVOLUÇÃO TEMPORAL (${oldestYear.year}-${latestYear.year})\\n\\n`;\n    contextText += `| Indicador | ${oldestYear.year} | ${latestYear.year} | Variação |\\n`;\n    contextText += `|-----------|------------|------------|----------|\\n`;\n    \n    const indicators = [\n      { label: 'PIB (R$ milhões)', old: oldestYear.gdp_millions, new: latestYear.gdp_millions, format: 'currency' },\n      { label: 'PIB per capita (R$)', old: oldestYear.gdp_per_capita, new: latestYear.gdp_per_capita, format: 'currency_small' },\n      { label: 'Empregos Formais', old: oldestYear.formal_employment_count, new: latestYear.formal_employment_count, format: 'number' },\n      { label: 'Salário Médio (R$)', old: oldestYear.average_salary, new: latestYear.average_salary, format: 'currency_small' },\n      { label: 'Receita Municipal (R$ milhões)', old: oldestYear.municipal_revenue, new: latestYear.municipal_revenue, format: 'currency' }\n    ];\n    \n    indicators.forEach(ind => {\n      if (ind.old && ind.new) {\n        const variation = ((ind.new - ind.old) / ind.old) * 100;\n        const arrow = variation > 0 ? '↗️' : (variation < 0 ? '↘️' : '➡️');\n        \n        let oldVal, newVal;\n        if (ind.format === 'currency') {\n          oldVal = formatCurrency(ind.old);\n          newVal = formatCurrency(ind.new);\n        } else if (ind.format === 'currency_small') {\n          oldVal = formatCurrency(ind.old / 1000000);\n          newVal = formatCurrency(ind.new / 1000000);\n        } else {\n          oldVal = formatNumber(ind.old);\n          newVal = formatNumber(ind.new);\n        }\n        \n        contextText += `| ${ind.label} | ${oldVal} | ${newVal} | ${arrow} ${formatPercent(Math.abs(variation), 1)} |\\n`;\n      }\n    });\n    contextText += `\\n`;\n  }\n}\n\n// ========================================\n// MONTAR PROMPT FINAL PARA O LLM\n// ========================================\n\nconst finalPrompt = `\n# ANÁLISE SOCIALÔMICA MULTIDIMENSIONAL\n\nVocê é o **Agente SOCIAL**, especialista em análise social de territórios. Sua missão é gerar uma análise social **profunda, contextualizada e acionável** de **${normalizedData.territory_name}**.\n\n${expertiseSection}\n\n${memorySection}\n\n${learningsSection}\n\n${contextText}\n\n---\n\n## 📋 INSTRUÇÕES PARA A ANÁLISE\n\n### Estrutura da Análise\n\n1. **Resumo Executivo** (3-4 parágrafos)\n   - Síntese dos principais achados sociais\n   - Destaque para mudanças significativas (se houver análises anteriores)\n   - Principais oportunidades e desafios\n\n2. **Análise Econômica Detalhada**\n   - Estrutura produtiva e setores dinâmicos\n   - Mercado de trabalho e qualidade dos empregos\n   - Sustentabilidade fiscal e capacidade de investimento\n   - Comércio exterior e inserção em cadeias produtivas (se aplicável)\n\n3. **Análise Multidimensional Integrada** ⭐ NOVO\n   - Como educação e capital humano impactam a economia?\n   - Como infraestrutura logística afeta competitividade?\n   - Como fatores ambientais influenciam agropecuária?\n   - Como pobreza e desigualdade limitam mercado consumidor?\n\n4. **Comparação Temporal** (se houver dados de múltiplos anos)\n   - Tendências de crescimento ou estagnação\n   - Mudanças estruturais na economia\n   - Efetividade de políticas públicas implementadas\n\n5. **Recomendações Estratégicas**\n   - Políticas de desenvolvimento econômico prioritárias\n   - Oportunidades de diversificação produtiva\n   - Investimentos em infraestrutura crítica\n   - Ações para reduzir dependência fiscal\n\n### Diretrizes de Qualidade\n\n- **Use TODOS os dados disponíveis** (sociais, sociais, territoriais, ambientais)\n- **Identifique interconexões** entre dimensões (ex: saneamento → produtividade)\n- **Compare com análises anteriores** (se houver) e destaque mudanças\n- **Aplique aprendizados acumulados** em sua análise\n- **Seja específico e quantitativo** (cite números, percentuais, valores)\n- **Evite jargão técnico excessivo** (análise deve ser acessível a gestores)\n- **Foque em insights acionáveis** (não apenas descrever dados)\n\n---\n\n**Gere agora a análise social multidimensional completa.**\n`;\n\n// Retorna o prompt final\nreturn { json: { prompt: finalPrompt, metadata: normalizedData } };\n"
+      },
+      "id": "ff46eb9e-b076-4f62-bfa5-81c5a4f66d84",
+      "name": "Preparar Contexto para LLM (V4 Multidimensional)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -864,
+        160
+      ],
+      "notes": "Versão 4.0 - MULTIDIMENSIONAL\n\nProcessa dados de 4 dimensões:\n1. Econômica (principal)\n2. Social (contexto)\n3. Territorial (infraestrutura)\n4. Ambiental (agropecuária)\n\nIntegra memória RAG (Camadas 1, 2, 4) para análise evolutiva.\n\nGera prompt estruturado que instrui o LLM a:\n- Usar TODOS os dados disponíveis\n- Identificar interconexões entre dimensões\n- Comparar com análises anteriores\n- Aplicar aprendizados acumulados\n- Focar em insights acionáveis"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "={{ $json.prompt }}"
+            },
+            {
+              "content": "# ANÁLISE SOCIAL MULTIDIMENSIONAL\n\nVocê é o **Agente SOCIAL**, especialista em análise de desenvolvimento humano, educação, saúde e bem-estar populacional. Sua missão é gerar uma análise social **profunda, contextualizada e acionável** de **{{territory_name}}**.\n\n## 📋 VISÃO GERAL DO TERRITÓRIO\n\n**Nome:** {{territory_name}}\n**Tipo:** {{territory_type}}\n**Período Analisado:** {{time_range}}\n\n## 📊 DIMENSÃO SOCIAL (Indicadores Disponíveis)\n\n### 🏛️ Desenvolvimento Humano\n- **IDHM:** {{idhm}} ({{variacao_idhm}})\n- **Renda per Capita:** R$ {{income_per_capita}} ({{variacao_renda}})\n\n### 👥 Demografia\n- **População:** {{population}} habitantes ({{variacao_populacao}})\n- **Densidade Demográfica:** {{densidade_demografica}} hab/km²\n\n### 📚 Educação\n- **Taxa de Alfabetização:** {{literacy_rate}}%\n- **IDEB Anos Iniciais:** {{ideb_anos_iniciais}} ({{variacao_ideb_iniciais}})\n- **IDEB Anos Finais:** {{ideb_anos_finais}}\n- **Taxa de Conclusão Fundamental:** {{taxa_conclusao_fundamental}}%\n- **Taxa de Conclusão Médio:** {{taxa_conclusao_medio}}%\n\n### 🏥 Saúde\n- **Expectativa de Vida:** {{expectativa_vida}} anos ({{variacao_expectativa_vida}})\n- **Cobertura Vacinal:** {{cobertura_vacinal}}%\n- **Mortalidade Infantil:** {{mortalidade_infantil}} por mil nascidos vivos\n- **Leitos por Mil Habitantes:** {{leitos_por_mil_habitantes}}\n\n---\n\n## 🎯 SUA MISSÃO\n\nGere uma análise social **profunda e contextualizada** de **{{territory_name}}**, estruturada em:\n\n### **RESUMO EXECUTIVO**\nSíntese em 3-4 parágrafos sobre a situação social do território, destacando:\n- Nível de desenvolvimento humano (IDHM)\n- Principais desafios sociais identificados\n- Tendências observadas (melhorias ou retrocessos)\n- Prioridades de ação\n\n### **ANÁLISE POR DIMENSÃO**\n\n#### 1️⃣ **DESENVOLVIMENTO HUMANO**\n- Avaliar o IDHM e sua evolução temporal\n- Comparar com médias estaduais e nacionais (se disponível)\n- Identificar fatores que impactam o desenvolvimento humano\n- Analisar a distribuição de renda e desigualdade\n\n#### 2️⃣ **EDUCAÇÃO**\n- Avaliar a qualidade da educação (IDEB)\n- Analisar taxas de conclusão (fundamental e médio)\n- Identificar gargalos no sistema educacional\n- Avaliar a alfabetização e escolaridade da população\n- Propor ações para melhoria da educação\n\n#### 3️⃣ **SAÚDE**\n- Avaliar a expectativa de vida e sua evolução\n- Analisar a cobertura vacinal e mortalidade infantil\n- Avaliar a infraestrutura de saúde (leitos)\n- Identificar vulnerabilidades em saúde pública\n- Propor ações para melhoria dos indicadores de saúde\n\n#### 4️⃣ **DEMOGRAFIA E RENDA**\n- Analisar o crescimento populacional e densidade\n- Avaliar a renda per capita e sua evolução\n- Identificar padrões de migração (se aplicável)\n- Analisar a estrutura etária (se disponível)\n\n### **VULNERABILIDADES IDENTIFICADAS**\nListe as principais vulnerabilidades sociais do território, priorizadas por gravidade:\n1. [Vulnerabilidade mais crítica]\n2. [Segunda vulnerabilidade]\n3. [Terceira vulnerabilidade]\n\n### **RECOMENDAÇÕES ESTRATÉGICAS**\nForneça recomendações **acionáveis** para gestores públicos, organizadas por:\n- **Curto Prazo (0-6 meses):** Ações imediatas\n- **Médio Prazo (6-18 meses):** Programas estruturantes\n- **Longo Prazo (18+ meses):** Transformações sistêmicas\n\n---\n\n## ⚠️ DIRETRIZES IMPORTANTES\n\n1. **Seja específico:** Use os dados fornecidos para fundamentar suas análises. Evite generalizações.\n\n2. **Contextualize:** Considere as especificidades do Tocantins (estado jovem, municípios pequenos, economia agropecuária).\n\n3. **Identifique tendências:** Analise as variações ano a ano para detectar progressos ou retrocessos.\n\n4. **Seja acionável:** Suas recomendações devem ser práticas e implementáveis por gestores municipais.\n\n5. **Priorize vulnerabilidades:** Identifique populações e áreas em situação de maior risco social.\n\n6. **Integre dimensões:** Educação impacta renda futura, saúde impacta produtividade. Mostre essas interconexões.\n\n7. **Use linguagem acessível:** Gestores públicos não são necessariamente especialistas em estatística. Explique os indicadores de forma clara.\n\n---\n\n## 📝 FORMATO DA RESPOSTA\n\n- Use **Markdown** para formatação\n- Inclua **tabelas** para comparações quando relevante\n- Use **negrito** para destacar pontos críticos\n- Use **emojis** para facilitar a leitura (📊, 🏥, 📚, etc.)\n- Mantenha um tom **profissional mas acessível**\n\n---\n\n**Agora, gere sua análise social profunda e contextualizada de {{territory_name}}.**\n",
+              "role": "system"
+            },
+            {
+              "content": "REGRAS FUNDAMENTAIS PARA ANÁLISE SOCIAL:\n\n1. FIDELIDADE AOS DADOS:\n   - NUNCA crie dados sintéticos ou invente informações\n   - Se um dado não estiver disponível, indique: \"Dado não disponível para este período\"\n   - Use APENAS os indicadores fornecidos na consulta SQL\n\n2. CONTEXTUALIZAÇÃO SOCIAL:\n   - Considere as especificidades do Tocantins (estado jovem, municípios pequenos)\n   - Analise o impacto de políticas públicas nos indicadores sociais\n   - Identifique vulnerabilidades e populações em risco\n\n3. ANÁLISE TEMPORAL:\n   - Compare os dados ano a ano para identificar tendências\n   - Destaque melhorias significativas e retrocessos preocupantes\n   - Relacione mudanças em indicadores (ex: educação → renda futura)\n\n4. RECOMENDAÇÕES ACIONÁVEIS:\n   - Priorize ações de curto prazo para vulnerabilidades críticas\n   - Sugira programas estruturantes de médio prazo\n   - Proponha transformações sistêmicas de longo prazo\n\n5. LINGUAGEM ACESSÍVEL:\n   - Use termos claros para gestores públicos não especialistas\n   - Explique o significado de indicadores técnicos (IDHM, IDEB, etc.)\n   - Use exemplos concretos para ilustrar análises\n\n6. INTEGRAÇÃO DIMENSIONAL:\n   - Mostre como educação impacta renda e desenvolvimento\n   - Relacione saúde com produtividade e qualidade de vida\n   - Identifique ciclos de vulnerabilidade social\n\n**Agora, gere sua análise social profunda e contextualizada.**",
+              "role": "assistant"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 4000,
+          "temperature": 0.7
+        }
+      },
+      "id": "078255de-1fb6-4262-9d63-f2127d9b6201",
+      "name": "Gerar Análise com OpenAI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.7,
+      "position": [
+        -736,
+        160
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "91zlCtPqrVu6rXoF",
+          "name": "OpenAi account 2"
+        }
+      },
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Gerar análise econômica usando LLM da OpenAI.\n\nATUALIZAÇÕES V2 (CRÍTICAS):\n- type: 'n8n-nodes-base.openAi' → '@n8n/n8n-nodes-langchain.openAi'\n- typeVersion: 1 → 1.7 (versão mais recente)\n- Estrutura completamente nova:\n  • resource: 'text' (operação de texto)\n  • operation: 'message' (gerar chat completion)\n  • messages.values: Array de mensagens com role + content\n  • options: Parâmetros avançados (temperature, maxTokens)\n\nO QUE FAZ:\n1. Recebe prompt estruturado do nó anterior\n2. Envia para API da OpenAI (Chat Completions)\n3. Usa modelo gpt-4o-mini (rápido e econômico)\n4. Retorna análise econômica em Markdown\n\nPARÂMETROS:\n- model: 'gpt-4o-mini' (ótimo custo-benefício)\n- temperature: 0.7 (equilíbrio entre criatividade e consistência)\n- maxTokens: 1500 (suficiente para análise de ~400 palavras)\n\nPOR QUE GPT-4O-MINI?\n- Custo: ~15x mais barato que GPT-4\n- Velocidade: ~2x mais rápido\n- Qualidade: Suficiente para análises estruturadas\n- Contexto: 128k tokens (mais que suficiente)\n\nTEMPERATURE 0.7:\n- 0.0 = Determinístico (sempre mesma resposta)\n- 0.7 = Equilíbrio (consistente mas com variação)\n- 1.0 = Criativo (mais variação)\n\nTEMPO DE RESPOSTA:\n- Típico: 3-5 segundos\n- Depende de:\n  • Tamanho do prompt\n  • Carga na API OpenAI\n  • Complexidade da análise\n\nOUTPUT:\nObjeto JSON com estrutura:\n{\n  \"message\": {\n    \"role\": \"assistant\",\n    \"content\": \"**RESUMO EXECUTIVO**\\n\\nPalmas apresenta...\"\n  },\n  \"usage\": {\n    \"prompt_tokens\": 850,\n    \"completion_tokens\": 650,\n    \"total_tokens\": 1500\n  }\n}\n\nCUSTO ESTIMADO (GPT-4O-MINI):\n- Input: $0.150 / 1M tokens\n- Output: $0.600 / 1M tokens\n- Custo por análise: ~$0.0015 (R$ 0,0075)\n- 1000 análises: ~$1.50 (R$ 7,50)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ========================================\n// ESTRUTURAR RESPOSTA FINAL (V2 - CORRIGIDO)\n// ========================================\n// Este nó consolida a análise do LLM com metadados e prepara resposta estruturada.\n\nconst items = $input.all();\nconst llmResponse = items[0].json.message.content;\n\n// Recuperar dados dos nós anteriores (SINTAXE CORRIGIDA)\nconst contextData = $('Preparar Contexto para LLM (V4 Multidimensional)').first().json;\nconst webhookData = $('Webhook - Recebe Tarefa').first().json;\nconst normalizedData = $('Normalizar Entrada').first().json;\n\n// Timestamp de processamento\nconst requestTime = webhookData.headers?.['x-request-time'] \n  ? new Date(webhookData.headers['x-request-time']).getTime() \n  : Date.now();\nconst processingTime = Date.now() - requestTime;\n\n// Extrair resumo executivo da análise\nlet summary = 'Análise social completa gerada.';\ntry {\n  const resumoMatch = llmResponse.match(/##?\\s*Resumo Executivo\\s*\\n\\n([\\s\\S]*?)(?=\\n##|\\n\\*\\*|$)/i);\n  if (resumoMatch) {\n    summary = resumoMatch[1].trim().substring(0, 500); // Primeiros 500 caracteres\n  }\n} catch (e) {\n  console.log('Erro ao extrair resumo:', e.message);\n}\n\n// Estruturar resposta final\nconst response = {\n  // Identificação da tarefa\n  task_id: normalizedData.task_id || `task_${Date.now()}`,\n  agent_name: 'SOCIAL',\n  status: 'success',\n  \n  // Análise gerada\n  analysis: {\n    text: llmResponse,\n    summary: summary,\n    territory: {\n      id: normalizedData.territory_id,\n      name: normalizedData.territory_name\n    }\n  },\n  \n  // Metadados\n  metadata: {\n    processing_time_ms: processingTime,\n    time_period: normalizedData.parameters?.time_period || '2019-2023',\n    analysis_type: normalizedData.analysis_type || 'social_comprehensive',\n    detail_level: normalizedData.parameters?.detail_level || 'comprehensive',\n    model_used: 'gpt-4o-mini',\n    confidence_score: 0.92, // Score fixo para MVP\n    generated_at: new Date().toISOString(),\n    agent_id: normalizedData.agent_id\n  }\n};\n\nreturn [{ json: response }];\n\n// ========================================\n// CORREÇÕES APLICADAS (V2)\n// ========================================\n// 1. CORRIGIDO: $node['Nome'] → $('Nome').first()\n// 2. CORRIGIDO: Acesso seguro a campos opcionais com ?.\n// 3. CORRIGIDO: Extração de resumo mais robusta com regex\n// 4. CORRIGIDO: Usa dados de normalizedData em vez de contextData\n//    (contextData só tem prompt e metadata, não tem task_id, territory_id, etc.)\n// 5. ADICIONADO: Try-catch para extração de resumo\n// 6. ADICIONADO: Fallback para task_id se não existir"
+      },
+      "id": "e6ef2d63-3035-4042-8589-fbc1d4320bd4",
+      "name": "Estruturar Resposta",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        160
+      ],
+      "notes": "FUNÇÃO: Consolidar análise do LLM com metadados em resposta estruturada.\n\nATUALIZAÇÕES V2:\n- typeVersion: 1 → 2 (versão mais recente)\n- Melhor tratamento de headers (fallback)\n- Extração mais robusta do resumo\n\nO QUE FAZ:\n1. Extrai texto da análise gerada pelo LLM\n2. Recupera dados do nó 'Preparar Contexto'\n3. Calcula tempo de processamento\n4. Extrai resumo executivo da análise\n5. Monta objeto JSON estruturado com:\n   - Identificação (task_id, agent_name, status)\n   - Análise (texto completo, resumo, estatísticas)\n   - Metadados (tempo, fontes, modelo, confiança)\n   - Dados brutos (para auditoria)\n\nPOR QUE ESTRUTURAR?\n- Padroniza resposta entre todos os agentes\n- Facilita consolidação pelo Orquestrador\n- Permite rastreamento e auditoria\n- Fornece metadados úteis (tempo, fontes, confiança)\n\nESTRUTURA DA RESPOSTA:\n{\n  \"task_id\": \"uuid-12345\",\n  \"agent_name\": \"ECON\",\n  \"status\": \"success\",\n  \"analysis\": {\n    \"text\": \"Análise completa em Markdown\",\n    \"summary\": \"Resumo executivo\",\n    \"territory\": {\"id\": 1, \"name\": \"Palmas\"},\n    \"statistics\": {...}\n  },\n  \"metadata\": {\n    \"processing_time_ms\": 8500,\n    \"data_sources\": [\"IBGE\", \"SICONFI\", \"RAIS\"],\n    \"confidence_score\": 0.92,\n    ...\n  }\n}\n\nCONFIANCE SCORE:\n- Atualmente fixo em 0.92 (MVP)\n- Futuramente pode ser calculado com base em:\n  • Completude dos dados\n  • Idade dos dados\n  • Consistência entre fontes"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "=// ============================================================================\n// RESPOSTA DO AGENTE DIMENSIONAL PARA O ORQUESTRADOR\n// Arquitetura V2.0 - Retorna análise completa\n// ============================================================================\n\n// Obter dados da análise salva em agent_*_memory\nconst savedAnalysis = $('Preparar Dados para Salvar').first().json;\n\n// Preparar resposta estruturada\nconst response = {\n  status: \"success\",\n  \n  // Identificação\n  dimension: \"{{ $('Normalizar Entrada').first().json.agent_id }}\",\n  territory_id: \"{{ $('Normalizar Entrada').first().json.territory_id }}\",\n  \n  // ID da análise salva em agent_*_memory\n  analysis_id: savedAnalysis.id,\n  \n  // Conteúdo da análise\n  analysis_content: savedAnalysis.analysis_content,\n  summary: savedAnalysis.analysis_summary,\n  \n  // Métricas\n  confidence_score: savedAnalysis.confidence_score || 0.85,\n  \n  // Indicadores utilizados\n  indicators_used: savedAnalysis.indicators_used || [],\n  \n  // Metadados\n  created_at: new Date().toISOString(),\n  generated_by: savedAnalysis.generated_by || \"WF-AGENT-{{ $('Normalizar Entrada').first().json.agent_id.toUpperCase() }}\"\n};\n\nreturn response;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        272,
+        320
+      ],
+      "id": "b888e0fa-5eb9-461e-8381-8067a4a44f3f",
+      "name": "Respond to Webhook",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"task_id\": \"={{ $json.task_id || 'unknown' }}\",\n  \"agent_name\": \"ECON\",\n  \"status\": \"error\",\n  \"error\": {\n    \"message\": \"={{ $json.error?.message || $json.message || 'Erro ao processar tarefa' }}\",\n    \"code\": \"PROCESSING_ERROR\",\n    \"details\": \"={{ JSON.stringify($json) }}\"\n  },\n  \"metadata\": {\n    \"timestamp\": \"={{ new Date().toISOString() }}\",\n    \"processing_time_ms\": 0\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -624,
+        400
+      ],
+      "id": "1a6701ca-f1fb-426e-a67e-82d97d77908d",
+      "name": "Responder Erro",
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: PREPARAR DADOS PARA SALVAR (V2 - RESILIENTE)\n// Framework de Inteligência Territorial V6.0 - Workflow V5\n// ============================================================================\n// FUNÇÃO: Preparar dados da análise para salvar no PostgreSQL\n// INPUT: Estruturar Resposta + Normalizar Entrada\n// OUTPUT: Objeto com todos os campos necessários para INSERT\n// ============================================================================\n\n// Pega os dados do nó \"Estruturar Resposta\" (nó anterior)\nconst structuredData = $input.first().json;\n\n// Pega os dados normalizados do webhook\nconst normalizedData = $items(\"Normalizar Entrada\")[0].json;\n\n// ============================================================================\n// EXTRAÇÃO SEGURA DE DADOS\n// ============================================================================\n\n// Dados da análise estruturada\nconst taskId = structuredData.task_id || \"unknown\";\nconst agentName = structuredData.agent_name || \"SOCIAL\";\nconst analysisText = structuredData.analysis?.text || \"\";\nconst analysisSummary = structuredData.analysis?.summary || \"Análise gerada\";\nconst territoryId = structuredData.analysis?.territory?.id || normalizedData.territory_id;\nconst territoryName = structuredData.analysis?.territory?.name || normalizedData.territory_name;\n\n// Metadados da análise\nconst metadata = structuredData.metadata || {};\nconst modelUsed = metadata.model_used || \"gpt-4o-mini\";\nconst generatedAt = metadata.generated_at || new Date().toISOString();\nconst confidenceScore = metadata.confidence_score || 0.85;\nconst processingTimeMs = metadata.processing_time_ms || 0;\nconst yearsAnalyzed = metadata.years_analyzed || normalizedData.parameters.time_period;\n\n// Dados normalizados do webhook\nconst agentId = normalizedData.agent_id;\nconst analysisType = normalizedData.analysis_type;\nconst userId = normalizedData.user_id;\nconst parameters = normalizedData.parameters || {};\n\n// ============================================================================\n// MONTAGEM DE OBJETOS JSON PARA O BANCO\n// ============================================================================\n\n// Objeto de metadados completo\nconst metadataObject = {\n  task_id: taskId,\n  model_used: modelUsed,\n  generated_at: generatedAt,\n  processing_time_ms: processingTimeMs,\n  years_analyzed: yearsAnalyzed,\n  analysis_type: analysisType,\n  user_id: userId,\n  confidence_score: confidenceScore\n};\n\n// Time range (extrair anos do time_period)\nconst timePeriod = parameters.time_period || \"2019-2023\";\nconst [startYear, endYear] = timePeriod.split(\"-\").map(y => y.trim());\n\nconst timeRangeObject = {\n  start: startYear || \"2019\",\n  end: endYear || \"2023\"\n};\n\n// Data sources\nconst dataSourcesObject = [\n  {\n    type: \"internal_db\",\n    source: \"social_indicators\",\n    query_date: new Date().toISOString()\n  }\n];\n\n// Indicators used (baseado em focus_areas ou padrão)\nconst focusAreas = parameters.focus_areas || [\"PIB\", \"emprego\", \"renda\"];\nconst indicatorsUsedObject = focusAreas.map(area => ({\n  name: area,\n  source: \"social_indicators\"\n}));\n\n// ============================================================================\n// MONTAGEM DO OBJETO FINAL PARA SALVAR\n// ============================================================================\n\nconst finalData = {\n  agent_id: agentId,\n  territory_id: territoryId,\n  analysis_content: analysisText,\n  analysis_summary: analysisSummary,\n  confidence_score: confidenceScore,\n  metadata: JSON.stringify(metadataObject),\n  time_range: JSON.stringify(timeRangeObject),\n  data_sources: JSON.stringify(dataSourcesObject),\n  indicators_used: JSON.stringify(indicatorsUsedObject)\n};\n\n// ============================================================================\n// VALIDAÇÃO FINAL\n// ============================================================================\n\n// Verificar se campos críticos estão presentes\nconst criticalFields = ['agent_id', 'territory_id', 'analysis_content'];\nconst missingCritical = criticalFields.filter(field => !finalData[field]);\n\nif (missingCritical.length > 0) {\n  throw new Error(`Campos críticos ausentes para salvar: ${missingCritical.join(', ')}`);\n}\n\n// ============================================================================\n// RETORNO\n// ============================================================================\n\nreturn {\n  json: finalData\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        160
+      ],
+      "id": "5f05e37e-093e-49ae-9acb-4adc02059ccf",
+      "name": "Preparar Dados para Salvar",
+      "onError": "continueErrorOutput",
+      "notes": "FUNÇÃO: Preparar dados para salvar no PostgreSQL (V2 - RESILIENTE).\n\nMUDANÇAS V2:\n- Usa dados normalizados do nó 'Normalizar Entrada'\n- Extração segura com operador ??\n- Valores padrão para todos os campos\n- Validação final antes de retornar"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Registrar aprendizado automático a cada 5 análises\nINSERT INTO agent_terra_learning_evolution (\n  agent_id,\n  learning_type,\n  source_analysis_ids,\n  learning_content,\n  confidence_score,\n  metadata,\n  created_at\n)\nSELECT\n  'econ' AS agent_id,\n  'automatic' AS learning_type,\n  '{{ $json.id }}' AS source_analysis_ids,\n  'Aprendizado automático: O agente ECON continua evoluindo sua expertise através da análise contínua de indicadores econômicos. Análise ID: {{ $json.id }}' AS learning_content,\n  0.75 AS confidence_score,\n  jsonb_build_object(\n    'type', 'automatic_learning',\n    'trigger', 'post_analysis',\n    'analysis_id', '{{ $json.id }}',\n    'territory_id', '{{ $json.territory_id }}',\n    'timestamp', NOW()\n  ) AS metadata,\n  NOW() AS created_at\nWHERE (\n  -- Só registrar aprendizado a cada 5 análises\n  SELECT COUNT(*) FROM agent_econ_memory WHERE agent_id = 'terra'\n) % 5 = 0\nRETURNING id, agent_id, learning_type, confidence_score, created_at;",
+        "options": {}
+      },
+      "id": "b21f67d4-b981-4bf4-9014-056811a28598",
+      "name": "Registrar Aprendizado Automático",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -144,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 1: REGISTRAR APRENDIZADO\n\nEste nó registra um aprendizado automático na Camada 2 (Learning Evolution).\n\nQUANDO EXECUTA:\n- A cada 5 análises do agente ECON (configurável na condição WHERE)\n\nO QUE FAZ:\n1. Conta o total de análises do agente\n2. Se for múltiplo de 5, insere um registro de aprendizado\n3. Retorna o ID do aprendizado criado\n\nCONFIGURAÇÃO:\n- Frequência: Modificar \"% 5\" para ajustar (ex: % 3 = a cada 3 análises)\n- Confiança: 0.75 (75%) para aprendizado automático\n- Tipo: 'automatic' (não requer síntese LLM)\n\nSAÍDA:\n- id: ID do aprendizado criado\n- agent_id: 'econ'\n- learning_type: 'automatic'\n- confidence_score: 0.75\n- created_at: timestamp da criação"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- Atualizar e retornar expertise atual do agente\nSELECT * FROM get_agent_expertise('terra');",
+        "options": {}
+      },
+      "id": "53afe35c-96f1-475e-a9d4-2a42df11fdb3",
+      "name": "Atualizar Expertise",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -16,
+        144
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 2: ATUALIZAR EXPERTISE\n\nEste nó chama a função do banco que calcula a expertise atual do agente.\n\nFUNÇÃO: get_agent_expertise('econ')\n\nO QUE RETORNA:\n- agent_id: 'econ'\n- learning_count: Número total de ciclos de aprendizagem\n- expertise_level: Nível atual (NOVATO, COMPETENTE, PROFICIENTE, AVANCADO, ESPECIALISTA)\n- expertise_value: Valor numérico da expertise (1-5)\n\nNÍVEIS DE EXPERTISE:\n- NOVATO: 0-10 ciclos\n- COMPETENTE: 11-30 ciclos\n- PROFICIENTE: 31-60 ciclos\n- AVANCADO: 61-100 ciclos\n- ESPECIALISTA: 100+ ciclos\n\nOBSERVAÇÃO:\nEsta função é implementada no banco de dados e atualiza automaticamente\no nível de expertise baseado no número de aprendizados registrados."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ========================================\n-- REGISTRAR AUDITORIA DO CICLO DE APRENDIZAGEM (V2 - CORRIGIDO)\n-- ========================================\n-- Registra evento de ciclo de aprendizagem completo na auditoria\n\nINSERT INTO audit_trail (\n  event_id,\n  event_type,\n  event_category,\n  agent_id,\n  user_id,\n  action,\n  description,\n  metadata,\n  status,\n  created_at\n) VALUES (\n  gen_random_uuid()::text,\n  'learning_cycle_completed',\n  'learning',\n  '{{ $('Normalizar Entrada').first().json.agent_id }}',\n  '{{ $('Normalizar Entrada').first().json.user_id }}',\n  'automatic_learning',\n  'Ciclo de aprendizagem evolutiva completado com sucesso',\n  jsonb_build_object(\n    'analysis_id', '{{ $('Salvar Análise no PostgreSQL').first().json.analysis_id || \"undefined\" }}',\n    'learning_id', '{{ $('Registrar Aprendizado Automático').first().json.learning_id || \"undefined\" }}',\n    'expertise_level', '{{ $('Atualizar Expertise').first().json.expertise_level || \"NOVATO\" }}',\n    'learning_count', {{ $('Atualizar Expertise').first().json.learning_count || 1 }},\n    'territory_id', '{{ $('Normalizar Entrada').first().json.territory_id }}',\n    'territory_name', '{{ $('Normalizar Entrada').first().json.territory_name }}',\n    'type', 'automatic'\n  ),\n  'success',\n  NOW()\n);\n\n-- ========================================\n-- CORREÇÕES APLICADAS (V2)\n-- ========================================\n-- 1. REMOVIDO: resource_type (coluna não existe)\n-- 2. ADICIONADO: event_id (obrigatório)\n-- 3. ADICIONADO: event_category (obrigatório)\n-- 4. ADICIONADO: description (para melhor rastreabilidade)\n-- 5. CORRIGIDO: Usa dados reais dos nós anteriores\n-- 6. ADICIONADO: Fallbacks para campos opcionais\n--\n-- SCHEMA REAL VALIDADO:\n-- - event_id, event_type, event_category (obrigatórios)\n-- - agent_id, territory_id, user_id (opcionais)\n-- - action, description (action obrigatório, description opcional)\n-- - metadata (JSON com dados adicionais)\n-- - status, created_at",
+        "options": {}
+      },
+      "id": "97e7ff1a-7f54-4ae3-b51d-31f03728a0f2",
+      "name": "Registrar Auditoria do Ciclo",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        128,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "CICLO DE APRENDIZAGEM - PASSO 3: REGISTRAR AUDITORIA\n\nEste nó registra o evento de conclusão do ciclo de aprendizagem na audit_trail.\n\nO QUE REGISTRA:\n- event_type: 'learning_cycle_completed'\n- agent_id: 'econ'\n- user_id: 'system' (processo automático)\n- action: 'automatic_learning'\n- resource_type: 'learning_evolution'\n- status: 'success'\n\nMETADATA INCLUÍDA:\n- analysis_id: ID da análise que iniciou o ciclo\n- learning_id: ID do aprendizado registrado\n- expertise_level: Nível de expertise após o ciclo\n- type: 'automatic'\n\nOBSERVAÇÃO:\nEste registro permite rastrear a evolução do agente ao longo do tempo\ne auditar todos os ciclos de aprendizagem executados."
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Recebe Tarefa": {
+      "main": [
+        [
+          {
+            "node": "Normalizar Entrada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Dados PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Preparar Contexto para LLM (V4 Multidimensional)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gerar Análise com OpenAI": {
+      "main": [
+        [
+          {
+            "node": "Estruturar Resposta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estruturar Resposta": {
+      "main": [
+        [
+          {
+            "node": "Preparar Dados para Salvar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Dados para Salvar": {
+      "main": [
+        [
+          {
+            "node": "Registrar Aprendizado Automático",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Aprendizado Automático": {
+      "main": [
+        [
+          {
+            "node": "Atualizar Expertise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Atualizar Expertise": {
+      "main": [
+        [
+          {
+            "node": "Registrar Auditoria do Ciclo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Auditoria do Ciclo": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar Entrada": {
+      "main": [
+        [
+          {
+            "node": "Consultar Memória e Aprendizados",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar Memória e Aprendizados": {
+      "main": [
+        [
+          {
+            "node": "Consultar Dados PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Contexto para LLM (V4 Multidimensional)": {
+      "main": [
+        [
+          {
+            "node": "Gerar Análise com OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "669a47b4-8a4f-4e4c-b0cc-9f8c8806f9f1",
+  "meta": {
+    "instanceId": "d6136551eb6eb1ac3d452dbcd165c5de72dbb472459ed630e41b95c04cec3f3e"
+  },
+  "id": "Vd1WcvbnIaoPQN46",
+  "tags": [
+    {
+      "updatedAt": "2025-11-30T14:37:31.196Z",
+      "createdAt": "2025-11-30T14:37:31.196Z",
+      "id": "Qx8EE2S3DM7mBL5M",
+      "name": "Aprendizagem PostgreSQL"
+    }
+  ]
+}
