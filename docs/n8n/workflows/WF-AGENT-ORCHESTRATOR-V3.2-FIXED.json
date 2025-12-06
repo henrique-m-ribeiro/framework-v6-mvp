@@ -1,0 +1,567 @@
+{
+  "name": "WF-AGENT-ORCHESTRATOR - Orquestrador Central V3.2 (Corrigido)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "orchestrator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-orchestrator",
+      "name": "Webhook - Recebe Requisição",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [400, 300],
+      "webhookId": "orchestrator-webhook",
+      "notes": "PONTO DE ENTRADA DO ORQUESTRADOR\n\nRECEBE (do Concierge):\n{\n  \"territory_id\": \"1721000\",\n  \"question\": \"Como está a economia de Palmas?\"\n}\n\nCAMPOS OBRIGATÓRIOS:\n- territory_id: Código IBGE do município (7 dígitos)\n- question: Pergunta do usuário em linguagem natural"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "validation-territory-id",
+              "leftValue": "={{ $json.body.territory_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "validation-question",
+              "leftValue": "={{ $json.body.question }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-validate-payload",
+      "name": "IF - Validar Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [600, 300],
+      "notes": "VALIDAÇÃO DE ENTRADA\n\nVerifica se os campos obrigatórios estão presentes:\n- territory_id\n- question\n\nSe FALSO: Retorna erro 400 Bad Request\nSe VERDADEIRO: Prossegue para buscar território no banco"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Bad Request\",\n  \"message\": \"Campos obrigatórios ausentes. Necessário: territory_id e question.\",\n  \"received\": {{ $json.body }}\n}",
+        "responseCode": 400,
+        "options": {}
+      },
+      "id": "respond-error-400",
+      "name": "Responder Erro 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [800, 450],
+      "notes": "ERRO 400: BAD REQUEST\n\nRetorna quando campos obrigatórios estão faltando."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ibge_code, name FROM territories WHERE ibge_code = '{{ $json.body.territory_id }}' LIMIT 1;",
+        "options": {}
+      },
+      "id": "postgres-get-territory",
+      "name": "PostgreSQL - Buscar Território",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [800, 150],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "BUSCAR TERRITÓRIO NO BANCO\n\nConsulta a tabela 'territories' para:\n1. Validar se o territory_id existe\n2. Obter o nome do território\n\nRETORNA:\n- ibge_code: Código IBGE\n- name: Nome do município"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-territory-found",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-territory-found",
+      "name": "IF - Território Encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1000, 150],
+      "notes": "VERIFICAÇÃO DE TERRITÓRIO\n\nVerifica se o território foi encontrado no banco.\n\nSe FALSO: Retorna erro 404 Not Found\nSe VERDADEIRO: Prossegue para roteamento"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Not Found\",\n  \"message\": \"Território com ID '{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}' não encontrado.\"\n}",
+        "responseCode": 404,
+        "options": {}
+      },
+      "id": "respond-error-404",
+      "name": "Responder Erro 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300],
+      "notes": "ERRO 404: NOT FOUND\n\nRetorna quando o território não existe no banco."
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "model": "gpt-4o-mini",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um roteador inteligente para um sistema de análise territorial.\n\nSua tarefa é classificar a pergunta do usuário em UMA das 4 dimensões:\n\n1. **econ** (Econômica): PIB, emprego, renda, setores econômicos, empresas, comércio, indústria, serviços\n2. **social** (Social): População, educação, saúde, segurança, assistência social, cultura, esporte\n3. **terra** (Territorial): Uso do solo, infraestrutura urbana, transporte, habitação, saneamento, planejamento urbano\n4. **ambient** (Ambiental): Meio ambiente, recursos naturais, poluição, áreas protegidas, clima, biodiversidade\n\nRESPONDA APENAS COM O CÓDIGO DA DIMENSÃO (econ, social, terra ou ambient)."
+            },
+            {
+              "role": "user",
+              "content": "={{ $('Webhook - Recebe Requisição').first().json.body.question }}"
+            }
+          ]
+        },
+        "options": {
+          "temperature": 0.1,
+          "maxTokens": 10
+        },
+        "simplifyOutput": true
+      },
+      "id": "openai-router",
+      "name": "OpenAI - Roteador Inteligente",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1.5,
+      "position": [1200, 0],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      },
+      "notes": "ROTEADOR INTELIGENTE (LLM)\n\nUsa GPT-4o-mini para classificar a pergunta em uma das 4 dimensões:\n- econ: Econômica\n- social: Social\n- terra: Territorial\n- ambient: Ambiental\n\nTemperatura: 0.1 (baixa variabilidade)\nResposta: Apenas o código da dimensão"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.toLowerCase().trim() }}",
+                    "rightValue": "econ",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "econ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.toLowerCase().trim() }}",
+                    "rightValue": "social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "social"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.toLowerCase().trim() }}",
+                    "rightValue": "terra",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "terra"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.toLowerCase().trim() }}",
+                    "rightValue": "ambient",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ambient"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "switch-router",
+      "name": "Switch - Rotear para Especialista",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1400, 0],
+      "notes": "SWITCH DE ROTEAMENTO\n\nDireciona para o especialista correto baseado na resposta do LLM:\n- econ → Agente ECON\n- social → Agente SOCIAL\n- terra → Agente TERRA\n- ambient → Agente AMBIENT\n- fallback → Erro 500"
+    },
+    {
+      "parameters": {
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-econ",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"econ\",\n  \"territory_id\": \"{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}\",\n  \"territory_name\": \"{{ $('PostgreSQL - Buscar Território').first().json.name }}\",\n  \"analysis_type\": \"dimensional_economic\"\n}",
+        "options": {}
+      },
+      "id": "http-call-econ",
+      "name": "HTTP Request - Chamar Agente ECON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1600, -150],
+      "notes": "CHAMAR AGENTE ECON\n\nEnvia requisição POST para o webhook do Agente ECON com:\n- agent_id: \"econ\"\n- territory_id: Código IBGE\n- territory_name: Nome do município\n- analysis_type: \"dimensional_economic\""
+    },
+    {
+      "parameters": {
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-social",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"social\",\n  \"territory_id\": \"{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}\",\n  \"territory_name\": \"{{ $('PostgreSQL - Buscar Território').first().json.name }}\",\n  \"analysis_type\": \"dimensional_social\"\n}",
+        "options": {}
+      },
+      "id": "http-call-social",
+      "name": "HTTP Request - Chamar Agente SOCIAL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1600, -50],
+      "notes": "CHAMAR AGENTE SOCIAL\n\nEnvia requisição POST para o webhook do Agente SOCIAL com:\n- agent_id: \"social\"\n- territory_id: Código IBGE\n- territory_name: Nome do município\n- analysis_type: \"dimensional_social\""
+    },
+    {
+      "parameters": {
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-terra",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"terra\",\n  \"territory_id\": \"{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}\",\n  \"territory_name\": \"{{ $('PostgreSQL - Buscar Território').first().json.name }}\",\n  \"analysis_type\": \"dimensional_territorial\"\n}",
+        "options": {}
+      },
+      "id": "http-call-terra",
+      "name": "HTTP Request - Chamar Agente TERRA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1600, 50],
+      "notes": "CHAMAR AGENTE TERRA\n\nEnvia requisição POST para o webhook do Agente TERRA com:\n- agent_id: \"terra\"\n- territory_id: Código IBGE\n- territory_name: Nome do município\n- analysis_type: \"dimensional_territorial\""
+    },
+    {
+      "parameters": {
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-ambient",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"ambient\",\n  \"territory_id\": \"{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}\",\n  \"territory_name\": \"{{ $('PostgreSQL - Buscar Território').first().json.name }}\",\n  \"analysis_type\": \"dimensional_environmental\"\n}",
+        "options": {}
+      },
+      "id": "http-call-ambient",
+      "name": "HTTP Request - Chamar Agente AMBIENT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1600, 150],
+      "notes": "CHAMAR AGENTE AMBIENT\n\nEnvia requisição POST para o webhook do Agente AMBIENT com:\n- agent_id: \"ambient\"\n- territory_id: Código IBGE\n- territory_name: Nome do município\n- analysis_type: \"dimensional_environmental\""
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=-- Salvar análise na knowledge_base (Camada 3: Memória Organizacional)\nINSERT INTO knowledge_base (\n  id,\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  metadata,\n  confidence_score,\n  sources,\n  created_at,\n  updated_at,\n  generated_by\n)\nVALUES (\n  gen_random_uuid(),\n  '{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}',\n  '{{ $json.dimension || \"unknown\" }}',\n  '{{ $json.analysis_type || \"diagnostic\" }}',\n  '{{ $json.analysis_content || $json.content || \"Análise não disponível\" }}',\n  '{{ $json.analysis_summary || $json.summary || \"\" }}',\n  jsonb_build_object(\n    'question', '{{ $('Webhook - Recebe Requisição').first().json.body.question }}',\n    'routed_to', '{{ $('OpenAI - Roteador Inteligente').first().json.message }}',\n    'orchestration_timestamp', NOW(),\n    'agent_metadata', '{{ $json.metadata || \"{}\" }}'::jsonb\n  ),\n  {{ $json.confidence_score || 0.80 }},\n  '{{ $json.data_sources || $json.sources || \"[]\" }}'::jsonb,\n  NOW(),\n  NOW(),\n  'orchestrator-v3.2'\n)\nON CONFLICT (territory_id, dimension, analysis_type, version)\nDO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  metadata = EXCLUDED.metadata,\n  confidence_score = EXCLUDED.confidence_score,\n  sources = EXCLUDED.sources,\n  updated_at = NOW(),\n  is_latest = TRUE\nRETURNING id, territory_id, dimension, analysis_type, created_at;",
+        "options": {}
+      },
+      "id": "postgres-save-kb",
+      "name": "PostgreSQL - Salvar na Knowledge Base",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1800, 0],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "SALVAR NA KNOWLEDGE_BASE (Camada 3)\n\nRegistra a análise completa gerada pelo especialista na base de conhecimento organizacional.\n\nCAMPOS SALVOS:\n- territory_id: Território analisado\n- dimension: Dimensão da análise (econ, social, terra, ambient)\n- analysis_type: Tipo de análise (diagnostic)\n- content: Análise completa do especialista\n- summary: Resumo da análise\n- metadata: Metadados incluindo pergunta original e roteamento\n- confidence_score: Confiança da análise\n- sources: Fontes de dados utilizadas\n- generated_by: 'orchestrator-v3.2'\n\nON CONFLICT: Atualiza se já existir análise para o mesmo território/dimensão/tipo"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $('HTTP Request - Chamar Agente ECON').first().json || $('HTTP Request - Chamar Agente SOCIAL').first().json || $('HTTP Request - Chamar Agente TERRA').first().json || $('HTTP Request - Chamar Agente AMBIENT').first().json }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond to Webhook - Sucesso",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2000, 0],
+      "notes": "RESPOSTA DE SUCESSO\n\nRetorna a análise completa gerada pelo especialista,\nsem modificações."
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Falha ao rotear a pergunta para um especialista.\",\n  \"llm_response\": \"{{ $json.message }}\"\n}",
+        "responseCode": 500,
+        "options": {}
+      },
+      "id": "respond-error-500",
+      "name": "Responder Erro 500",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1600, 250],
+      "notes": "ERRO 500: INTERNAL SERVER ERROR\n\nRetorna quando o LLM não consegue classificar a pergunta."
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Requisição": {
+      "main": [
+        [
+          {
+            "node": "IF - Validar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Validar Payload": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Buscar Território",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Buscar Território": {
+      "main": [
+        [
+          {
+            "node": "IF - Território Encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Território Encontrado?": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Roteador Inteligente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 404",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Roteador Inteligente": {
+      "main": [
+        [
+          {
+            "node": "Switch - Rotear para Especialista",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Rotear para Especialista": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Chamar Agente ECON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente SOCIAL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente TERRA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente AMBIENT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente ECON": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente SOCIAL": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente TERRA": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente AMBIENT": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Salvar na Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook - Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-12-01T00:00:00.000Z",
+      "updatedAt": "2024-12-01T00:00:00.000Z",
+      "id": "projeto-tocantins",
+      "name": "Projeto Tocantins"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-12-05T00:00:00.000Z",
+  "versionId": "orchestrator-v3.2"
+}

@@ -78,14 +78,20 @@
 #### **Workflows n8n**
 
 | Documento | Descrição |
-|-----------|-----------|
-| [ARQUITETURA_NUCLEO_ESPECIALISTAS.md](02-mvp/n8n/ARQUITETURA_NUCLEO_ESPECIALISTAS.md) | Arquitetura dos 4 agentes |
-| [GUIA_N8N_FASE_7_CONFIGURACAO.md](02-mvp/n8n/GUIA_N8N_FASE_7_CONFIGURACAO.md) | Configuração do n8n |
+|-----------|-----------|---|
+| [ARQUITETURA_NUCLEO_ESPECIALISTAS.md](n8n/ARQUITETURA_NUCLEO_ESPECIALISTAS.md) | Arquitetura dos 4 agentes |
+| [explicacao_orquestrador.md](n8n/explicacao_orquestrador.md) | ⭐ **NOVO:** Explicação didática do Agente Orquestrador |
+| [especificacao_agente_orquestrador.md](n8n/especificacao_agente_orquestrador.md) | ⭐ **NOVO:** Especificação técnica do Orquestrador |
+| [guias/guia_implementacao_orquestrador_n8n.md](n8n/guias/guia_implementacao_orquestrador_n8n.md) | ⭐ **NOVO:** Guia de implementação passo a passo |
+| [guias/guia_roteador_multi_llm.md](n8n/guias/guia_roteador_multi_llm.md) | ⭐ **NOVO:** Guia para configurar roteador com múltiplos LLMs |
+| [workflows/WF-AGENT-ORCHESTRATOR-V3.2-FIXED.json](n8n/workflows/WF-AGENT-ORCHESTRATOR-V3.2-FIXED.json) | ⭐ **NOVO:** Workflow JSON do Orquestrador V3.2 |
 
 #### **Diários de Pesquisa-Ação**
 
 | Documento | Descrição |
 |-----------|-----------|---|
+| [SESSAO_12_DIARIO_PESQUISA_ACAO.md](diarios/SESSAO_12_DIARIO_PESQUISA_ACAO.md) | ⭐ **NOVO:** Sessão 12: Design do Agente Orquestrador |
+| [SESSAO_11_DIARIO_PESQUISA_ACAO.md](diarios/SESSAO_11_DIARIO_PESQUISA_ACAO.md) | Sessão 11: Conclusão do Núcleo de Especialistas |
 | [Diario_Pesquisa_Acao_2025-11-28_Sessao_6_Arquitetura_RAG.md](diarios/Diario_Pesquisa_Acao_2025-11-28_Sessao_6_Arquitetura_RAG.md) | Sessão 6: Arquitetura RAG Evolutiva |
 | [Diario_Pesquisa_Acao_2025-11-26_Sessao_5_Reflexivo.md](diarios/Diario_Pesquisa_Acao_2025-11-26_Sessao_5_Reflexivo.md) | Sessão 5: Debugging e Padronização |
 | [Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md](02-mvp/diaries/Diario_Pesquisa_Acao_2025-11-23_Estruturacao_Dados_Inteligencia.md) | Sessão 3: Estruturação de Dados |
