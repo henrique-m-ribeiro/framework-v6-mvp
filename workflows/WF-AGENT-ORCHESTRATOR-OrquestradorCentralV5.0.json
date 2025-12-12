@@ -1,0 +1,669 @@
+{
+  "name": "WF-AGENT-ORCHESTRATOR - Orquestrador Central V5.0",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0268b424-b3a3-41ea-9448-c99a1340a0c2",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "49dc9602-db9f-4830-846a-7ce9aed58745",
+      "name": "Webhook - Recebe Requisição",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        208
+      ],
+      "webhookId": "0268b424-b3a3-41ea-9448-c99a1340a0c2",
+      "notes": "═══════════════════════════════════════════════════════════════\nPONTO DE ENTRADA DO ORQUESTRADOR V4.0\n═══════════════════════════════════════════════════════════════\n\nRECEBE (do Concierge ou Frontend):\n{\n  \"territory_id\": \"1721000\",\n  \"question\": \"Como está a economia de Palmas?\"\n}\n\nCAMPOS OBRIGATÓRIOS:\n- territory_id: Código IBGE do município (7 dígitos)\n- question: Pergunta do usuário em linguagem natural\n\nNOVO EM V4.0:\n- Suporte para perguntas multidimensionais\n- Suporte para perguntas multiterritoriais\n- Geração de request_id para rastreabilidade"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "request_id",
+              "name": "request_id",
+              "value": "={{ $now.format('YYYYMMDDHHmmss') }}-req-{{ $('Webhook - Recebe Requisição').first().json.body.territory_id || 'unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "question",
+              "name": "question",
+              "value": "={{ $('Webhook - Recebe Requisição').first().json.body.question }}",
+              "type": "string"
+            },
+            {
+              "id": "analysis_scope",
+              "name": "analysis_scope",
+              "value": "={{ $json.analysis_scope || 'comprehensive' }}",
+              "type": "string"
+            },
+            {
+              "id": "territory_scope",
+              "name": "territory_scope",
+              "value": "={{ $json.territory_scope || 'state' }}",
+              "type": "string"
+            },
+            {
+              "id": "dimensions",
+              "name": "dimensions",
+              "value": "={{ $json.dimensions || [] }}",
+              "type": "array"
+            },
+            {
+              "id": "90952f32-c5fc-4502-ae29-328370c694a2",
+              "name": "selected_agents",
+              "value": "={{ $json.selected_agents }}",
+              "type": "array"
+            },
+            {
+              "id": "6965f680-6343-432b-af10-e2750da261df",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            },
+            {
+              "id": "fdb40e22-992b-4ae9-8312-cdb27e15423d",
+              "name": "agent_tasks",
+              "value": "={{ $json.agent_tasks }}",
+              "type": "string"
+            },
+            {
+              "id": "46c1c223-fccb-470c-92a1-9ae6373e92a8",
+              "name": "synthesis_strategy",
+              "value": "={{ $json.synthesis_strategy }}",
+              "type": "string"
+            },
+            {
+              "id": "0c5dd0ea-58cc-48c2-b5f6-58b2332637f4",
+              "name": "parameters",
+              "value": "={{ $('Webhook - Recebe Requisição').first().json.body.parameters || {} }}",
+              "type": "object"
+            },
+            {
+              "id": "b6f1e1fd-6a02-4308-a469-28cd88c5c053",
+              "name": "time_period",
+              "value": "={{ $('Webhook - Recebe Requisição').first().json.body.parameters.time_period || '2019-2023' }}",
+              "type": "string"
+            },
+            {
+              "id": "587b2e80-56c2-405e-90f5-34f2401b79e2",
+              "name": "detail_level",
+              "value": "={{ $('Webhook - Recebe Requisição').first().json.body.parameters.detail_level || 'comprehensive' }}",
+              "type": "string"
+            },
+            {
+              "id": "a77c3ad7-87aa-4e88-9fbd-5a0ba5ec26ff",
+              "name": "timestamp",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "464e524f-2166-4a5c-bdbe-f5cd39387c93",
+              "name": "territory",
+              "value": "={{ $json.territory }}",
+              "type": "string"
+            },
+            {
+              "id": "d22f80e4-29d7-491a-92a1-f321bf0a2892",
+              "name": "territory_id",
+              "value": "={{ $json.territory.id }}",
+              "type": "string"
+            },
+            {
+              "id": "91a9131c-f430-4096-b2a0-c3cf0cdfde81",
+              "name": "territory_name",
+              "value": "={{ $json.territory.name }}",
+              "type": "string"
+            },
+            {
+              "id": "162be13b-9d20-49ab-a188-30bf2330226f",
+              "name": "territories",
+              "value": "={{ [$json.territory] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ba3c7b5d-3a8f-44bb-b9e2-9968a9ce8479",
+      "name": "Set - Criar Payload V4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        -96
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nCRIAR PAYLOAD V4 (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nCombina a entrada original com os metadados interpretados pela IA.\n\nGERA:\n- request_id: ID único da requisição (formato: YYYYMMDDHHmmss-req-{territory_id})\n- question: Pergunta original do usuário\n- analysis_scope: unidimensional ou multidimensional\n- territory_scope: uniterritorial ou multiterritorial\n- dimensions: array de dimensões\n- territories: array de territórios\n\nEste payload será enviado para TODOS os agentes acionados."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ═══════════════════════════════════════════════════════════════\n-- SALVAR ANÁLISE NA KNOWLEDGE BASE (ATUALIZADO PARA V4.0)\n-- ═══════════════════════════════════════════════════════════════\n\nINSERT INTO knowledge_base (\n  id,\n  request_id,\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  metadata,\n  confidence_score,\n  sources,\n  analysis_scope,\n  territory_scope,\n  dimensions,\n  territories,\n  created_at,\n  updated_at,\n  generated_by\n)\nVALUES (\n  -- O analysis_id vem do agente (ex: 20251208-req-1721000-economic)\n  '{{ $input.first().json.body.analysis_id }}',\n  \n  -- O request_id também vem do agente (que recebeu do orquestrador)\n  '{{ $input.first().json.body.request_id }}',\n  \n  -- Territory ID principal (primeiro da lista)\n  '{{ JSON.parse($input.first().json.body.territories)[0].id }}',\n  \n  -- Dimensão da análise (vem do agente)\n  '{{ $input.first().json.body.dimension || \"unknown\" }}',\n  \n  -- Tipo de análise\n  '{{ $input.first().json.body.analysis_type || \"diagnostic\" }}',\n  \n  -- Conteúdo da análise\n  '{{ $input.first().json.body.analysis_content || $input.first().json.body.content || \"Análise não disponível\" }}',\n  \n  -- Resumo\n  '{{ $input.first().json.body.analysis_summary || $input.first().json.body.summary || \"\" }}',\n  \n  -- Metadata (inclui pergunta original e informações de roteamento)\n  jsonb_build_object(\n    'question', '{{ $('Webhook - Recebe Requisição').first().json.body.question }}',\n    'orchestration_timestamp', NOW(),\n    'agent_metadata', COALESCE('{{ $input.first().json.body.metadata || \"{}\" }}'::jsonb, '{}'::jsonb)\n  ),\n  \n  -- Confidence score\n  {{ $input.first().json.body.confidence_score || 0.80 }},\n  \n  -- Sources\n  COALESCE('{{ $input.first().json.body.data_sources || $input.first().json.body.sources || \"[]\" }}'::jsonb, '[]'::jsonb),\n  \n  -- ═══════════════════════════════════════════════════════════════\n  -- NOVOS CAMPOS DE METADADOS (V4.0)\n  -- ═══════════════════════════════════════════════════════════════\n  \n  -- Analysis scope (unidimensional ou multidimensional)\n  '{{ $input.first().json.body.analysis_scope }}',\n  \n  -- Territory scope (uniterritorial ou multiterritorial)\n  '{{ $input.first().json.body.territory_scope }}',\n  \n  -- Dimensions (array de dimensões)\n  ARRAY(SELECT jsonb_array_elements_text('{{ JSON.stringify($input.first().json.body.dimensions) }}'::jsonb)),\n  \n  -- Territories (array de objetos com id e name)\n  '{{ JSON.stringify($input.first().json.body.territories) }}'::jsonb,\n  \n  -- Timestamps\n  NOW(),\n  NOW(),\n  \n  -- Generated by\n  'orchestrator-v4.0'\n)\nON CONFLICT (id) DO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  metadata = EXCLUDED.metadata,\n  confidence_score = EXCLUDED.confidence_score,\n  sources = EXCLUDED.sources,\n  updated_at = NOW(),\n  is_latest = TRUE\nRETURNING id, request_id, territory_id, dimension, analysis_type, created_at;",
+        "options": {}
+      },
+      "id": "44fa7179-8d89-41ea-b40b-5039449ecc27",
+      "name": "PostgreSQL - Salvar na Knowledge Base",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1776,
+        32
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nSALVAR NA KNOWLEDGE BASE (ATUALIZADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nSalva cada análise retornada pelos agentes na base de conhecimento central.\n\nNOVO EM V4.0:\n- Salva o analysis_id (gerado pelo agente)\n- Salva o request_id (para rastreabilidade)\n- Salva os metadados estruturados (analysis_scope, territory_scope, dimensions, territories)\n\nIMPORTANTE:\n- Esta query é executada UMA VEZ PARA CADA AGENTE chamado\n- Se a análise for multidimensional, haverá múltiplas inserções\n- Cada inserção terá um analysis_id único, mas o mesmo request_id"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "5a55ccf3-12e7-49b8-8543-11545ecbb7fe",
+      "name": "Respond to Webhook - Sucesso",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1968,
+        32
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nRESPONDER AO USUÁRIO (ATUALIZADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nRetorna a síntese final para o usuário.\n\nPara análises unidimensionais:\n- Retorna a análise do único agente chamado\n\nPara análises multidimensionais:\n- Retorna a síntese integrada gerada pelo nó anterior"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \n  agent_id,\n  name,\n  description,\n  webhook_url,\n  version\nFROM agent_registry \nWHERE is_active = TRUE\nORDER BY agent_id;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        -592,
+        96
+      ],
+      "id": "9f0b7ae0-1494-452f-9925-3b826056502f",
+      "name": "PostgreSQL - Buscar Agentes Ativos",
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nDESCOBERTA DINÂMICA DE AGENTES (NOVO EM V5.0)\n═══════════════════════════════════════════════════════════════\n\nBusca todos os agentes ativos no agent_registry.\n\nRETORNA:\n- agent_id: Identificador único\n- name: Nome legível\n- description: Descrição da especialidade\n- webhook_url: URL do webhook\n- version: Versão do agente"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: PREPARAR CONTEXTO DINÂMICO (V6 - SIMPLIFICADO)\n// ============================================================================\n\nconst webhookData = $('Webhook - Recebe Requisição').first().json;\nconst territoriesData = $('PostgreSQL - Listar Territórios Disponíveis').all();\nconst agentsData = $('PostgreSQL - Buscar Agentes Ativos').all();\n\n// Extrair dados da requisição\nconst requestBody = webhookData.body || {};\nconst taskId = requestBody.task_id || `task_${Date.now()}`;\nconst question = requestBody.question || '';\nconst parameters = requestBody.parameters || {};\n\n// Montar lista de territórios disponíveis\nconst territoriesList = territoriesData.map(item => ({\n  id: item.json.id,\n  name: item.json.name,\n  type: item.json.type || 'unknown',\n  parent_id: item.json.parent_id || null\n}));\n\n// Montar lista de agentes disponíveis\nconst agentsList = agentsData.map(item => ({\n  id: item.json.id,\n  name: item.json.name,\n  description: item.json.description,\n  capabilities: item.json.capabilities,\n  webhook_url: item.json.webhook_url\n}));\n\n// Preparar contexto para a OpenAI\nconst context = {\n  task_id: taskId,\n  request: {\n    question: question,\n    parameters: parameters,\n    suggested_territory_id: requestBody.territory_id || null,\n    suggested_territory_name: requestBody.territory_name || null\n  },\n  available_territories: territoriesList,\n  available_agents: agentsList,\n  system_info: {\n    timestamp: new Date().toISOString(),\n    orchestrator_version: '5.0'\n  }\n};\n\nreturn { json: context };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -352,
+        48
+      ],
+      "id": "52a1af46-6ea6-4ce6-80a6-8889d541d4c6",
+      "name": "Code - Preparar Contexto Dinâmico",
+      "notes": "═══════════════════════════════════════════════════════════════\nPREPARAR CONTEXTO DINÂMICO (NOVO EM V5.0)\n═══════════════════════════════════════════════════════════════\n\nPrepara o prompt dinâmico para a IA com base nos agentes disponíveis.\n\nSAÍDA:\n- dynamic_context.agents: Array de agentes\n- dynamic_context.dimensions_list: String formatada para o prompt\n- dynamic_context.agent_ids: Array de IDs\n- dynamic_context.agent_count: Número de agentes"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Você é o Orquestrador Central de um sistema de inteligência territorial para o Estado do Tocantins.\n\nSua função é:\n1. VALIDAR a requisição do usuário\n2. IDENTIFICAR o território referenciado (usando a lista de territórios disponíveis)\n3. SELECIONAR os agentes especializados necessários para responder à pergunta\n4. PREPARAR as tarefas específicas para cada agente\n\nTERRITÓRIOS DISPONÍVEIS:\n{{ JSON.stringify($json.available_territories, null, 2) }}\n\nAGENTES DISPONÍVEIS:\n{{ JSON.stringify($json.available_agents, null, 2) }}\n\nREQUISIÇÃO DO USUÁRIO:\nPergunta: {{ $json.request.question }}\nTerritório sugerido (ID): {{ $json.request.suggested_territory_id }}\nTerritório sugerido (Nome): {{ $json.request.suggested_territory_name }}\nParâmetros: {{ JSON.stringify($json.request.parameters, null, 2) }}\n\nINSTRUÇÕES:\n1. Se a requisição for inválida ou incompleta, retorne um JSON com \"status\": \"invalid\" e explique o problema em \"error_message\"\n2. Se o território não for identificado, retorne \"status\": \"invalid\" e peça mais informações\n3. Se tudo estiver válido, retorne um JSON com:\n   - \"status\": \"valid\"\n   - \"territory\": { \"id\": \"...\", \"name\": \"...\" }\n   - \"selected_agents\": [ lista de IDs dos agentes necessários ]\n   - \"agent_tasks\": { \"agent_id\": \"tarefa específica para este agente\", ... }\n   - \"synthesis_strategy\": \"como sintetizar as respostas dos agentes\"\n\nFORMATO DE RESPOSTA (JSON):\n{\n  \"status\": \"valid\" | \"invalid\",\n  \"error_message\": \"...\", // apenas se status = invalid\n  \"territory\": {\n    \"id\": \"TO\",\n    \"name\": \"Tocantins\"\n  },\n  \"selected_agents\": [\"econ\", \"social\"],\n  \"agent_tasks\": {\n    \"econ\": \"Analise os principais indicadores econômicos do Tocantins entre 2019-2023\",\n    \"social\": \"Analise os principais desafios sociais do Tocantins entre 2019-2023\"\n  },\n  \"synthesis_strategy\": \"Relacione os desafios econômicos com os desafios sociais, identificando causas e consequências mútuas\"\n}"
+            },
+            {
+              "content": "={{ $json.question }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 500,
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          },
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        -176,
+        48
+      ],
+      "id": "202f6e7c-b894-4819-b521-19bc2ac9b6fe",
+      "name": "OpenAI - Interpretar Requisição",
+      "credentials": {
+        "openAiApi": {
+          "id": "91zlCtPqrVu6rXoF",
+          "name": "OpenAi account 2"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nINTERPRETAÇÃO INTELIGENTE COM PROMPT DINÂMICO (V5.0)\n═══════════════════════════════════════════════════════════════\n\nUsa GPT-4.1-mini para analisar a pergunta e identificar:\n- agent_ids: Quais agentes acionar (DINÂMICO)\n- analysis_scope: unidimensional ou multidimensional\n- territory_scope: uniterritorial ou multiterritorial\n- territories: Array de territórios envolvidos\n\nNOVO EM V5.0:\n- Prompt é gerado dinamicamente com base no agent_registry\n- IA escolhe entre os agent_ids disponíveis no sistema\n- Sistema se adapta automaticamente a novos agentes"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// ═══════════════════════════════════════════════════════════════\n// BUSCAR URL DO AGENTE DINAMICAMENTE (NOVO EM V5.0)\n// ═══════════════════════════════════════════════════════════════\n\n// 1. Obter dados do payload criado (do nó Set - Criar Payload V4)\nconst payloadData = $('Set - Criar Payload V4').first().json;\nconst agentIds = payloadData.agent_ids; // Array de agent_ids\n\n// 2. Identificar qual agente estamos processando no loop atual\nconst currentIndex = $itemIndex;\nconst currentAgentId = agentIds[currentIndex];\n\nconsole.log(`[V5.0 Loop] Processando agente ${currentIndex + 1}/${agentIds.length}: ${currentAgentId}`);\n\n// 3. Buscar informações do agente no contexto dinâmico\nconst dynamicContext = $('Code - Preparar Contexto Dinâmico').first().json.dynamic_context;\nconst agents = dynamicContext.agents;\nconst agentInfo = agents.find(agent => agent.agent_id === currentAgentId);\n\n// 4. Validar se o agente foi encontrado\nif (!agentInfo) {\n  throw new Error(`[V5.0 ERRO] Agente '${currentAgentId}' não encontrado no agent_registry. Agentes disponíveis: ${agents.map(a => a.agent_id).join(', ')}`);\n}\n\nconsole.log(`[V5.0 Loop] Agente encontrado: ${agentInfo.name} (${agentInfo.webhook_url})`);\n\n// 5. Retornar dados completos para o próximo nó (HTTP Request)\nreturn {\n  json: {\n    request_id: payloadData.request_id,\n    territory_id: payloadData.territory_id,\n    question: payloadData.question,\n    analysis_scope: payloadData.analysis_scope,\n    territory_scope: payloadData.territory_scope,\n    dimensions: payloadData.dimensions,\n    territories: payloadData.territories,\n    agent_ids: agentIds,\n    current_agent: {\n      agent_id: agentInfo.agent_id,\n      name: agentInfo.name,\n      webhook_url: agentInfo.webhook_url,\n      version: agentInfo.version,\n      description: agentInfo.description\n    },\n    loop_index: currentIndex,\n    total_agents: agentIds.length\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -96
+      ],
+      "id": "9330e5d9-cc6d-4eb2-8d4b-4825b34e756b",
+      "name": "Code - Buscar URL do Agente",
+      "notes": "═══════════════════════════════════════════════════════════════\nBUSCAR URL DINÂMICA DO AGENTE (NOVO EM V5.0)\n═══════════════════════════════════════════════════════════════\n\nPara cada agent_id no loop, busca:\n- webhook_url: URL do webhook do agente\n- name: Nome do agente\n- version: Versão do agente\n\nSAÍDA:\n- current_agent: Objeto com informações do agente atual"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.current_agent.webhook_url }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_id\": \"{{ $json.current_agent.agent_id }}\",\n  \"task_id\": \"{{ $json.request_id }}\",  // ✅ ADICIONADO\n  \"territory_id\": \"{{ $json.territory.id }}\",  // ✅ CORRIGIDO\n  \"territory_name\": \"{{ $json.territory.name }}\",  // ✅ CORRIGIDO\n  \"question\": \"{{ $json.question }}\",\n  \"agent_task\": \"{{ $json.agent_tasks[$json.current_agent.agent_id] }}\",  // ✅ ADICIONADO\n  \"parameters\": {\n    \"time_period\": \"{{ $json.time_period }}\",  // ✅ CORRIGIDO (era hard-coded)\n    \"detail_level\": \"{{ $json.detail_level }}\"  // ✅ CORRIGIDO (era hard-coded)\n  }\n}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "48d79ab7-a20b-400a-8cf6-ada61f76c3b6",
+      "name": "HTTP Request - Chamar Agente (Dinâmico)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1024,
+        144
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nCHAMAR AGENTE COM URL DINÂMICA (V5.0)\n═══════════════════════════════════════════════════════════════\n\nChama o agente usando a URL buscada dinamicamente do agent_registry.\n\nANTES (V4.0): URL hard-coded, 1 nó por agente\nDEPOIS (V5.0): URL dinâmica, 1 nó para todos os agentes\n\nVANTAGEM: Adicionar novo agente não requer modificar este nó"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================================\n// NÓ: AGREGAR RESPOSTAS (V5.2 - COM TIPAGEM)\n// ============================================================================\n// FUNÇÃO: Consolidar as respostas dos agentes em um único objeto.\n// INPUT: Nó \"Aggregate\" com um array de respostas dos agentes.\n// ============================================================================\n\n// 1. Obter o array de respostas do nó Aggregate\nconst agentResponses = $input.all();\n\n// 2. Inicializar o objeto de agregação com tipagem explícita (JSDoc)\nconst aggregatedData = {\n  /** @type {{agent_id: string, analysis: any, confidence_score: number}[]} */\n  responses: [],\n  /** @type {{agent_id: string, error_message: string}[]} */\n  errors: [],\n  metadata: {\n    total_agents_called: agentResponses.length,\n    successful_responses: 0,\n    failed_responses: 0,\n    request_id: null,\n    question: null,\n  }\n};\n\n// 3. Iterar sobre cada resposta agregada\nfor (const responseItem of agentResponses) {\n  // O nó Aggregate pode aninhar o JSON, então acessamos com segurança\n  const responseBody = responseItem.json.body || responseItem.json;\n\n  // Preencher metadados na primeira iteração\n  if (!aggregatedData.metadata.request_id && responseBody.request_id) {\n    aggregatedData.metadata.request_id = responseBody.request_id;\n    aggregatedData.metadata.question = responseBody.question;\n  }\n\n  // 4. Verificar se a resposta foi bem-sucedida ou um erro\n  if (responseBody.status === 'success') {\n    aggregatedData.responses.push({\n      agent_id: responseBody.agent_id,\n      analysis: responseBody.analysis,\n      confidence_score: responseBody.confidence_score\n    });\n    aggregatedData.metadata.successful_responses++;\n  } else {\n    aggregatedData.errors.push({\n      agent_id: responseBody.agent_id || 'unknown',\n      error_message: responseBody.error_message || 'Erro desconhecido retornado pelo agente.'\n    });\n    aggregatedData.metadata.failed_responses++;\n  }\n}\n\n// 5. Retornar o objeto consolidado para o próximo nó (OpenAI - Sintetizar)\nreturn {\n  json: aggregatedData\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        144
+      ],
+      "id": "7cabf5e0-77af-48dd-a800-bc868307eed7",
+      "name": "Code - Agregar Respostas",
+      "notes": "═══════════════════════════════════════════════════════════════\nAGREGAR RESPOSTAS (ATUALIZADO PARA V5.0)\n═══════════════════════════════════════════════════════════════\n\nColeta todas as respostas dos agentes chamados no loop.\n\nATUALIZAÇÃO V5.0:\n- Agora processa respostas de qualquer número de agentes\n- Inclui metadados do agente (id, name, version)\n- Prepara dados para salvamento na knowledge_base\n"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um especialista em síntese de análises territoriais multidimensionais do estado do Tocantins.\n\nSua missão é integrar análises de diferentes dimensões (econômica, social, territorial, ambiental) em uma síntese coerente, holística e acionável.\n\nPRINCÍPIOS DA SÍNTESE:\n\n1. INTEGRAÇÃO SISTÊMICA\n   - Identifique conexões causais entre as dimensões\n   - Mostre como uma dimensão afeta as outras\n   - Revele padrões emergentes da visão integrada\n\n2. INSIGHTS TRANSVERSAIS\n   - Destaque tendências que atravessam múltiplas dimensões\n   - Identifique sinergias (quando dimensões se reforçam)\n   - Aponte trade-offs (quando há tensões entre dimensões)\n\n3. CONTEXTUALIZAÇÃO TERRITORIAL\n   - Considere as especificidades de cada território analisado\n   - Compare territórios quando aplicável\n   - Relacione com o contexto regional/estadual\n\n4. RECOMENDAÇÕES INTEGRADAS\n   - Sugira ações que considerem múltiplas dimensões\n   - Priorize intervenções com efeitos multiplicadores\n   - Indique possíveis riscos e oportunidades\n\nESTRUTURA DA SÍNTESE:\n\n1. Visão Geral Integrada (2-3 parágrafos)\n   - Quadro geral que emerge das análises\n   - Principais padrões identificados\n\n2 - Quadro com os principais indicadores \nApresente um quadro com os principais idicadores reais relacionados à análise realizada.\n3. Conexões Entre Dimensões (3-4 parágrafos)\n   - Como as dimensões se relacionam\n   - Sinergias e trade-offs identificados\n\n4. Insights Territoriais (2-3 parágrafos)\n   - Especificidades de cada território\n   - Comparações quando aplicável\n\n5. Recomendações Integradas (3-5 itens)\n   - Ações prioritárias\n   - Justificativa multidimensional\n\n6 - Considerações finais\n- Síntese final;\n- Próximos passos sugeridos; e \n- Indicação de lacunas ou limitações identificadas.\n\nTOM E ESTILO:\n- Objetivo e baseado em evidências\n- Claro e acessível (evite jargão excessivo)\n- Propositivo (foco em ações)\n- Contextualizado (considere realidade local)\n\nIMPORTANTE:\n- Use APENAS informações presentes nas análises fornecidas\n- Não invente dados ou estatísticas\n- Se houver lacunas, indique-as explicitamente\n- Caso não exista uma definição do usuário, mantenha a síntese entre 600-1500 palavras"
+            },
+            {
+              "content": "=Sintetize as seguintes análises:\n\nPERGUNTA ORIGINAL:\n{{ $json.question }}\n\nTERRITÓRIO(S) ANALISADO(S):\n{{ $json.territories.map(t => t.name).join(', ') }}\n\nDIMENSÕES ANALISADAS:\n{{ $json.agent_responses.map(r => r.agent_name).join(', ') }}\n\nESCOPO DA ANÁLISE:\n- Análise: {{ $json.analysis_scope }}\n- Território: {{ $json.territory_scope }}\n- Total de análises: {{ $json.response_count }}\n\n───────────────────────────────────────────────────────────────\n\nANÁLISES DETALHADAS:\n\n{{ $json.agent_responses.map(r => `**DIMENSÃO: ${r.agent_name.toUpperCase()}**\\n\\n${r.analysis}\\n`).join('\\n───────────────────────────────────────────────────────────────\\n\\n') }}\n\n───────────────────────────────────────────────────────────────\n\nCom base nestas análises, crie uma síntese integrada que:\n1. Identifique conexões entre as dimensões\n2. Destaque insights transversais\n3. Forneça recomendações integradas\n4. Considere as especificidades territoriais\n\nMETADADOS DA ANÁLISE:\n- Território(s): {{ $json.territories.map(t => t.name).join(', ') }}\n- Dimensões analisadas: {{ $json.agent_responses.map(r => r.agent_name).join(', ') }}\n- Escopo: {{ $json.analysis_scope }} e {{ $json.territory_scope }}\n- Total de análises: {{ $json.response_count }}"
+            },
+            {
+              "role": "assistant",
+              "content": "# SÍNTESE INTEGRADA: ANÁLISE MULTIDIMENSIONAL\n\n## 1. Visão Geral Integrada\n\n[Análise integrada dos dados apresentados, identificando padrões gerais e tendências principais que emergem da combinação das diferentes dimensões analisadas.]\n\n## 2. Conexões Entre Dimensões\n\n### [Dimensão A] ↔ [Dimensão B]\n[Descrição detalhada de como estas dimensões se relacionam, incluindo efeitos causais, sinergias ou trade-offs identificados.]\n\n### [Outras Conexões]\n[Análise de outras relações relevantes entre dimensões.]\n\n## 3. Insights Territoriais\n\n[Análise das especificidades de cada território, comparações quando aplicável, e contextualização regional.]\n\n## 4. Recomendações Integradas\n\n1. **[Recomendação 1]**: [Descrição e justificativa multidimensional]\n2. **[Recomendação 2]**: [Descrição e justificativa multidimensional]\n3. **[Recomendação 3]**: [Descrição e justificativa multidimensional]\n\n## Considerações Finais\n\n[Síntese final, próximos passos sugeridos, e indicação de lacunas ou limitações identificadas.]"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "Frequency Penalty\nValor: 0.3\nReduz repetições de frases similares\nPresence Penalty\nValor: 0.3\nIncentiva discussão de novos tópicos",
+          "maxTokens": 3000,
+          "textFormat": {
+            "textOptions": {
+              "type": "text"
+            }
+          },
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        32
+      ],
+      "id": "9463e9c6-245a-41b1-b78c-e5f686a6c790",
+      "name": "OpenAI - Sintetizar Análises Multidimensionais",
+      "credentials": {
+        "openAiApi": {
+          "id": "91zlCtPqrVu6rXoF",
+          "name": "OpenAi account 2"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nSINTETIZAR ANÁLISES MULTIDIMENSIONAIS (ATUALIZADO PARA V5.0)\n═══════════════════════════════════════════════════════════════\n\nEste é o GRAN FINALE do Orquestrador V5.0!\n\nQuando múltiplos agentes são chamados (análise multidimensional), este nó:\n1. Recebe TODAS as análises geradas\n2. Usa GPT-4o-mini para criar uma síntese integrada\n3. Identifica conexões e interdependências entre dimensões\n4. Gera insights que emergem da visão holística\n5. Fornece recomendações práticas\n\nATUALIZAÇÃO V5.0:\n- Usa OpenAI V2 (Generate a Chat Completion)\n- Estrutura de mensagens com Roles (System, User, Assistant)\n- Prompt otimizado para síntese multidimensional\n- Processa qualquer número de agentes (não apenas 4)\n\nEXEMPLO:\nSe o usuário perguntou \"Compare a economia e a educação de Palmas e Araguaína\",\neste nó receberá:\n- Análise econômica de Palmas e Araguaína\n- Análise social (educação) de Palmas e Araguaína\n\nE gerará uma síntese que mostra:\n- Como a economia afeta a educação em cada município\n- Diferenças e semelhanças entre os dois municípios\n- Recomendações integradas que consideram ambas as dimensões"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "agent_ids",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        736,
+        176
+      ],
+      "id": "5b97666a-06d5-43ae-95ab-8379b926d25a",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1168,
+        -96
+      ],
+      "id": "8e1fcfaa-6e8a-4c7f-9920-971f4702fedf",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- QUERY NOVA\nSELECT id, name, type, parent_id \nFROM territories\nORDER BY name ASC;",
+        "options": {}
+      },
+      "id": "f64e6d30-526e-4852-98fe-b06fb6fea82b",
+      "name": "PostgreSQL - Listar Territórios Disponíveis",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -848,
+        160
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "SVnYhSNx3vXIzoYk",
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nBUSCAR TERRITÓRIOS NO BANCO\n═══════════════════════════════════════════════════════════════\n\nPreparar um contexto rico para a OpenAI com:\n\n• Lista de territórios disponíveis\n\n"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e6f9f0c3-06f7-4624-ba43-432f4ff4acd7",
+              "leftValue": "$json.status",
+              "rightValue": "'valid'",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        384,
+        48
+      ],
+      "id": "98302cf2-f008-4861-b8fd-e53dc7880327",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"error\",\n  \"error_type\": \"invalid_request\",\n  \"message\": \"{{ $json.error_message }}\",\n  \"timestamp\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "id": "e687a413-aaae-416a-a8e8-eff26fc0532a",
+      "name": "Respond to Webhook - Erro de Validação",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        288,
+        352
+      ],
+      "notes": "ERRO 400: BAD REQUEST\n\nRetorna quando campos obrigatórios estão faltando."
+    },
+    {
+      "parameters": {
+        "jsCode": "const openAIResponse = $input.first().json;\nconst parsedContent = JSON.parse(openAIResponse.message.content);\nreturn { json: parsedContent };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        176,
+        48
+      ],
+      "id": "08351c6d-b881-4353-8c31-6c733a04348d",
+      "name": "Código - Parsear Resposta OpenAI"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Recebe Requisição": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Listar Territórios Disponíveis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Criar Payload V4": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Salvar na Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook - Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Buscar Agentes Ativos": {
+      "main": [
+        [
+          {
+            "node": "Code - Preparar Contexto Dinâmico",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Preparar Contexto Dinâmico": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Interpretar Requisição",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Interpretar Requisição": {
+      "main": [
+        [
+          {
+            "node": "Código - Parsear Resposta OpenAI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Buscar URL do Agente": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Chamar Agente (Dinâmico)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente (Dinâmico)": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Agregar Respostas": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Sintetizar Análises Multidimensionais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Sintetizar Análises Multidimensionais": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Code - Buscar URL do Agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code - Agregar Respostas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Listar Territórios Disponíveis": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Buscar Agentes Ativos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Set - Criar Payload V4",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook - Erro de Validação",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Código - Parsear Resposta OpenAI": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f3828aa3-e0cd-4e07-b70c-696e9cae5245",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d6136551eb6eb1ac3d452dbcd165c5de72dbb472459ed630e41b95c04cec3f3e"
+  },
+  "id": "ZS3cRikkemdM5pEX",
+  "tags": []
+}

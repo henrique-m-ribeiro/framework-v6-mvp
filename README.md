@@ -155,6 +155,22 @@ Agentes que **evoluem sua expertise** como especialistas humanos:
 
 ---
 
+## 🗺️ Análise Multiterritorial e Comparativa (Próxima Sessão)
+
+**Objetivo**: Evoluir o sistema para suportar análises comparativas entre múltiplos territórios, microrregiões e regiões.
+
+**Status Atual**: ❌ **Não suportado** - O design atual está limitado a análises de um único território.
+
+**Plano de Implementação (3 Fases)**:
+
+1.  **Fase 1 (Fundação)**: Atualizar o Orquestrador para reconhecer e processar múltiplos territórios em uma única requisição.
+2.  **Fase 2 (Agentes)**: Adaptar os agentes especializados (ECON, SOCIAL, etc.) para realizar análises comparativas.
+3.  **Fase 3 (Regiões)**: Implementar o reconhecimento de microrregiões e regiões informais (ex: "Bico do Papagaio"), permitindo análises regionais integradas.
+
+📖 **Leia mais**: [Análise Detalhada e Plano de Implementação](docs/roadmap/ANALISE_MULTITERRITORIAL.md)
+
+---
+
 ## 🚀 INÍCIO RÁPIDO
 
 ### Para Usuários Beta (MVP)
