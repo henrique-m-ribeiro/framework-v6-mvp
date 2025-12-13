@@ -1,4 +1,4 @@
-# Prompt de Continuidade - Sessão #15
+# Prompt de Continuidade Expandido - Sessão #15
 
 **Framework de Inteligência Territorial V6.0**  
 **Data de Criação:** 12/12/2025  
@@ -41,7 +41,7 @@ Enfrentamos uma série de bugs, desde referências incorretas de variáveis até
 
 ---
 
-## 📚 DOCUMENTAÇÃO ESSENCIAL
+## 📚 DOCUMENTAÇÃO ESSENCIAL (CHECKLIST DE CONTEXTO)
 
 Antes de prosseguir, **leia estes documentos** no repositório GitHub para absorver o contexto completo:
 
@@ -58,13 +58,47 @@ Antes de prosseguir, **leia estes documentos** no repositório GitHub para absor
 3.  **README.md** (Visão Geral do Projeto) (**Atualizado na Sessão #15**)  
     📍 `README.md`
 
+### Diários das Últimas Sessões
+
+4.  **Diário de Pesquisa-Ação (Sessão #15)** (**Novo!**)  
+    📍 `docs/diarios/Diario_de_Pesquisa_Acao_Sessao_15.md`  
+    🎯 Reflexão aprofundada sobre a jornada de depuração e as decisões estratégicas.
+
+5.  **Diário de Pesquisa-Ação (Sessão #14)**  
+    📍 `docs/diarios/Diario_de_Pesquisa_Acao_Sessao_14.md`
+
 ### Workflows Atualizados (n8n Cloud)
 
-4.  **Workflows dos Agentes V6.1** (**Atualizados na Sessão #15**)  
+6.  **Workflow do Orquestrador V5.0** (**Atualizado na Sessão #15**)  
+    📍 `/workflows/WF-AGENT-ORCHESTRATOR-OrquestradorCentralV5.0.json`
+
+7.  **Workflows dos Agentes V6.1** (**Atualizados na Sessão #15**)  
     📍 `/workflows/`
 
-5.  **Workflow do Orquestrador V5.0** (**Atualizado na Sessão #15**)  
-    📍 `/workflows/WF-AGENT-ORCHESTRATOR-OrquestradorCentralV5.0.json`
+---
+
+## 🛠️ ATIVOS EXISTENTES (CHECKLIST DE ESTADO)
+
+Verifique o status e a localização dos seguintes ativos:
+
+### 1. Aplicativo Web (Replit)
+
+- **URL:** [https://inteligencia-territorial--hrhenrique7.replit.app](https://inteligencia-territorial--hrhenrique7.replit.app)
+- **Status:** ✅ Ativo e operacional.
+
+### 2. Banco de Dados (Neon PostgreSQL)
+
+- **Status:** ✅ Migrado para Arquitetura V4.0 (compatível com V5.0).
+- **Estrutura:** 4 camadas RAG, 22 tabelas, 4.089 indicadores.
+- **Credenciais:** Fornecidas separadamente pelo usuário.
+
+### 3. Workflows (n8n Cloud)
+
+- **Orquestrador V5.0:** 🟡 **Quase funcional**, aguardando correção final no nó OpenAI.
+- **Agente ECON V6.1:** ✅ **Corrigido**, aguardando teste de ponta a ponta.
+- **Agente SOCIAL V6.1:** ✅ **Corrigido**, aguardando teste de ponta a ponta.
+- **Agente TERRA V6.1:** ✅ **Corrigido**, aguardando teste de ponta a ponta.
+- **Agente AMBIENT V6.1:** ✅ **Corrigido**, aguardando teste de ponta a ponta.
 
 ---
 
