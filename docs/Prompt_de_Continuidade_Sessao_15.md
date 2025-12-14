@@ -1,4 +1,4 @@
-# Prompt de Continuidade Expandido - Sessão #15
+# Prompt de Continuidade Final - Sessão #15
 
 **Framework de Inteligência Territorial V6.0**  
 **Data de Criação:** 12/12/2025  
@@ -67,12 +67,22 @@ Antes de prosseguir, **leia estes documentos** no repositório GitHub para absor
 5.  **Diário de Pesquisa-Ação (Sessão #14)**  
     📍 `docs/diarios/Diario_de_Pesquisa_Acao_Sessao_14.md`
 
+### Guias de Implementação e Correção (Sessão #15)
+
+6.  **Guia de Melhorias do Orquestrador**
+    📍 `docs/guides/orchestrator_improvements.md`
+
+7.  **Guias de Atualização dos Agentes**
+    📍 `docs/guides/social_agent_update.md`
+    📍 `docs/guides/terra_agent_update.md`
+    📍 `docs/guides/ambient_agent_update.md`
+
 ### Workflows Atualizados (n8n Cloud)
 
-6.  **Workflow do Orquestrador V5.0** (**Atualizado na Sessão #15**)  
+8.  **Workflow do Orquestrador V5.0** (**Atualizado na Sessão #15**)  
     📍 `/workflows/WF-AGENT-ORCHESTRATOR-OrquestradorCentralV5.0.json`
 
-7.  **Workflows dos Agentes V6.1** (**Atualizados na Sessão #15**)  
+9.  **Workflows dos Agentes V6.1** (**Atualizados na Sessão #15**)  
     📍 `/workflows/`
 
 ---
@@ -134,6 +144,34 @@ A Sessão #15 foi uma jornada profunda de depuração que nos deu um mapa detalh
 | **5** | **Atualizar Nó Set** | Modificar o nó "Set - Criar Payload V4" para receber o array `territories` e o `territory_scope`. | Nó Set configurado para os novos campos. | 15 min |
 | **6** | **Teste Inicial (Multiterritorial)** | Enviar uma requisição de teste comparando Palmas e Araguaína. | O Orquestrador deve identificar os dois territórios e o escopo multiterritorial. | 15 min |
 | **7** | **Documentação** | Atualizar o estado do projeto e criar o diário da Sessão #16. | Documentação completa e atualizada. | 20 min |
+
+---
+
+## 💡 INSTRUÇÕES PARA O MANUS AI (PROTOCOLO DE INÍCIO DE SESSÃO)
+
+Ao iniciar a Sessão #16, siga este protocolo:
+
+### 1. Conecte ao GitHub
+
+```bash
+gh repo clone henrique-m-ribeiro/framework-v6-mvp
+```
+
+### 2. Leia os Documentos Essenciais
+
+**Prioridade Máxima (Leia Primeiro):**
+- `docs/roadmap/ANALISE_MULTITERRITORIAL.md`
+- `docs/guides/correcao_openai_node.md`
+- `README.md`
+
+**Contexto Adicional (Leia se Necessário):**
+- `docs/diarios/Diario_de_Pesquisa_Acao_Sessao_15.md`
+
+### 3. Confirme o Entendimento
+
+Antes de prosseguir, confirme com o usuário que você entendeu:
+- O estado atual do sistema (Orquestrador V5.0 quase funcional, aguardando correção final).
+- O objetivo da sessão (corrigir, testar e iniciar a implementação multiterritorial).
 
 ---
 
