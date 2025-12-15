@@ -30,7 +30,7 @@ A introdução do Orquestrador representa um salto de maturidade para o sistema,
 | **Interação do Usuário** | O usuário (ou um desenvolvedor) precisa saber qual agente chamar e usar um *payload* técnico e específico. | O usuário faz uma pergunta em **linguagem natural**, como se estivesse conversando com um especialista humano. |
 | **Complexidade** | **Alta.** Exige conhecimento técnico da arquitetura do sistema (webhooks, JSON, campos obrigatórios). | **Nenhuma.** O sistema abstrai toda a complexidade. A interação é intuitiva e direta. |
 | **Inteligência** | A inteligência está **distribuída e isolada** em cada agente especialista. | A inteligência é **centralizada e coordenada**. O Orquestrador adiciona uma camada de raciocínio sobre os especialistas. |
-| **Exemplo de Chamada** | `POST /webhook/agent-econ` com JSON: `{"agent_id": "econ", "territory_id": "1721000", ...}` | `POST /webhook/orchestrator` com JSON: `{"territory_id": "1721000", "question": "Como está a economia de Palmas?"}` |
+| **Exemplo de Chamada** | `POST /webhook/agent-econ` com JSON: `{"agent_id": "econ", "territory_id": "1721000", ...}` | `POST /webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2` com JSON: `{"territory_id": "1721000", "question": "Como está a economia de Palmas?"}` |
 | **Resultado** | Uma análise unidimensional gerada pelo agente específico que foi chamado. | Uma análise completa e contextualizada, mesmo que a pergunta exija a colaboração de múltiplos agentes (no futuro). |
 
 ---

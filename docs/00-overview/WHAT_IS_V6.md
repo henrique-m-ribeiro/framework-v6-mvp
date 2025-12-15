@@ -150,7 +150,7 @@ Imagine uma **empresa de consultoria especializada em gestão pública** com:
 
 **Passo 3: Concierge aciona o Orquestrador (Camada 2 - n8n)**
 ```json
-POST https://n8n.cloud/webhook/orchestrator
+POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2
 {
   "territory_id": "1721000",
   "question": "Como está a economia de Palmas? Quais os principais desafios?"

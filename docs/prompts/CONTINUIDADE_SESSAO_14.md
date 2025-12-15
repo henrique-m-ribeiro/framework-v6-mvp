@@ -324,7 +324,7 @@ Peça ao usuário:
 **Teste 1: Análise Unidimensional Uniterritorial**
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
@@ -345,7 +345,7 @@ curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
 **Teste 2: Análise Multidimensional Uniterritorial**
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
@@ -365,7 +365,7 @@ curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
 **Teste 3: Análise Multidimensional Multiterritorial**
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",

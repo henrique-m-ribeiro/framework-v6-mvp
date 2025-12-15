@@ -262,7 +262,7 @@ Como adicionamos um novo nó no meio do fluxo, precisamos garantir que os nós s
 Use o curl ou Postman para enviar uma requisição ao webhook do Orquestrador (que chamará o Agente ECON):
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",

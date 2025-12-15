@@ -1,0 +1,846 @@
+{
+  "name": "WF-AGENT-ORCHESTRATOR - Orquestrador Central V4.0 (Multidimensional)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "orchestrator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-entrada",
+      "name": "Webhook - Recebe Requisição",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1400,
+        400
+      ],
+      "webhookId": "orchestrator-webhook-v4",
+      "notes": "═══════════════════════════════════════════════════════════════\nPONTO DE ENTRADA DO ORQUESTRADOR V4.0\n═══════════════════════════════════════════════════════════════\n\nRECEBE (do Concierge ou Frontend):\n{\n  \"territory_id\": \"1721000\",\n  \"question\": \"Como está a economia de Palmas?\"\n}\n\nCAMPOS OBRIGATÓRIOS:\n- territory_id: Código IBGE do município (7 dígitos)\n- question: Pergunta do usuário em linguagem natural\n\nNOVO EM V4.0:\n- Suporte para perguntas multidimensionais\n- Suporte para perguntas multiterritoriais\n- Geração de request_id para rastreabilidade"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "validation-territory-id",
+              "leftValue": "={{ $json.body.territory_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "validation-question",
+              "leftValue": "={{ $json.body.question }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-validar-payload",
+      "name": "IF - Validar Payload",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        400
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nVALIDAÇÃO DE ENTRADA\n═══════════════════════════════════════════════════════════════\n\nVerifica se os campos obrigatórios estão presentes:\n- territory_id\n- question\n\nSe FALSO: Retorna erro 400 Bad Request\nSe VERDADEIRO: Prossegue para buscar território no banco"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Bad Request\",\n  \"message\": \"Campos obrigatórios ausentes. Necessário: territory_id e question.\",\n  \"received\": {{ $json.body }}\n}",
+        "responseCode": 400,
+        "options": {}
+      },
+      "id": "responder-erro-400",
+      "name": "Responder Erro 400",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -1000,
+        560
+      ],
+      "notes": "ERRO 400: BAD REQUEST\n\nRetorna quando campos obrigatórios estão faltando."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, name FROM territories WHERE id = '{{ $json.body.territory_id }}' LIMIT 1;",
+        "options": {}
+      },
+      "id": "pg-buscar-territorio",
+      "name": "PostgreSQL - Buscar Território",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -1000,
+        240
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nBUSCAR TERRITÓRIO NO BANCO\n═══════════════════════════════════════════════════════════════\n\nConsulta a tabela 'territories' para:\n1. Validar se o territory_id existe\n2. Obter o nome do território\n\nRETORNA:\n- id: Código IBGE\n- name: Nome do município"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-territory-found",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-territorio-encontrado",
+      "name": "IF - Território Encontrado?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        240
+      ],
+      "notes": "VERIFICAÇÃO DE TERRITÓRIO\n\nVerifica se o território foi encontrado no banco.\n\nSe FALSO: Retorna erro 404 Not Found\nSe VERDADEIRO: Prossegue para interpretação da requisição"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Not Found\",\n  \"message\": \"Território com ID '{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}' não encontrado.\"\n}",
+        "responseCode": 404,
+        "options": {}
+      },
+      "id": "responder-erro-404",
+      "name": "Responder Erro 404",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -600,
+        400
+      ],
+      "notes": "ERRO 404: NOT FOUND\n\nRetorna quando o território não existe no banco."
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um especialista em análise de dados territoriais e políticas públicas. Sua função é interpretar perguntas de usuários e extrair metadados estruturados.\n\nVocê deve analisar a pergunta e identificar:\n1. Escopo da análise (unidimensional ou multidimensional)\n2. Escopo territorial (uniterritorial ou multiterritorial)\n3. Dimensões envolvidas (economic, social, terra, ambient)\n4. Territórios envolvidos (id e nome)\n\nBase de territórios disponíveis:\n- Palmas: 1721000\n- Araguaína: 1702109\n- Gurupi: 1709500\n- Porto Nacional: 1718204\n- Paraíso do Tocantins: 1716109\n\nRESPONDA APENAS COM UM OBJETO JSON NO SEGUINTE FORMATO:\n{\n  \"analysis_scope\": \"unidimensional\" ou \"multidimensional\",\n  \"territory_scope\": \"uniterritorial\" ou \"multiterritorial\",\n  \"dimensions\": [\"economic\", \"social\", ...],\n  \"territories\": [{\"id\": \"1721000\", \"name\": \"Palmas\"}, ...]\n}"
+            },
+            {
+              "role": "user",
+              "content": "={{ $('Webhook - Recebe Requisição').first().json.body.question }}"
+            }
+          ]
+        },
+        "options": {
+          "responseFormat": "json_object"
+        }
+      },
+      "id": "openai-interpretar-requisicao",
+      "name": "OpenAI - Interpretar Requisição",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -600,
+        80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI API"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nINTERPRETAÇÃO INTELIGENTE DA REQUISIÇÃO (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nUsa GPT-4.1-mini para analisar a pergunta do usuário e extrair:\n- analysis_scope: unidimensional ou multidimensional\n- territory_scope: uniterritorial ou multiterritorial\n- dimensions: array de dimensões (economic, social, terra, ambient)\n- territories: array de objetos com id e nome dos territórios\n\nEXEMPLOS:\n\nPergunta: \"Como está a economia de Palmas?\"\nResposta: {\n  \"analysis_scope\": \"unidimensional\",\n  \"territory_scope\": \"uniterritorial\",\n  \"dimensions\": [\"economic\"],\n  \"territories\": [{\"id\": \"1721000\", \"name\": \"Palmas\"}]\n}\n\nPergunta: \"Compare a economia e a educação de Palmas e Araguaína.\"\nResposta: {\n  \"analysis_scope\": \"multidimensional\",\n  \"territory_scope\": \"multiterritorial\",\n  \"dimensions\": [\"economic\", \"social\"],\n  \"territories\": [\n    {\"id\": \"1721000\", \"name\": \"Palmas\"},\n    {\"id\": \"1702109\", \"name\": \"Araguaína\"}\n  ]\n}"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "request_id",
+              "name": "request_id",
+              "value": "={{ $now.format('YYYYMMDDHHmmss') }}-req-{{ $('Webhook - Recebe Requisição').first().json.body.territory_id }}",
+              "type": "string"
+            },
+            {
+              "id": "question",
+              "name": "question",
+              "value": "={{ $('Webhook - Recebe Requisição').first().json.body.question }}",
+              "type": "string"
+            },
+            {
+              "id": "analysis_scope",
+              "name": "analysis_scope",
+              "value": "={{ JSON.parse($json.message).analysis_scope }}",
+              "type": "string"
+            },
+            {
+              "id": "territory_scope",
+              "name": "territory_scope",
+              "value": "={{ JSON.parse($json.message).territory_scope }}",
+              "type": "string"
+            },
+            {
+              "id": "dimensions",
+              "name": "dimensions",
+              "value": "={{ JSON.parse($json.message).dimensions }}",
+              "type": "array"
+            },
+            {
+              "id": "territories",
+              "name": "territories",
+              "value": "={{ JSON.parse($json.message).territories }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-payload-v4",
+      "name": "Set - Criar Payload V4",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nCRIAR PAYLOAD V4 (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nCombina a entrada original com os metadados interpretados pela IA.\n\nGERA:\n- request_id: ID único da requisição (formato: YYYYMMDDHHmmss-req-{territory_id})\n- question: Pergunta original do usuário\n- analysis_scope: unidimensional ou multidimensional\n- territory_scope: uniterritorial ou multiterritorial\n- dimensions: array de dimensões\n- territories: array de territórios\n\nEste payload será enviado para TODOS os agentes acionados."
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "agents_to_call",
+              "name": "agents_to_call",
+              "value": "={{ $json.dimensions }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "id": "set-agentes-para-chamar",
+      "name": "Set - Definir Agentes a Chamar",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -200,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nDEFINIR AGENTES A CHAMAR (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nCria uma lista de agentes que devem ser acionados com base nas dimensões identificadas.\n\nEXEMPLO:\n- Se dimensions = [\"economic\", \"social\"]\n- Então agents_to_call = [\"economic\", \"social\"]\n- E o Loop irá chamar o Agente ECON e o Agente SOCIAL"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "loop-agentes",
+      "name": "Loop - Iterar sobre Agentes",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        0,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nLOOP SOBRE AGENTES (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nItera sobre a lista de agentes a serem chamados.\n\nPara cada dimensão em 'dimensions', chama o agente correspondente.\n\nEXEMPLO:\n- Iteração 1: dimension = \"economic\" → Chama Agente ECON\n- Iteração 2: dimension = \"social\" → Chama Agente SOCIAL"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.agents_to_call[$('Loop - Iterar sobre Agentes').first().context.currentRunIndex] }}",
+                    "rightValue": "economic",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "econ"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.agents_to_call[$('Loop - Iterar sobre Agentes').first().context.currentRunIndex] }}",
+                    "rightValue": "social",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "social"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.agents_to_call[$('Loop - Iterar sobre Agentes').first().context.currentRunIndex] }}",
+                    "rightValue": "terra",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "terra"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.agents_to_call[$('Loop - Iterar sobre Agentes').first().context.currentRunIndex] }}",
+                    "rightValue": "ambient",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ambient"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "id": "switch-rotear-agente",
+      "name": "Switch - Rotear para Agente",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        200,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nSWITCH DE ROTEAMENTO (ADAPTADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nDireciona para o especialista correto baseado na dimensão atual do loop:\n- economic → Agente ECON\n- social → Agente SOCIAL\n- terra → Agente TERRA\n- ambient → Agente AMBIENT\n- fallback → Erro 500"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-econ",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Set - Criar Payload V4').first().json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "http-chamar-econ",
+      "name": "HTTP Request - Chamar Agente ECON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        -80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nCHAMAR AGENTE ECON (ATUALIZADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nEnvia o Payload V4 completo para o Agente ECON.\n\nO Agente receberá:\n- request_id\n- question\n- analysis_scope\n- territory_scope\n- dimensions\n- territories\n\nE retornará:\n- analysis_id (gerado pelo agente)\n- analysis_content\n- analysis_summary\n- confidence_score\n- metadata\n- + todos os campos de metadados recebidos"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-social",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Set - Criar Payload V4').first().json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "http-chamar-social",
+      "name": "HTTP Request - Chamar Agente SOCIAL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        80
+      ],
+      "notes": "CHAMAR AGENTE SOCIAL (ATUALIZADO PARA V4.0)\n\nEnvia o Payload V4 completo para o Agente SOCIAL."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-terra",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Set - Criar Payload V4').first().json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "http-chamar-terra",
+      "name": "HTTP Request - Chamar Agente TERRA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        240
+      ],
+      "notes": "CHAMAR AGENTE TERRA (ATUALIZADO PARA V4.0)\n\nEnvia o Payload V4 completo para o Agente TERRA."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://galactic-ai.app.n8n.cloud/webhook/agent-ambient",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Set - Criar Payload V4').first().json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "http-chamar-ambient",
+      "name": "HTTP Request - Chamar Agente AMBIENT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        400,
+        400
+      ],
+      "notes": "CHAMAR AGENTE AMBIENT (ATUALIZADO PARA V4.0)\n\nEnvia o Payload V4 completo para o Agente AMBIENT."
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- ═══════════════════════════════════════════════════════════════\n-- SALVAR ANÁLISE NA KNOWLEDGE BASE (ATUALIZADO PARA V4.0)\n-- ═══════════════════════════════════════════════════════════════\n\nINSERT INTO knowledge_base (\n  id,\n  request_id,\n  territory_id,\n  dimension,\n  analysis_type,\n  content,\n  summary,\n  metadata,\n  confidence_score,\n  sources,\n  analysis_scope,\n  territory_scope,\n  dimensions,\n  territories,\n  created_at,\n  updated_at,\n  generated_by\n)\nVALUES (\n  -- O analysis_id vem do agente (ex: 20251208-req-1721000-economic)\n  '{{ $input.first().json.body.analysis_id }}',\n  \n  -- O request_id também vem do agente (que recebeu do orquestrador)\n  '{{ $input.first().json.body.request_id }}',\n  \n  -- Territory ID principal (primeiro da lista)\n  '{{ JSON.parse($input.first().json.body.territories)[0].id }}',\n  \n  -- Dimensão da análise (vem do agente)\n  '{{ $input.first().json.body.dimension || \"unknown\" }}',\n  \n  -- Tipo de análise\n  '{{ $input.first().json.body.analysis_type || \"diagnostic\" }}',\n  \n  -- Conteúdo da análise\n  '{{ $input.first().json.body.analysis_content || $input.first().json.body.content || \"Análise não disponível\" }}',\n  \n  -- Resumo\n  '{{ $input.first().json.body.analysis_summary || $input.first().json.body.summary || \"\" }}',\n  \n  -- Metadata (inclui pergunta original e informações de roteamento)\n  jsonb_build_object(\n    'question', '{{ $('Webhook - Recebe Requisição').first().json.body.question }}',\n    'orchestration_timestamp', NOW(),\n    'agent_metadata', COALESCE('{{ $input.first().json.body.metadata || \"{}\" }}'::jsonb, '{}'::jsonb)\n  ),\n  \n  -- Confidence score\n  {{ $input.first().json.body.confidence_score || 0.80 }},\n  \n  -- Sources\n  COALESCE('{{ $input.first().json.body.data_sources || $input.first().json.body.sources || \"[]\" }}'::jsonb, '[]'::jsonb),\n  \n  -- ═══════════════════════════════════════════════════════════════\n  -- NOVOS CAMPOS DE METADADOS (V4.0)\n  -- ═══════════════════════════════════════════════════════════════\n  \n  -- Analysis scope (unidimensional ou multidimensional)\n  '{{ $input.first().json.body.analysis_scope }}',\n  \n  -- Territory scope (uniterritorial ou multiterritorial)\n  '{{ $input.first().json.body.territory_scope }}',\n  \n  -- Dimensions (array de dimensões)\n  ARRAY(SELECT jsonb_array_elements_text('{{ JSON.stringify($input.first().json.body.dimensions) }}'::jsonb)),\n  \n  -- Territories (array de objetos com id e name)\n  '{{ JSON.stringify($input.first().json.body.territories) }}'::jsonb,\n  \n  -- Timestamps\n  NOW(),\n  NOW(),\n  \n  -- Generated by\n  'orchestrator-v4.0'\n)\nON CONFLICT (id) DO UPDATE SET\n  content = EXCLUDED.content,\n  summary = EXCLUDED.summary,\n  metadata = EXCLUDED.metadata,\n  confidence_score = EXCLUDED.confidence_score,\n  sources = EXCLUDED.sources,\n  updated_at = NOW(),\n  is_latest = TRUE\nRETURNING id, request_id, territory_id, dimension, analysis_type, created_at;",
+        "options": {}
+      },
+      "id": "pg-salvar-knowledge-base",
+      "name": "PostgreSQL - Salvar na Knowledge Base",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        600,
+        80
+      ],
+      "credentials": {
+        "postgres": {
+          "name": "Postgres Replit"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nSALVAR NA KNOWLEDGE BASE (ATUALIZADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nSalva cada análise retornada pelos agentes na base de conhecimento central.\n\nNOVO EM V4.0:\n- Salva o analysis_id (gerado pelo agente)\n- Salva o request_id (para rastreabilidade)\n- Salva os metadados estruturados (analysis_scope, territory_scope, dimensions, territories)\n\nIMPORTANTE:\n- Esta query é executada UMA VEZ PARA CADA AGENTE chamado\n- Se a análise for multidimensional, haverá múltiplas inserções\n- Cada inserção terá um analysis_id único, mas o mesmo request_id"
+    },
+    {
+      "parameters": {},
+      "id": "loop-voltar",
+      "name": "Loop - Voltar para Próximo Agente",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        800,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nVOLTAR PARA PRÓXIMO AGENTE (LOOP)\n═══════════════════════════════════════════════════════════════\n\nSe houver mais agentes para chamar, volta para o início do loop.\nSe todos os agentes já foram chamados, prossegue para a agregação."
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Você é um analista sênior de políticas públicas e dados territoriais. Sua função é sintetizar múltiplas análises dimensionais em uma resposta coesa e integrada para o usuário.\n\nVocê receberá:\n1. A pergunta original do usuário\n2. Múltiplas análises de diferentes dimensões (econômica, social, territorial, ambiental)\n\nSua tarefa:\n1. Identificar os pontos-chave de cada análise dimensional\n2. Encontrar conexões e interdependências entre as dimensões\n3. Criar uma síntese integrada que responda à pergunta do usuário de forma holística\n4. Destacar insights que emergem da análise multidimensional (que não seriam visíveis em análises isoladas)\n5. Fornecer recomendações práticas baseadas na visão integrada\n\nFormato da resposta:\n- Introdução: Contexto geral\n- Síntese por dimensão: Principais achados de cada dimensão\n- Análise integrada: Conexões e interdependências\n- Insights emergentes: O que a visão multidimensional revela\n- Recomendações: Ações práticas baseadas na análise completa\n- Conclusão: Mensagem final\n\nTom: Profissional, objetivo, baseado em dados, mas acessível."
+            },
+            {
+              "role": "user",
+              "content": "=Pergunta original: {{ $('Webhook - Recebe Requisição').first().json.body.question }}\n\nAnálises recebidas:\n{{ JSON.stringify($('Loop - Voltar para Próximo Agente').all()) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "openai-sintetizar-analises",
+      "name": "OpenAI - Sintetizar Análises Multidimensionais",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        80
+      ],
+      "credentials": {
+        "openAiApi": {
+          "name": "OpenAI API"
+        }
+      },
+      "notes": "═══════════════════════════════════════════════════════════════\nSINTETIZAR ANÁLISES MULTIDIMENSIONAIS (NOVO EM V4.0)\n═══════════════════════════════════════════════════════════════\n\nEste é o GRAN FINALE do Orquestrador V4.0!\n\nQuando múltiplos agentes são chamados (análise multidimensional), este nó:\n1. Recebe TODAS as análises geradas\n2. Usa GPT-4.1-mini para criar uma síntese integrada\n3. Identifica conexões e interdependências entre dimensões\n4. Gera insights que emergem da visão holística\n5. Fornece recomendações práticas\n\nEXEMPLO:\nSe o usuário perguntou \"Compare a economia e a educação de Palmas e Araguaína\",\neste nó receberá:\n- Análise econômica de Palmas e Araguaína\n- Análise social (educação) de Palmas e Araguaína\n\nE gerará uma síntese que mostra, por exemplo:\n- Como a economia afeta a educação em cada município\n- Diferenças e semelhanças entre os dois municípios\n- Recomendações integradas que consideram ambas as dimensões"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "id": "respond-sucesso",
+      "name": "Respond to Webhook - Sucesso",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        80
+      ],
+      "notes": "═══════════════════════════════════════════════════════════════\nRESPONDER AO USUÁRIO (ATUALIZADO PARA V4.0)\n═══════════════════════════════════════════════════════════════\n\nRetorna a síntese final para o usuário.\n\nPara análises unidimensionais:\n- Retorna a análise do único agente chamado\n\nPara análises multidimensionais:\n- Retorna a síntese integrada gerada pelo nó anterior"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"error\": \"Internal Server Error\",\n  \"message\": \"Não foi possível rotear a requisição para um agente especializado.\",\n  \"question\": \"{{ $('Webhook - Recebe Requisição').first().json.body.question }}\"\n}",
+        "responseCode": 500,
+        "options": {}
+      },
+      "id": "responder-erro-500",
+      "name": "Responder Erro 500",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        560
+      ],
+      "notes": "ERRO 500: INTERNAL SERVER ERROR\n\nRetorna quando o roteamento falha."
+    }
+  ],
+  "connections": {
+    "Webhook - Recebe Requisição": {
+      "main": [
+        [
+          {
+            "node": "IF - Validar Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Validar Payload": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Buscar Território",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 400",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Buscar Território": {
+      "main": [
+        [
+          {
+            "node": "IF - Território Encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF - Território Encontrado?": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Interpretar Requisição",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 404",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Interpretar Requisição": {
+      "main": [
+        [
+          {
+            "node": "Set - Criar Payload V4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Criar Payload V4": {
+      "main": [
+        [
+          {
+            "node": "Set - Definir Agentes a Chamar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set - Definir Agentes a Chamar": {
+      "main": [
+        [
+          {
+            "node": "Loop - Iterar sobre Agentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop - Iterar sobre Agentes": {
+      "main": [
+        [
+          {
+            "node": "Switch - Rotear para Agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch - Rotear para Agente": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request - Chamar Agente ECON",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente SOCIAL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente TERRA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request - Chamar Agente AMBIENT",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Responder Erro 500",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente ECON": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente SOCIAL": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente TERRA": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request - Chamar Agente AMBIENT": {
+      "main": [
+        [
+          {
+            "node": "PostgreSQL - Salvar na Knowledge Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PostgreSQL - Salvar na Knowledge Base": {
+      "main": [
+        [
+          {
+            "node": "Loop - Voltar para Próximo Agente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop - Voltar para Próximo Agente": {
+      "main": [
+        [
+          {
+            "node": "Loop - Iterar sobre Agentes",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenAI - Sintetizar Análises Multidimensionais",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Sintetizar Análises Multidimensionais": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook - Sucesso",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

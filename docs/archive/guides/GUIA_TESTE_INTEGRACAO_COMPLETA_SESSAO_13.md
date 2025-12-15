@@ -37,7 +37,7 @@ Validar que:
 ### 1.1. Executar Requisição
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
@@ -119,7 +119,7 @@ SELECT * FROM get_agent_expertise('econ');
 ### 2.1. Executar Requisição
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
@@ -175,7 +175,7 @@ SELECT * FROM get_agent_expertise('social');
 ### 3.1. Executar Requisição
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
@@ -231,7 +231,7 @@ SELECT * FROM get_agent_expertise('terra');
 ### 4.1. Executar Requisição
 
 ```bash
-curl -X POST https://galactic-ai.app.n8n.cloud/webhook/orchestrator \
+curl -X POST https://galactic-ai.app.n8n.cloud/webhook/0268b424-b3a3-41ea-9448-c99a1340a0c2 \
   -H "Content-Type: application/json" \
   -d '{
     "territory_id": "1721000",
